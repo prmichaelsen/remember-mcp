@@ -3,7 +3,7 @@ export default {
   testEnvironment: 'node',
   extensionsToTreatAsEsm: ['.ts'],
   roots: ['<rootDir>/tests'],
-  testMatch: ['**/*.test.ts'],
+  testMatch: ['**/*.spec.ts'],
   moduleFileExtensions: ['ts', 'js'],
   collectCoverage: true,
   coverageDirectory: 'coverage',
@@ -11,7 +11,7 @@ export default {
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
-    '!src/**/*.test.ts',
+    '!src/**/*.spec.ts',
     '!src/**/*.e2e.ts',
     '!src/index.ts',
     '!src/types/**/*.ts',
