@@ -1,6 +1,6 @@
 /**
  * Content type constants and descriptions
- * Based on agent/design/content-types-expansion.md
+ * Based on agent/design/content-types-expansion.md and default-template-library.md
  */
 
 import type { ContentType } from '../types/memory.js';
@@ -24,8 +24,7 @@ export const CONTENT_TYPES: readonly ContentType[] = [
   'email',
   'conversation',
   'meeting',
-  'contact',
-  'person',
+  'person', // Unified person template (replaces both 'contact' and 'person')
   // Content & Media
   'article',
   'webpage',
@@ -162,19 +161,12 @@ export const CONTENT_TYPE_METADATA: Record<ContentType, ContentTypeMetadata> = {
     examples: ['Meeting notes', 'Standup notes', 'Conference calls'],
     common_fields: ['attendees', 'agenda', 'decisions', 'action_items'],
   },
-  contact: {
-    name: 'contact',
-    category: 'communication',
-    description: 'Contact information',
-    examples: ['Phone numbers', 'Email addresses', 'Contact cards'],
-    common_fields: ['name', 'email', 'phone'],
-  },
   person: {
     name: 'person',
     category: 'communication',
-    description: 'Detailed person profiles and relationship context',
-    examples: ['People you know', 'Professional contacts', 'Friends', 'Family'],
-    common_fields: ['name', 'relationship', 'company', 'how_we_met', 'contact_info'],
+    description: 'Track information about people - personal, professional, or both',
+    examples: ['Friends', 'Family', 'Colleagues', 'Professional contacts', 'Business partners'],
+    common_fields: ['name', 'relationship', 'company', 'job_title', 'how_we_met', 'contact_info', 'birthday', 'interests'],
   },
 
   // Content & Media
@@ -384,7 +376,7 @@ export const CONTENT_TYPE_METADATA: Record<ContentType, ContentTypeMetadata> = {
 export const CONTENT_TYPE_CATEGORIES = {
   core: ['code', 'note', 'documentation', 'reference'],
   task: ['todo', 'checklist', 'project', 'goal', 'habit'],
-  communication: ['email', 'conversation', 'meeting', 'contact', 'person'],
+  communication: ['email', 'conversation', 'meeting', 'person'],
   content: ['article', 'webpage', 'social', 'presentation', 'spreadsheet', 'pdf'],
   media: ['image', 'video', 'audio', 'transcript'],
   creative: ['screenplay', 'recipe', 'idea', 'quote'],
@@ -417,68 +409,51 @@ export function isValidContentType(type: string): type is ContentType {
 
 /**
  * Get content type description for LLM prompts
+ * Generated dynamically from CONTENT_TYPE_METADATA
  */
 export function getContentTypeDescription(): string {
-  return `Type of content:
+  const categoryNames: Record<string, string> = {
+    core: 'Core Types',
+    task: 'Task & Planning',
+    communication: 'Communication',
+    content: 'Content & Media',
+    media: 'Content & Media',
+    creative: 'Creative',
+    personal: 'Personal',
+    organizational: 'Organizational',
+    business: 'Business',
+    system: 'System (Internal Use)',
+  };
 
-Core Types:
-  - 'code': Source code files and programming content
-  - 'note': Personal notes and quick documentation
-  - 'documentation': Technical documentation and guides
-  - 'reference': Quick reference guides and cheat sheets
+  const lines: string[] = ['Type of content:', ''];
 
-Task & Planning:
-  - 'todo': Individual tasks with due dates and priorities
-  - 'checklist': Reusable checklists and sequential steps
-  - 'project': Project plans and overviews
-  - 'goal': Goals, objectives, and milestones
-  - 'habit': Routines and habit tracking
+  // Group by category
+  const categorized = new Map<string, ContentType[]>();
+  
+  for (const type of CONTENT_TYPES) {
+    const metadata = CONTENT_TYPE_METADATA[type];
+    const categoryKey = metadata.category;
+    
+    if (!categorized.has(categoryKey)) {
+      categorized.set(categoryKey, []);
+    }
+    categorized.get(categoryKey)!.push(type);
+  }
 
-Communication:
-  - 'email': Email messages and threads
-  - 'conversation': Chat logs and conversations
-  - 'meeting': Meeting notes and action items
-  - 'contact': Contact information
-  - 'person': Detailed person profiles and relationship context
+  // Build description by category
+  for (const [categoryKey, types] of categorized) {
+    const categoryName = categoryNames[categoryKey] || categoryKey;
+    lines.push(`${categoryName}:`);
+    
+    for (const type of types) {
+      const metadata = CONTENT_TYPE_METADATA[type];
+      lines.push(`  - '${type}': ${metadata.description}`);
+    }
+    
+    lines.push('');
+  }
 
-Content & Media:
-  - 'article': Articles and blog posts
-  - 'webpage': Saved web pages and HTML content
-  - 'social': Social media posts and updates
-  - 'image': Image files and visual content
-  - 'video': Video files and recordings
-  - 'audio': Audio files and recordings
-  - 'transcript': Transcriptions of audio or video
-  - 'presentation': Presentation slides and decks
-  - 'spreadsheet': Data tables and spreadsheet content
-  - 'pdf': PDF documents and scanned files
-
-Creative:
-  - 'screenplay': Screenplay and script content
-  - 'recipe': Cooking recipes and instructions
-  - 'idea': Brainstorming and concepts
-  - 'quote': Memorable quotes and excerpts
-
-Personal:
-  - 'journal': Daily journal entries and reflections
-  - 'memory': Personal memories and significant moments
-  - 'event': Calendar events and activities
-
-Organizational:
-  - 'bookmark': Web bookmarks and resource collections
-  - 'template': Reusable templates
-  - 'form': Forms and surveys
-  - 'location': Place information and recommendations
-
-Business:
-  - 'invoice': Invoices and receipts
-  - 'contract': Contracts and agreements
-
-System (Internal Use):
-  - 'system': Agent instructions (reserved)
-  - 'action': Agent actions and operations
-  - 'audit': Audit logs and compliance records
-  - 'history': Change history and version tracking`;
+  return lines.join('\n').trim();
 }
 
 /**

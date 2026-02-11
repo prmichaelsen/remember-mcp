@@ -22,7 +22,6 @@ export type ContentType =
   | 'email'
   | 'conversation'
   | 'meeting'
-  | 'contact'
   | 'person'
   // Content & Media
   | 'article'
