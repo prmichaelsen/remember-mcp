@@ -57,6 +57,52 @@ project-root/
 
 ### package.json Structure
 
+For a simple MCP server:
+
+```json
+{
+  "name": "remember-mcp",
+  "version": "0.1.0",
+  "description": "Multi-tenant memory system MCP server with vector search and relationships",
+  "main": "dist/server.js",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prmichaelsen/remember-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/prmichaelsen/remember-mcp/issues"
+  },
+  "homepage": "https://github.com/prmichaelsen/remember-mcp#readme",
+  "scripts": {
+    "build": "node esbuild.build.js",
+    "build:watch": "node esbuild.watch.js",
+    "clean": "rm -rf dist",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:e2e": "jest --config jest.e2e.config.js",
+    "test:e2e:watch": "jest --config jest.e2e.config.js --watch",
+    "test:all": "npm test && npm run test:e2e",
+    "lint": "eslint src/**/*.ts",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "memory",
+    "vector-search",
+    "weaviate",
+    "firebase"
+  ],
+  "author": "Patrick Michaelsen",
+  "license": "MIT"
+}
+```
+
+For a library with multiple exports:
+
 ```json
 {
   "name": "@scope/package-name",
@@ -65,6 +111,15 @@ project-root/
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/username/repo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/username/repo/issues"
+  },
+  "homepage": "https://github.com/username/repo#readme",
   
   "exports": {
     ".": {
@@ -99,9 +154,14 @@ project-root/
     "build": "npm run build:types && npm run build:bundle",
     "build:types": "tsc --emitDeclarationOnly",
     "build:bundle": "node esbuild.build.js",
-    "watch": "node esbuild.watch.js",
+    "build:watch": "node esbuild.watch.js",
     "start": "node dist/index.js",
     "clean": "rm -rf dist",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:e2e": "jest --config jest.e2e.config.js",
+    "test:e2e:watch": "jest --config jest.e2e.config.js --watch",
+    "test:all": "npm test && npm run test:e2e",
     "prepublishOnly": "npm run clean && npm run build"
   },
   
@@ -116,8 +176,11 @@ project-root/
   },
   
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.0.0",
     "esbuild": "^0.25.0",
+    "jest": "^30.0.0",
+    "ts-jest": "^29.0.0",
     "typescript": "^5.3.0"
   },
   
@@ -128,10 +191,17 @@ project-root/
 ```
 
 **Key Points:**
-- `"type": "module"` for ESM
-- Multiple export paths for different use cases
-- Separate build steps: types first, then bundle
-- Clean script for rebuilds
+- `"type": "module"` required for ESM
+- `repository`, `bugs`, `homepage` for GitHub integration
+- `main` points to the built entry file
+- `exports` field for libraries with multiple entry points
+- `files` array specifies what to publish to npm
+- `build:watch` script for development
+- `clean` script removes build artifacts
+- `prepublishOnly` ensures clean build before publishing
+- `test` scripts for jest (unit and e2e)
+- `author` field for attribution
+- `engines` specifies minimum Node.js version
 
 ### tsconfig.json Structure
 
@@ -253,6 +323,37 @@ module.exports = {
 
 ### esbuild.build.js Structure
 
+For a simple MCP server (single entry point):
+
+```javascript
+import * as esbuild from 'esbuild';
+
+await esbuild.build({
+  entryPoints: ['src/server.ts'],
+  bundle: true,
+  platform: 'node',
+  target: 'node20',
+  format: 'esm',
+  outfile: 'dist/server.js',
+  sourcemap: true,
+  external: [
+    'weaviate-client',
+    'firebase-admin',
+    '@modelcontextprotocol/sdk'
+  ],
+  banner: {
+    js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);"
+  },
+  alias: {
+    '@': './src'
+  }
+});
+
+console.log('✓ Build complete');
+```
+
+For a library with multiple entry points:
+
 ```javascript
 import * as esbuild from 'esbuild';
 import { readdir } from 'fs/promises';
@@ -297,6 +398,12 @@ await esbuild.build({
     '@modelcontextprotocol/sdk',
     // Add other peer dependencies
   ],
+  banner: {
+    js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);"
+  },
+  alias: {
+    '@': './src'
+  },
   minify: false,
   keepNames: true
 });
@@ -310,54 +417,61 @@ await esbuild.build({
   platform: 'node',
   target: 'node18',
   format: 'esm',
-  sourcemap: true
+  sourcemap: true,
+  alias: {
+    '@': './src'
+  }
 });
 
 console.log('Build complete!');
 ```
 
 **Key Points:**
-- **Dual build strategy**: Bundle CLI, preserve modules for library
+- **Simple servers**: Single bundled entry point
+- **Library exports**: Dual build strategy (bundle CLI, preserve modules)
 - `bundle: true` for standalone executable
 - `bundle: false` + `outbase: 'src'` for library exports
-- External dependencies not bundled
-- Dynamic or explicit entry point discovery
+- `external` array lists dependencies not to bundle (peer dependencies)
+- `banner` adds CommonJS compatibility for ESM bundles
+- `alias` enables path alias resolution (`@/` → `src/`)
+- `target` specifies Node.js version compatibility
+- Dynamic or explicit entry point discovery for libraries
 
 ### esbuild.watch.js Structure
 
 ```javascript
 import * as esbuild from 'esbuild';
 
-const buildOptions = {
-  entryPoints: ['src/index.ts'],
+const ctx = await esbuild.context({
+  entryPoints: ['src/server.ts'],
   bundle: true,
-  outdir: 'dist',
   platform: 'node',
-  target: 'node18',
+  target: 'node20',
   format: 'esm',
+  outfile: 'dist/server.js',
   sourcemap: true,
   external: [
+    'weaviate-client',
+    'firebase-admin',
     '@modelcontextprotocol/sdk'
   ],
-  logLevel: 'info',
-  minify: false,
-  keepNames: true
-};
-
-async function watch() {
-  try {
-    console.log('Starting esbuild watch mode...');
-    const context = await esbuild.context(buildOptions);
-    await context.watch();
-    console.log('Watching for changes...');
-  } catch (error) {
-    console.error('Watch mode failed:', error);
-    process.exit(1);
+  banner: {
+    js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);"
+  },
+  alias: {
+    '@': './src'
   }
-}
+});
 
-watch();
+await ctx.watch();
+console.log('👀 Watching for changes...');
 ```
+
+**Key Points:**
+- Uses `esbuild.context()` API for watch mode
+- Same configuration as `esbuild.build.js` for consistency
+- Automatically rebuilds on file changes
+- Includes all the same options: `external`, `banner`, `alias`, etc.
 
 ## Source Code Patterns
 
