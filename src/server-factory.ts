@@ -59,8 +59,17 @@ async function ensureDatabasesInitialized(): Promise<void> {
       databasesInitialized = true;
       logger.info('Databases initialized successfully');
     } catch (error) {
-      logger.error('Database initialization failed:', error);
-      throw error;
+      // Format error as single-line JSON for better cloud logging
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      
+      logger.error('Database initialization failed', {
+        error: errorMessage,
+        stack: errorStack,
+        type: error instanceof Error ? error.constructor.name : 'Unknown'
+      });
+      
+      throw new Error(`Database initialization failed: ${errorMessage}`);
     } finally {
       initializationPromise = null;
     }

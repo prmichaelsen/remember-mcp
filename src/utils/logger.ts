@@ -16,27 +16,44 @@ function shouldLog(level: LogLevel): boolean {
 }
 
 export const logger = {
-  debug: (message: string, ...args: any[]) => {
+  debug: (message: string, data?: any) => {
     if (shouldLog('debug')) {
-      console.debug(`[DEBUG] ${message}`, ...args);
+      if (data) {
+        console.debug(JSON.stringify({ level: 'DEBUG', message, ...data }));
+      } else {
+        console.debug(`[DEBUG] ${message}`);
+      }
     }
   },
 
-  info: (message: string, ...args: any[]) => {
+  info: (message: string, data?: any) => {
     if (shouldLog('info')) {
-      console.info(`[INFO] ${message}`, ...args);
+      if (data) {
+        console.info(JSON.stringify({ level: 'INFO', message, ...data }));
+      } else {
+        console.info(`[INFO] ${message}`);
+      }
     }
   },
 
-  warn: (message: string, ...args: any[]) => {
+  warn: (message: string, data?: any) => {
     if (shouldLog('warn')) {
-      console.warn(`[WARN] ${message}`, ...args);
+      if (data) {
+        console.warn(JSON.stringify({ level: 'WARN', message, ...data }));
+      } else {
+        console.warn(`[WARN] ${message}`);
+      }
     }
   },
 
-  error: (message: string, ...args: any[]) => {
+  error: (message: string, data?: any) => {
     if (shouldLog('error')) {
-      console.error(`[ERROR] ${message}`, ...args);
+      if (data) {
+        // Structured logging for cloud environments
+        console.error(JSON.stringify({ level: 'ERROR', message, ...data }));
+      } else {
+        console.error(`[ERROR] ${message}`);
+      }
     }
   },
 };
