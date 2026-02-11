@@ -1,10 +1,11 @@
 /**
  * Firestore collection path helpers
- * Following the environment-based prefix pattern from agentbase.me
+ * Following the environment-based prefix + users subcollection pattern
  *
- * Supports multiple environments for development sandboxing:
- * - Development: e0.remember-mcp, e1.remember-mcp, etc. (per developer/branch)
- * - Production: remember-mcp
+ * Pattern from agentbase.me:
+ * - Environment prefix: e0.remember-mcp (dev), remember-mcp (prod)
+ * - User-scoped data: {BASE}.users/{user_id}/* (per agent/patterns/firestore-users-pattern-best-practices.md)
+ * - Shared data: {BASE}.templates/default, {BASE}.user-permissions
  */
 
 const APP_NAME = 'remember-mcp';
@@ -42,22 +43,53 @@ function getBasePrefix(): string {
 
 export const BASE = getBasePrefix();
 
+// ============================================================================
+// USER-SCOPED COLLECTIONS (under users/{user_id}/)
+// Per agent/patterns/firestore-users-pattern-best-practices.md
+// ============================================================================
+
 /**
  * Get path to user preferences document
+ * Pattern: {BASE}.users/{user_id}/preferences
  */
 export function getUserPreferencesPath(userId: string): string {
-  return `${BASE}.user-preferences/${userId}`;
+  return `${BASE}.users/${userId}/preferences`;
 }
 
 /**
  * Get path to user's templates collection
+ * Pattern: {BASE}.users/{user_id}/templates
  */
 export function getUserTemplatesPath(userId: string): string {
   return `${BASE}.users/${userId}/templates`;
 }
 
 /**
+ * Get path to user's access logs collection
+ * Pattern: {BASE}.users/{user_id}/access-logs
+ */
+export function getUserAccessLogsPath(userId: string): string {
+  return `${BASE}.users/${userId}/access-logs`;
+}
+
+/**
+ * Get path to user's trust relationships collection
+ * Pattern: {BASE}.users/{user_id}/trust-relationships
+ */
+export function getUserTrustRelationshipsPath(userId: string): string {
+  return `${BASE}.users/${userId}/trust-relationships`;
+}
+
+// ============================================================================
+// CROSS-USER COLLECTIONS (outside users/)
+// These involve multiple users, so can't be under users/{user_id}/
+// ============================================================================
+
+/**
  * Get path to user's allowed accessors collection (permissions)
+ * Pattern: {BASE}.user-permissions/{owner_user_id}/allowed-accessors
+ *
+ * Note: Outside users/ because it involves two users (owner + accessor)
  */
 export function getUserPermissionsPath(ownerUserId: string): string {
   return `${BASE}.user-permissions/${ownerUserId}/allowed-accessors`;
@@ -65,20 +97,19 @@ export function getUserPermissionsPath(ownerUserId: string): string {
 
 /**
  * Get path to specific permission document
+ * Pattern: {BASE}.user-permissions/{owner_user_id}/allowed-accessors/{accessor_user_id}
  */
 export function getUserPermissionPath(ownerUserId: string, accessorUserId: string): string {
   return `${BASE}.user-permissions/${ownerUserId}/allowed-accessors/${accessorUserId}`;
 }
 
-/**
- * Get path to user's trust history collection
- */
-export function getTrustHistoryPath(userId: string): string {
-  return `${BASE}.trust-history/${userId}/history`;
-}
+// ============================================================================
+// SHARED/GLOBAL COLLECTIONS
+// ============================================================================
 
 /**
  * Get path to default templates collection
+ * Pattern: {BASE}.templates/default
  */
 export function getDefaultTemplatesPath(): string {
   return `${BASE}.templates/default`;
@@ -86,6 +117,7 @@ export function getDefaultTemplatesPath(): string {
 
 /**
  * Get path to specific default template
+ * Pattern: {BASE}.templates/default/{template_id}
  */
 export function getDefaultTemplatePath(templateId: string): string {
   return `${BASE}.templates/default/${templateId}`;
