@@ -11,6 +11,8 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from './utils/logger.js';
+import { initWeaviateClient } from './weaviate/client.js';
+import { initFirestore } from './firestore/init.js';
 
 // Import memory tools
 import { createMemoryTool, handleCreateMemory } from './tools/create-memory.js';
@@ -31,24 +33,62 @@ export interface ServerOptions {
   version?: string;
 }
 
+// Global initialization flag to ensure databases are initialized once
+let databasesInitialized = false;
+let initializationPromise: Promise<void> | null = null;
+
+/**
+ * Initialize databases (called once globally)
+ */
+async function ensureDatabasesInitialized(): Promise<void> {
+  if (databasesInitialized) {
+    return;
+  }
+  
+  // If initialization is in progress, wait for it
+  if (initializationPromise) {
+    return initializationPromise;
+  }
+  
+  // Start initialization
+  initializationPromise = (async () => {
+    try {
+      logger.info('Initializing databases...');
+      await initWeaviateClient();
+      initFirestore();
+      databasesInitialized = true;
+      logger.info('Databases initialized successfully');
+    } catch (error) {
+      logger.error('Database initialization failed:', error);
+      throw error;
+    } finally {
+      initializationPromise = null;
+    }
+  })();
+  
+  return initializationPromise;
+}
+
 /**
  * Create a server instance for a specific user/tenant
- * 
+ *
  * This factory function is compatible with mcp-auth wrapping pattern.
  * It creates isolated server instances with no shared state.
- * 
+ *
+ * Note: Databases (Weaviate + Firestore) are initialized once globally on first call.
+ *
  * @param accessToken - User's access token (reserved for future external APIs)
  * @param userId - User identifier for scoping operations
  * @param options - Optional server configuration
  * @returns Configured MCP Server instance (not connected to transport)
- * 
+ *
  * @example
  * ```typescript
  * // Direct usage
  * const server = createServer('token', 'user123');
  * const transport = new StdioServerTransport();
  * await server.connect(transport);
- * 
+ *
  * // With mcp-auth
  * import { wrapServer } from '@prmichaelsen/mcp-auth';
  * const wrapped = wrapServer({
@@ -75,11 +115,18 @@ export function createServer(
   
   logger.debug('Creating server instance', { userId });
   
+  // Ensure databases are initialized (happens once globally)
+  // Note: This is synchronous to match the Server return type
+  // The actual initialization happens on first tool call
+  ensureDatabasesInitialized().catch(error => {
+    logger.error('Failed to initialize databases:', error);
+  });
+  
   // Create MCP server
   const server = new Server(
     {
       name: options.name || 'remember-mcp',
-      version: options.version || '0.1.0',
+      version: options.version || '0.2.0',
     },
     {
       capabilities: {
