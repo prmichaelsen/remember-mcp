@@ -79,14 +79,6 @@ function registerHandlers(server: Server): void {
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
       tools: [
-        {
-          name: 'health_check',
-          description: 'Check server health and database connections',
-          inputSchema: {
-            type: 'object',
-            properties: {},
-          },
-        },
         // Memory tools
         createMemoryTool,
         searchMemoryTool,
@@ -115,10 +107,6 @@ function registerHandlers(server: Server): void {
       const userId = (args as any).user_id || 'default_user';
 
       switch (name) {
-        case 'health_check':
-          result = await handleHealthCheck();
-          break;
-
         case 'remember_create_memory':
           result = await handleCreateMemory(args as any, userId);
           break;
@@ -186,56 +174,6 @@ function registerHandlers(server: Server): void {
       );
     }
   });
-}
-
-/**
- * Health check handler
- */
-async function handleHealthCheck(): Promise<string> {
-  const health = {
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    server: {
-      name: 'remember-mcp',
-      version: '0.1.0',
-    },
-    databases: {
-      weaviate: {
-        connected: false,
-        url: config.weaviate.url,
-      },
-      firestore: {
-        connected: false,
-        projectId: config.firebase.projectId,
-      },
-    },
-  };
-
-  try {
-    // Test Weaviate connection
-    const weaviateClient = getWeaviateClient();
-    health.databases.weaviate.connected = await weaviateClient.isReady();
-  } catch (error) {
-    logger.error('Weaviate health check failed:', error);
-    health.databases.weaviate.connected = false;
-  }
-
-  try {
-    // Test Firestore connection
-    health.databases.firestore.connected = await testFirestoreConnection();
-  } catch (error) {
-    logger.error('Firestore health check failed:', error);
-    health.databases.firestore.connected = false;
-  }
-
-  // Overall status
-  const allHealthy =
-    health.databases.weaviate.connected &&
-    health.databases.firestore.connected;
-
-  health.status = allHealthy ? 'healthy' : 'degraded';
-
-  return JSON.stringify(health, null, 2);
 }
 
 /**
