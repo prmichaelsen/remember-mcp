@@ -17,6 +17,9 @@ import { logger } from './utils/logger.js';
 import { createMemoryTool, handleCreateMemory } from './tools/create-memory.js';
 import { searchMemoryTool, handleSearchMemory } from './tools/search-memory.js';
 import { deleteMemoryTool, handleDeleteMemory } from './tools/delete-memory.js';
+import { updateMemoryTool, handleUpdateMemory } from './tools/update-memory.js';
+import { findSimilarTool, handleFindSimilar } from './tools/find-similar.js';
+import { queryMemoryTool, handleQueryMemory } from './tools/query-memory.js';
 
 /**
  * Initialize remember-mcp server
@@ -81,6 +84,9 @@ function registerHandlers(server: Server): void {
         createMemoryTool,
         searchMemoryTool,
         deleteMemoryTool,
+        updateMemoryTool,
+        findSimilarTool,
+        queryMemoryTool,
       ],
     };
   });
@@ -111,6 +117,18 @@ function registerHandlers(server: Server): void {
 
         case 'remember_delete_memory':
           result = await handleDeleteMemory(args as any, userId);
+          break;
+
+        case 'remember_update_memory':
+          result = await handleUpdateMemory(args as any, userId);
+          break;
+
+        case 'remember_find_similar':
+          result = await handleFindSimilar(args as any, userId);
+          break;
+
+        case 'remember_query_memory':
+          result = await handleQueryMemory(args as any, userId);
           break;
 
         default:

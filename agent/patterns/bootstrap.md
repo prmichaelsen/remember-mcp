@@ -327,6 +327,7 @@ For a simple MCP server (single entry point):
 
 ```javascript
 import * as esbuild from 'esbuild';
+import { execSync } from 'child_process';
 
 await esbuild.build({
   entryPoints: ['src/server.ts'],
@@ -349,6 +350,18 @@ await esbuild.build({
   }
 });
 
+console.log('✓ JavaScript bundle built');
+
+// Generate TypeScript declarations
+console.log('Generating TypeScript declarations...');
+try {
+  execSync('tsc --emitDeclarationOnly --outDir dist', { stdio: 'inherit' });
+  console.log('✓ TypeScript declarations generated');
+} catch (error) {
+  console.error('✗ Failed to generate TypeScript declarations');
+  process.exit(1);
+}
+
 console.log('✓ Build complete');
 ```
 
@@ -356,6 +369,7 @@ For a library with multiple entry points:
 
 ```javascript
 import * as esbuild from 'esbuild';
+import { execSync } from 'child_process';
 import { readdir } from 'fs/promises';
 import { join } from 'path';
 
@@ -423,7 +437,19 @@ await esbuild.build({
   }
 });
 
-console.log('Build complete!');
+console.log('✓ JavaScript bundles built');
+
+// Generate TypeScript declarations
+console.log('Generating TypeScript declarations...');
+try {
+  execSync('tsc --emitDeclarationOnly --outDir dist', { stdio: 'inherit' });
+  console.log('✓ TypeScript declarations generated');
+} catch (error) {
+  console.error('✗ Failed to generate TypeScript declarations');
+  process.exit(1);
+}
+
+console.log('✓ Build complete');
 ```
 
 **Key Points:**
@@ -436,6 +462,9 @@ console.log('Build complete!');
 - `alias` enables path alias resolution (`@/` → `src/`)
 - `target` specifies Node.js version compatibility
 - Dynamic or explicit entry point discovery for libraries
+- **TypeScript declarations**: Always run `tsc --emitDeclarationOnly` after esbuild
+- **Why separate**: esbuild doesn't generate `.d.ts` files, TypeScript compiler does
+- **Build order**: 1) esbuild bundles JS, 2) tsc generates types, 3) both in dist/
 
 ### esbuild.watch.js Structure
 
