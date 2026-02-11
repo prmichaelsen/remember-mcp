@@ -155,7 +155,12 @@ project-root/
     
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   
   "include": ["src/**/*"],
@@ -168,6 +173,83 @@ project-root/
 - `declaration: true` for type definitions
 - `strict: true` for type safety
 - Source maps for debugging
+- `baseUrl` and `paths` for module name mapping (`@/` → `src/`)
+
+### Jest Configuration
+
+For projects with colocated tests (`.spec.ts` and `.e2e.ts` files alongside source code):
+
+#### jest.config.js - Unit Tests
+
+```javascript
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  roots: ['<rootDir>/src'],
+  testMatch: ['**/*.spec.ts'],
+  moduleFileExtensions: ['ts', 'js'],
+  collectCoverage: true,
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'lcov', 'html'],
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    '!src/**/*.d.ts',
+    '!src/**/*.spec.ts',
+    '!src/**/*.e2e.ts',
+    '!src/index.ts',              // Barrel export only
+    '!src/types/**/*.ts',         // Type definitions only
+  ],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+};
+```
+
+#### jest.e2e.config.js - E2E Tests
+
+```javascript
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  testMatch: ['**/*.e2e.ts'],
+  testTimeout: 30000, // 30 seconds for real API calls
+  roots: ['<rootDir>/src'],
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    '!src/**/*.spec.ts',
+    '!src/**/*.e2e.ts',
+    '!src/types/**/*.ts',
+    '!src/index.ts',
+  ],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+};
+```
+
+**Key Points:**
+- Separate configs for unit tests (`.spec.ts`) and e2e tests (`.e2e.ts`)
+- E2E tests have longer timeout for real API calls
+- Coverage excludes test files and type definitions
+- `moduleNameMapper` matches TypeScript path aliases
+- Tests are colocated with source files in `src/`
+
+**Package.json Scripts:**
+```json
+{
+  "scripts": {
+    "test": "jest --config jest.config.js",
+    "test:e2e": "jest --config jest.e2e.config.js",
+    "test:watch": "jest --config jest.config.js --watch",
+    "test:coverage": "jest --config jest.config.js --coverage"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0"
+  }
+}
+```
 
 ### esbuild.build.js Structure
 
