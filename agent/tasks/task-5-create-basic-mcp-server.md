@@ -27,7 +27,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { config, validateConfig } from './config.js';
 import { initWeaviateClient, testWeaviateConnection } from './weaviate/client.js';
-import { initFirestore, testFirestoreConnection } from './firestore/client.js';
+import { initFirestore, testFirestoreConnection } from './firestore/init.js';
 import { logger } from './utils/logger.js';
 
 /**
