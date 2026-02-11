@@ -163,25 +163,22 @@ export async function handleSearchMemory(
       });
     }
 
-    // Perform hybrid search
-    // Note: Weaviate v3 hybrid query API
-    const queryBuilder = collection.query.hybrid(args.query, {
+    // Build search options
+    const searchOptions: any = {
       alpha: alpha,
       limit: limit + offset, // Get extra for offset
-    });
+    };
 
-    // Apply filters if present
-    let results;
+    // Add filters if present
     if (whereFilters.length > 0) {
-      const whereClause = whereFilters.length > 1 ? {
+      searchOptions.filters = whereFilters.length > 1 ? {
         operator: 'And' as const,
         operands: whereFilters,
       } : whereFilters[0];
-      
-      results = await queryBuilder;
-    } else {
-      results = await queryBuilder;
     }
+
+    // Perform hybrid search with Weaviate v3 API
+    const results = await collection.query.hybrid(args.query, searchOptions);
 
     // Apply offset
     const paginatedResults = results.objects.slice(offset);
