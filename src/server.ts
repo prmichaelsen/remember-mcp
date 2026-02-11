@@ -13,6 +13,11 @@ import { initWeaviateClient, testWeaviateConnection, getWeaviateClient } from '.
 import { initFirestore, testFirestoreConnection } from './firestore/init.js';
 import { logger } from './utils/logger.js';
 
+// Import memory tools
+import { createMemoryTool, handleCreateMemory } from './tools/create-memory.js';
+import { searchMemoryTool, handleSearchMemory } from './tools/search-memory.js';
+import { deleteMemoryTool, handleDeleteMemory } from './tools/delete-memory.js';
+
 /**
  * Initialize remember-mcp server
  */
@@ -73,6 +78,9 @@ function registerHandlers(server: Server): void {
             properties: {},
           },
         },
+        createMemoryTool,
+        searchMemoryTool,
+        deleteMemoryTool,
       ],
     };
   });
@@ -84,9 +92,25 @@ function registerHandlers(server: Server): void {
     try {
       let result: string;
 
+      // Extract userId from args or use default for now
+      // TODO: Get userId from authentication context in M6
+      const userId = (args as any).user_id || 'default_user';
+
       switch (name) {
         case 'health_check':
           result = await handleHealthCheck();
+          break;
+
+        case 'remember_create_memory':
+          result = await handleCreateMemory(args as any, userId);
+          break;
+
+        case 'remember_search_memory':
+          result = await handleSearchMemory(args as any, userId);
+          break;
+
+        case 'remember_delete_memory':
+          result = await handleDeleteMemory(args as any, userId);
           break;
 
         default:
