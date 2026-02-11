@@ -105,9 +105,8 @@ export function createServer(
   userId: string,
   options: ServerOptions = {}
 ): Server {
-  if (!accessToken) {
-    throw new Error('accessToken is required');
-  }
+  // Note: accessToken is not used by remember-mcp (self-managed data)
+  // but required by mcp-auth contract. Can be any value including empty string.
   
   if (!userId) {
     throw new Error('userId is required');
