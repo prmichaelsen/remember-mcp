@@ -10,13 +10,14 @@ project:
 milestones:
   - id: M1
     name: Project Foundation
-    status: ready_to_start
-    progress: 0%
-    started: null
+    status: in_progress
+    progress: 15%
+    started: 2026-02-11
     completed: null
     estimated_weeks: 1
     tasks_completed: 0
     tasks_total: 7
+    notes: Configuration files created (gitignore, jest, esbuild, tsconfig, package.json)
     
   - id: M2
     name: Core Memory System
