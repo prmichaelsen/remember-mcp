@@ -11,11 +11,11 @@ milestones:
   - id: M1
     name: Project Foundation
     status: in_progress
-    progress: 57%
+    progress: 71%
     started: 2026-02-11
     completed: null
     estimated_weeks: 1
-    tasks_completed: 4
+    tasks_completed: 5
     tasks_total: 7
     notes: |
       ✅ Configuration files created (gitignore, jest, esbuild, tsconfig, package.json)
@@ -25,11 +25,15 @@ milestones:
       ✅ Weaviate client created with multi-tenant support
       ✅ Firestore init helper and path utilities created
       ✅ Configuration module and logger utility created
+      ✅ Basic MCP server created with stdio transport
+      ✅ health_check tool implemented
       ✅ 16 unit tests passing (1 skipped - integration test)
-      ✅ Test coverage: 40.7% overall, 82% on paths.ts
+      ✅ Test coverage: 26% overall (server.ts not tested yet)
+      ✅ TypeScript compiles without errors
+      ✅ Build successful (dist/server.js created)
       ⚠️  No Weaviate instance running (client ready, needs connection)
       ⚠️  Firebase configured but not tested yet (needs .env setup)
-      📋 Ready for Task 5: Create Basic MCP Server
+      📋 Ready for Task 6: Create Integration Tests
     
   - id: M2
     name: Core Memory System
@@ -137,9 +141,20 @@ tasks:
       
     - id: task-5
       name: Create Basic MCP Server
-      status: not_started
+      status: completed
       file: agent/tasks/task-5-create-basic-mcp-server.md
       estimated_hours: 3
+      completed_date: 2026-02-11
+      notes: |
+        ✅ Created src/server.ts with MCP server implementation
+        ✅ Implemented stdio transport for MCP protocol
+        ✅ Implemented health_check tool
+        ✅ Database initialization on startup (Weaviate + Firestore)
+        ✅ Graceful shutdown handlers (SIGINT, SIGTERM)
+        ✅ Error handling with McpError types
+        ✅ TypeScript compiles without errors
+        ✅ Build successful (dist/server.js 66KB)
+        ✅ All existing tests still passing
       
     - id: task-6
       name: Create Integration Tests
@@ -166,8 +181,15 @@ progress:
 
 recent_work:
   - date: 2026-02-11
-    description: Project foundation, dependencies, database clients, and comprehensive testing
+    description: Project foundation, database clients, and basic MCP server implementation
     items:
+      - ✅ Created src/server.ts with complete MCP server
+      - ✅ Implemented health_check tool with database status
+      - ✅ Added stdio transport for MCP protocol
+      - ✅ Implemented graceful shutdown handlers
+      - ✅ Build successful (66KB bundled server)
+      - ✅ TypeScript compilation successful
+      - ✅ All 16 tests still passing
       - ✅ Created comprehensive .gitignore with patterns for node_modules, dist, env files, IDE files
       - ✅ Created jest.config.js and jest.e2e.config.js for unit and e2e testing
       - ✅ Created esbuild.build.js and esbuild.watch.js for build and watch modes
@@ -191,12 +213,11 @@ recent_work:
       - ✅ Updated Jest config for ESM support
 
 next_steps:
+  - Create integration tests for server and database connections (Task 6)
+  - Finalize Milestone 1 documentation (Task 7)
   - Create src/types/ directory with type definitions (Memory, Relationship, Template, etc.)
-  - Create basic MCP server structure (Task 5) - src/server.ts
-  - Implement health_check tool as proof of concept
-  - Create integration tests (Task 6)
-  - Finalize Milestone 1 (Task 7)
   - Optional: Setup utility scripts directory (Task 8)
+  - Begin Milestone 2: Core Memory System implementation
 
 notes:
   - ✅ All 23 design documents complete and comprehensive
@@ -211,14 +232,15 @@ notes:
   - ✅ 16 unit tests passing with good coverage
   - ✅ Key design decisions documented (service layer, unified memory+relationship storage)
   - ✅ Logger uses console output (safe for stdio MCP transport)
-  - 📋 Ready for MCP server implementation (Task 5)
-  - 📋 No src/server.ts file exists yet
+  - ✅ Basic MCP server implemented (Task 5)
+  - ✅ src/server.ts created with health_check tool
+  - 📋 Ready for integration tests (Task 6)
   
 current_blockers:
   - No Weaviate instance running (client ready, needs actual Weaviate server or cloud instance)
-  - No MCP server implementation yet (Task 5 - next priority)
-  - No tools implemented yet (will be in M2)
   - Environment variables need to be configured (.env file)
+  - No memory/relationship tools implemented yet (will be in M2)
+  - Integration tests needed (Task 6)
   
 environment_configured:
   - ⚠️  .env file needs to be created from .env.example
