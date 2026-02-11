@@ -9,8 +9,10 @@ describe('Server Factory', () => {
       expect(server).toHaveProperty('setRequestHandler');
     });
 
-    it('should require accessToken', () => {
-      expect(() => createServer('', 'user123')).toThrow('accessToken is required');
+    it('should allow empty accessToken (not used by remember-mcp)', () => {
+      // accessToken is not used by remember-mcp (self-managed data)
+      // Should not throw even with empty string
+      expect(() => createServer('', 'user123')).not.toThrow();
     });
 
     it('should require userId', () => {
