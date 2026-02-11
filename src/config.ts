@@ -9,9 +9,9 @@ export const config = {
     apiKey: process.env.WEAVIATE_API_KEY || '',
   },
 
-  // OpenAI
+  // OpenAI (for embeddings)
   openai: {
-    apiKey: process.env.OPENAI_APIKEY || '',
+    apiKey: process.env.OPENAI_EMBEDDINGS_API_KEY || process.env.OPENAI_APIKEY || '',
   },
 
   // Firebase (using firebase-admin-sdk-v8)
@@ -39,7 +39,7 @@ export const config = {
 export function validateConfig(): void {
   const required = [
     { key: 'WEAVIATE_URL', value: config.weaviate.url },
-    { key: 'OPENAI_APIKEY', value: config.openai.apiKey },
+    { key: 'OPENAI_EMBEDDINGS_API_KEY', value: config.openai.apiKey },
     { key: 'FIREBASE_ADMIN_SERVICE_ACCOUNT_KEY', value: config.firebase.serviceAccount },
     { key: 'FIREBASE_PROJECT_ID', value: config.firebase.projectId },
   ];
