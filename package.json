@@ -49,6 +49,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
     "@prmichaelsen/firebase-admin-sdk-v8": "^2.2.0",
+    "@prmichaelsen/mcp-auth": "^7.0.4",
     "dotenv": "^16.4.5",
     "weaviate-client": "^3.2.0"
   },
