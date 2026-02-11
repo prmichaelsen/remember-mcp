@@ -47,7 +47,6 @@ export const CONTENT_TYPES: readonly ContentType[] = [
   'event',
   // Organizational
   'bookmark',
-  'template',
   'form',
   'location',
   // Business
@@ -302,13 +301,6 @@ export const CONTENT_TYPE_METADATA: Record<ContentType, ContentTypeMetadata> = {
     examples: ['Bookmarks', 'Resource links', 'Reading lists'],
     common_fields: ['url', 'domain', 'read_later'],
   },
-  template: {
-    name: 'template',
-    category: 'organizational',
-    description: 'Reusable templates',
-    examples: ['Email templates', 'Document templates', 'Code templates'],
-    common_fields: ['fields', 'usage_count'],
-  },
   form: {
     name: 'form',
     category: 'organizational',
@@ -381,7 +373,7 @@ export const CONTENT_TYPE_CATEGORIES = {
   media: ['image', 'video', 'audio', 'transcript'],
   creative: ['screenplay', 'recipe', 'idea', 'quote'],
   personal: ['journal', 'memory', 'event'],
-  organizational: ['bookmark', 'template', 'form', 'location'],
+  organizational: ['bookmark', 'form', 'location'],
   business: ['invoice', 'contract'],
   system: ['system', 'action', 'audit', 'history'],
 } as const;

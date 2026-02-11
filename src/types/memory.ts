@@ -45,7 +45,6 @@ export type ContentType =
   | 'event'
   // Organizational
   | 'bookmark'
-  | 'template'
   | 'form'
   | 'location'
   // Business
