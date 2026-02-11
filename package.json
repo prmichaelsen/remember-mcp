@@ -1,5 +1,5 @@
 {
-  "name": "remember-mcp",
+  "name": "@prmichaelsen/remember-mcp",
   "version": "0.1.0",
   "description": "Multi-tenant memory system MCP server with vector search and relationships",
   "main": "dist/server.js",
