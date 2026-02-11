@@ -1,9 +1,9 @@
 # Task 3: Set Up Weaviate Client
 
-**Milestone**: M1 - Project Foundation  
-**Estimated Time**: 3 hours  
-**Dependencies**: Task 2  
-**Status**: Not Started
+**Milestone**: M1 - Project Foundation
+**Estimated Time**: 3 hours
+**Dependencies**: Task 2 ✅
+**Status**: ✅ COMPLETED (2026-02-11)
 
 ---
 
@@ -278,14 +278,36 @@ describe('Weaviate Client', () => {
 
 ## Verification
 
-- [ ] src/weaviate/client.ts created
-- [ ] src/config.ts created
-- [ ] src/utils/logger.ts created
-- [ ] Tests created
-- [ ] Can initialize Weaviate client
-- [ ] Connection test passes
-- [ ] User ID sanitization works
-- [ ] Collection name generation works
+- [x] src/weaviate/client.ts created
+- [x] src/config.ts created
+- [x] src/utils/logger.ts created
+- [x] Tests created (tests/unit/weaviate-client.test.ts)
+- [x] Can initialize Weaviate client (with Weaviate v3 API)
+- [x] Connection test implemented (skipped - requires Weaviate instance)
+- [x] User ID sanitization works (7/7 tests passing)
+- [x] Collection name generation works (all tests passing)
+- [x] Jest configured for ESM support
+
+## Completion Notes
+
+**Completed**: 2026-02-11
+
+**What Was Created**:
+- ✅ [`src/config.ts`](../../src/config.ts) - Configuration management with environment variables
+- ✅ [`src/utils/logger.ts`](../../src/utils/logger.ts) - Logging utility with log levels
+- ✅ [`src/weaviate/client.ts`](../../src/weaviate/client.ts) - Weaviate client wrapper with:
+  - Client initialization using Weaviate v3 API
+  - Connection testing
+  - User ID sanitization for collection names
+  - Collection name generators (Memory, Template, Audit)
+  - Collection existence checking
+- ✅ [`tests/unit/weaviate-client.test.ts`](../../tests/unit/weaviate-client.test.ts) - Unit tests (7 passing, 1 skipped)
+- ✅ Updated [`jest.config.js`](../../jest.config.js) for ESM support
+
+**Test Results**: 7 passed, 1 skipped (connection test requires Weaviate instance)
+
+**What's Next**:
+- Task 4: Set up Firestore client wrapper
 
 ---
 

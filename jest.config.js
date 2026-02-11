@@ -1,8 +1,9 @@
-module.exports = {
-  preset: 'ts-jest',
+export default {
+  preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
-  roots: ['<rootDir>/src'],
-  testMatch: ['**/*.spec.ts'],
+  extensionsToTreatAsEsm: ['.ts'],
+  roots: ['<rootDir>/tests'],
+  testMatch: ['**/*.test.ts'],
   moduleFileExtensions: ['ts', 'js'],
   collectCoverage: true,
   coverageDirectory: 'coverage',
@@ -10,12 +11,21 @@ module.exports = {
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
-    '!src/**/*.spec.ts',
+    '!src/**/*.test.ts',
     '!src/**/*.e2e.ts',
-    '!src/index.ts',              // Barrel export only
-    '!src/types/**/*.ts',         // Type definitions only
+    '!src/index.ts',
+    '!src/types/**/*.ts',
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
+  transform: {
+    '^.+\\.ts$': [
+      'ts-jest',
+      {
+        useESM: true,
+      },
+    ],
   },
 };
