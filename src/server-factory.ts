@@ -28,6 +28,10 @@ import { updateRelationshipTool, handleUpdateRelationship } from './tools/update
 import { searchRelationshipTool, handleSearchRelationship } from './tools/search-relationship.js';
 import { deleteRelationshipTool, handleDeleteRelationship } from './tools/delete-relationship.js';
 
+// Import preference tools
+import { setPreferenceTool, handleSetPreference } from './tools/set-preference.js';
+import { getPreferencesTool, handleGetPreferences } from './tools/get-preferences.js';
+
 export interface ServerOptions {
   name?: string;
   version?: string;
@@ -177,6 +181,9 @@ function registerHandlers(server: Server, userId: string, accessToken: string): 
         updateRelationshipTool,
         searchRelationshipTool,
         deleteRelationshipTool,
+        // Preference tools
+        setPreferenceTool,
+        getPreferencesTool,
       ],
     };
   });
@@ -231,6 +238,14 @@ function registerHandlers(server: Server, userId: string, accessToken: string): 
 
         case 'remember_delete_relationship':
           result = await handleDeleteRelationship(args as any, userId);
+          break;
+
+        case 'remember_set_preference':
+          result = await handleSetPreference(args as any, userId);
+          break;
+
+        case 'remember_get_preferences':
+          result = await handleGetPreferences(args as any, userId);
           break;
 
         default:

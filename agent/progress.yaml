@@ -5,7 +5,7 @@ project:
   version: 0.1.0
   started: 2026-02-11
   status: in_progress
-  current_milestone: M2
+  current_milestone: M5
 
 milestones:
   - id: M1
@@ -87,9 +87,28 @@ milestones:
     
   - id: M4
     name: User Preferences
-    status: not_started
-    progress: 0%
+    status: completed
+    progress: 100%
+    started: 2026-02-11
+    completed: 2026-02-11
     estimated_weeks: 1
+    tasks_completed: 2
+    tasks_total: 2
+    notes: |
+      ✅ UserPreferences type definitions created
+      ✅ Default preferences defined with all categories
+      ✅ remember_set_preference tool implemented
+      ✅ remember_get_preferences tool implemented
+      ✅ Preference validation (path and value type checking)
+      ✅ User-friendly change messages
+      ✅ Firestore integration using firebase-admin-sdk-v8
+      ✅ All 2 tools integrated into server.ts and server-factory.ts
+      ✅ TypeScript compiles without errors
+      ✅ Build successful
+      ✅ Complete preference management system
+      ✅ Supports 6 preference categories: templates, search, location, privacy, notifications, display
+      ✅ Dot-notation path updates (e.g., "templates.auto_suggest")
+      ✅ Automatic defaults when preferences don't exist
     
   - id: M5
     name: Template System
@@ -350,46 +369,45 @@ documentation:
   design_documents: 23
   milestone_documents: 9
   pattern_documents: 5
-  task_documents: 17
+  task_documents: 19
 
 progress:
   planning: 100%
-  implementation: 45%
-  overall: 45%
+  implementation: 50%
+  overall: 50%
 
 recent_work:
   - date: 2026-02-11
-    description: M2 Complete - Core Memory System
+    description: M4 Complete - User Preferences
     items:
+      - 🎉 Milestone 4 (User Preferences) COMPLETED!
+      - 🎉 Milestone 3 (Relationships & Graph) COMPLETED!
       - 🎉 Milestone 2 (Core Memory System) COMPLETED!
       - 🎉 Milestone 1 (Project Foundation) COMPLETED!
-      - ✅ All 6 M2 memory tools implemented
-      - ✅ remember_create_memory with 45 content types
-      - ✅ remember_search_memory with hybrid search + filters
-      - ✅ remember_delete_memory with cascade option
-      - ✅ remember_update_memory with partial updates + versioning
-      - ✅ remember_find_similar with vector similarity search
-      - ✅ remember_query_memory with RAG-optimized queries
-      - ✅ All tools integrated into both server.ts and server-factory.ts
+      - ✅ UserPreferences type with 6 categories
+      - ✅ remember_set_preference tool implemented
+      - ✅ remember_get_preferences tool implemented
+      - ✅ Preference validation (path and value types)
+      - ✅ Default preferences for all categories
+      - ✅ User-friendly change messages
+      - ✅ Firestore integration using firebase-admin-sdk-v8
+      - ✅ Dot-notation path updates (e.g., "templates.auto_suggest")
+      - ✅ Automatic defaults when preferences don't exist
+      - ✅ All tools integrated into server.ts and server-factory.ts
       - ✅ TypeScript compiles without errors
       - ✅ Build successful
-      - ✅ Complete memory CRUD + search + RAG functionality
-      - ✅ Comprehensive Memory and Relationship type definitions
-      - ✅ Weaviate schema with unified memory+relationship storage
-      - ✅ Content type system with dynamic descriptions
-      - ✅ 25 unit tests passing (1 skipped integration test)
-      - ✅ Test coverage: 30.37% overall
-      - 📋 Ready for M3: Relationship tools
+      - 📋 Ready for M5: Template System
 
 next_steps:
-  - Start M4: User Preferences system
-  - Test complete memory + relationship system with actual Weaviate instance (create .env file)
-  - Consider implementing relationship graph traversal queries
+  - Start M5: Template System
+  - Test complete memory + relationship + preferences system with actual Weaviate instance
+  - Consider implementing template auto-suggestion
   - Optional: Create integration tests (Task 6)
   - Optional: Add development documentation (Task 7)
-  - Consider M5: Template System
+  - Consider M6: Auth & Multi-Tenancy
 
 notes:
+  - 🎉 Milestone 4 (User Preferences) COMPLETED!
   - 🎉 Milestone 3 (Relationships & Graph) COMPLETED!
   - 🎉 Milestone 2 (Core Memory System) COMPLETED!
   - 🎉 Milestone 1 (Project Foundation) COMPLETED!
@@ -398,6 +416,7 @@ notes:
   - ✅ M1: 7 tasks complete (Tasks 1-5, 9 complete; Tasks 6-7 deferred)
   - ✅ M2: 6/6 memory tools complete (100% progress)
   - ✅ M3: 4/4 relationship tools complete (100% progress)
+  - ✅ M4: 2/2 preference tools complete (100% progress)
   - ✅ Complete memory CRUD operations (create, read, update, delete)
   - ✅ Complete relationship CRUD operations (create, read, update, delete)
   - ✅ Advanced search capabilities (hybrid, similarity, RAG queries)
@@ -422,12 +441,16 @@ notes:
   - ✅ Bidirectional relationship tracking (memories know their relationships)
   - ✅ Free-form relationship types (inspired_by, contradicts, caused_by, etc.)
   - ✅ Relationship observations vectorized for semantic search
-  - 📋 Ready for M4: User Preferences system
+  - ✅ User preferences system with 6 categories
+  - ✅ Conversational preference management (set/get via natural language)
+  - ✅ Preference validation and defaults
+  - ✅ Firestore storage for user preferences
+  - 📋 Ready for M5: Template System
   
 current_blockers:
   - No Weaviate instance running (all code ready, needs Weaviate to test end-to-end)
   - Environment variables need to be configured (.env file with WEAVIATE_URL, OPENAI_APIKEY, etc.)
-  - M4 not started: User Preferences system
+  - M5 not started: Template System
   
 environment_configured:
   - ⚠️  .env file needs to be created from .env.example
