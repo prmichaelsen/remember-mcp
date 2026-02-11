@@ -16,7 +16,7 @@ milestones:
     completed: null
     estimated_weeks: 1
     tasks_completed: 5
-    tasks_total: 7
+    tasks_total: 8
     notes: |
       ✅ Configuration files created (gitignore, jest, esbuild, tsconfig, package.json)
       ✅ Project structure initialized with src/ directory
@@ -167,12 +167,22 @@ tasks:
       status: not_started
       file: agent/tasks/task-7-finalize-milestone-1.md
       estimated_hours: 1
+      
+    - id: task-9
+      name: Create Server Factory for mcp-auth
+      status: not_started
+      file: agent/tasks/task-9-create-server-factory.md
+      estimated_hours: 2
+      notes: |
+        Creates server-factory.ts for mcp-auth compatibility
+        Enables multi-tenant production deployments
+        Maintains standalone server.ts for local development
 
 documentation:
   design_documents: 23
   milestone_documents: 9
   pattern_documents: 5
-  task_documents: 8
+  task_documents: 9
 
 progress:
   planning: 100%
@@ -215,6 +225,7 @@ recent_work:
 next_steps:
   - Create integration tests for server and database connections (Task 6)
   - Finalize Milestone 1 documentation (Task 7)
+  - Create server-factory.ts for mcp-auth compatibility (Task 9)
   - Create src/types/ directory with type definitions (Memory, Relationship, Template, etc.)
   - Optional: Setup utility scripts directory (Task 8)
   - Begin Milestone 2: Core Memory System implementation
@@ -234,6 +245,7 @@ notes:
   - ✅ Logger uses console output (safe for stdio MCP transport)
   - ✅ Basic MCP server implemented (Task 5)
   - ✅ src/server.ts created with health_check tool
+  - 📋 Task 9 added: Create server-factory.ts for mcp-auth compatibility
   - 📋 Ready for integration tests (Task 6)
   
 current_blockers:
