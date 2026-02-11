@@ -14,10 +14,10 @@ export const config = {
     apiKey: process.env.OPENAI_APIKEY || '',
   },
 
-  // Firebase
+  // Firebase (using firebase-admin-sdk-v8)
   firebase: {
+    serviceAccount: process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT_KEY || '',
     projectId: process.env.FIREBASE_PROJECT_ID || '',
-    credentialsPath: process.env.GOOGLE_APPLICATION_CREDENTIALS || './serviceAccount.json',
   },
 
   // Server
@@ -40,6 +40,7 @@ export function validateConfig(): void {
   const required = [
     { key: 'WEAVIATE_URL', value: config.weaviate.url },
     { key: 'OPENAI_APIKEY', value: config.openai.apiKey },
+    { key: 'FIREBASE_ADMIN_SERVICE_ACCOUNT_KEY', value: config.firebase.serviceAccount },
     { key: 'FIREBASE_PROJECT_ID', value: config.firebase.projectId },
   ];
 
