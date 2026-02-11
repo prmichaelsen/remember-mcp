@@ -5,7 +5,7 @@ dotenv.config();
 export const config = {
   // Weaviate
   weaviate: {
-    url: process.env.WEAVIATE_URL || 'http://localhost:8080',
+    url: process.env.WEAVIATE_REST_URL || 'http://localhost:8080',
     apiKey: process.env.WEAVIATE_API_KEY || '',
   },
 
@@ -38,13 +38,13 @@ export const config = {
  */
 export function validateConfig(): void {
   const required = [
-    { key: 'WEAVIATE_URL', value: config.weaviate.url },
+    { key: 'WEAVIATE_REST_URL', value: config.weaviate.url },
     { key: 'OPENAI_EMBEDDINGS_API_KEY', value: config.openai.apiKey },
     { key: 'FIREBASE_ADMIN_SERVICE_ACCOUNT_KEY', value: config.firebase.serviceAccount },
     { key: 'FIREBASE_PROJECT_ID', value: config.firebase.projectId },
   ];
 
-  const missing = required.filter((r) => !r.value);
+  const missing = required.filter((r) => !r.value || r.value === 'http://localhost:8080');
 
   if (missing.length > 0) {
     throw new Error(

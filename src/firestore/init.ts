@@ -5,6 +5,9 @@ let initialized = false;
 
 /**
  * Initialize Firebase Admin SDK
+ *
+ * FIREBASE_ADMIN_SERVICE_ACCOUNT_KEY should be a JSON string containing the service account.
+ * Make sure it's properly escaped in your .env file.
  */
 export function initFirestore(): void {
   if (initialized) {
@@ -12,15 +15,19 @@ export function initFirestore(): void {
   }
 
   try {
+    const serviceAccount = JSON.parse(config.firebase.serviceAccount);
+    
     initializeApp({
-      serviceAccount: JSON.parse(config.firebase.serviceAccount),
+      serviceAccount,
       projectId: config.firebase.projectId,
     });
 
     initialized = true;
-    console.log('[Firestore] Initialized');
+    console.log('[Firestore] Initialized successfully');
   } catch (error) {
     console.error('[Firestore] Initialization failed:', error);
+    console.error('[Firestore] Make sure FIREBASE_ADMIN_SERVICE_ACCOUNT_KEY is valid JSON');
+    console.error('[Firestore] Check for proper escaping in .env file');
     throw error;
   }
 }

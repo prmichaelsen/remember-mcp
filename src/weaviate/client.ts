@@ -6,8 +6,10 @@ let client: WeaviateClient | null = null;
 /**
  * Initialize Weaviate client
  *
- * Note: connectToWeaviateCloud() works for ANY remote Weaviate (cloud or self-hosted)
- * Only use connectToLocal() for localhost development
+ * Connection strategy:
+ * - If WEAVIATE_REST_URL is set → use cloud connection (remote/self-hosted)
+ * - If URL contains localhost/127.0.0.1 → use local connection
+ * - Otherwise → use cloud connection (remote/self-hosted)
  */
 export async function initWeaviateClient(): Promise<WeaviateClient> {
   if (client) {
@@ -16,14 +18,25 @@ export async function initWeaviateClient(): Promise<WeaviateClient> {
 
   const weaviateUrl = config.weaviate.url;
   
-  // Check if this is localhost (use connectToLocal)
-  const isLocal = weaviateUrl.includes('localhost') ||
-                  weaviateUrl.includes('127.0.0.1');
+  // Check if URL is localhost (use local connection)
+  // Everything else uses cloud connection (remote/self-hosted)
+  const isLocal = weaviateUrl.includes('localhost') || weaviateUrl.includes('127.0.0.1');
   
   // Use appropriate connection method
-  if (isLocal) {
-    console.log('[Weaviate] Connecting to local Weaviate:', weaviateUrl);
+  if (!isLocal) {
+    // Use connectToWeaviateCloud() for ALL remote instances (cloud or self-hosted)
+    console.log('[Weaviate] Connecting to remote Weaviate:', weaviateUrl);
+    client = await weaviate.connectToWeaviateCloud(weaviateUrl, {
+      authCredentials: config.weaviate.apiKey
+        ? new weaviate.ApiKey(config.weaviate.apiKey)
+        : undefined,
+      headers: config.openai.apiKey
+        ? { 'X-OpenAI-Api-Key': config.openai.apiKey }
+        : undefined,
+    });
+  } else {
     // connectToLocal() for localhost only
+    console.log('[Weaviate] Connecting to local Weaviate:', weaviateUrl);
     const localConfig: any = {
       host: weaviateUrl.replace(/^https?:\/\//, '').split(':')[0],
       port: weaviateUrl.includes(':')
@@ -41,17 +54,6 @@ export async function initWeaviateClient(): Promise<WeaviateClient> {
     }
     
     client = await weaviate.connectToLocal(localConfig);
-  } else {
-    // Use connectToWeaviateCloud() for ALL remote instances (cloud or self-hosted)
-    console.log('[Weaviate] Connecting to remote Weaviate:', weaviateUrl);
-    client = await weaviate.connectToWeaviateCloud(weaviateUrl, {
-      authCredentials: config.weaviate.apiKey
-        ? new weaviate.ApiKey(config.weaviate.apiKey)
-        : undefined,
-      headers: config.openai.apiKey
-        ? { 'X-OpenAI-Api-Key': config.openai.apiKey }
-        : undefined,
-    });
   }
 
   console.log('[Weaviate] Client initialized successfully');
