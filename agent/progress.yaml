@@ -143,10 +143,10 @@ tasks:
       estimated_hours: 1
 
 documentation:
-  design_documents: 20
+  design_documents: 22
   milestone_documents: 9
-  pattern_documents: 3
-  task_documents: 7
+  pattern_documents: 4
+  task_documents: 8
 
 progress:
   planning: 100%
