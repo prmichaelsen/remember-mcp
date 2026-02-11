@@ -20,6 +20,12 @@ import { updateMemoryTool, handleUpdateMemory } from './tools/update-memory.js';
 import { findSimilarTool, handleFindSimilar } from './tools/find-similar.js';
 import { queryMemoryTool, handleQueryMemory } from './tools/query-memory.js';
 
+// Import relationship tools
+import { createRelationshipTool, handleCreateRelationship } from './tools/create-relationship.js';
+import { updateRelationshipTool, handleUpdateRelationship } from './tools/update-relationship.js';
+import { searchRelationshipTool, handleSearchRelationship } from './tools/search-relationship.js';
+import { deleteRelationshipTool, handleDeleteRelationship } from './tools/delete-relationship.js';
+
 export interface ServerOptions {
   name?: string;
   version?: string;
@@ -104,12 +110,18 @@ function registerHandlers(server: Server, userId: string, accessToken: string): 
             properties: {},
           },
         },
+        // Memory tools
         createMemoryTool,
         searchMemoryTool,
         deleteMemoryTool,
         updateMemoryTool,
         findSimilarTool,
         queryMemoryTool,
+        // Relationship tools
+        createRelationshipTool,
+        updateRelationshipTool,
+        searchRelationshipTool,
+        deleteRelationshipTool,
       ],
     };
   });
@@ -148,6 +160,22 @@ function registerHandlers(server: Server, userId: string, accessToken: string): 
 
         case 'remember_query_memory':
           result = await handleQueryMemory(args as any, userId);
+          break;
+
+        case 'remember_create_relationship':
+          result = await handleCreateRelationship(args as any, userId);
+          break;
+
+        case 'remember_update_relationship':
+          result = await handleUpdateRelationship(args as any, userId);
+          break;
+
+        case 'remember_search_relationship':
+          result = await handleSearchRelationship(args as any, userId);
+          break;
+
+        case 'remember_delete_relationship':
+          result = await handleDeleteRelationship(args as any, userId);
           break;
 
         default:

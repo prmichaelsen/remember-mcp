@@ -64,9 +64,26 @@ milestones:
     
   - id: M3
     name: Relationships & Graph
-    status: not_started
-    progress: 0%
+    status: completed
+    progress: 100%
+    started: 2026-02-11
+    completed: 2026-02-11
     estimated_weeks: 1
+    tasks_completed: 4
+    tasks_total: 4
+    notes: |
+      ✅ remember_create_relationship tool implemented
+      ✅ remember_update_relationship tool implemented
+      ✅ remember_search_relationship tool implemented
+      ✅ remember_delete_relationship tool implemented
+      ✅ Bidirectional updates: memories updated when relationships created/deleted
+      ✅ Relationships stored in Memory_{user_id} with doc_type: "relationship"
+      ✅ N-way relationships supported (2...N memories)
+      ✅ Semantic search on relationship observations
+      ✅ All 4 tools integrated into server.ts and server-factory.ts
+      ✅ TypeScript compiles without errors
+      ✅ Build successful
+      ✅ Complete relationship CRUD functionality
     
   - id: M4
     name: User Preferences
@@ -365,22 +382,26 @@ recent_work:
       - 📋 Ready for M3: Relationship tools
 
 next_steps:
-  - Start M3: Relationship tools (create, update, search, delete)
-  - Test complete memory system with actual Weaviate instance (create .env file)
-  - Consider implementing relationship graph traversal
+  - Start M4: User Preferences system
+  - Test complete memory + relationship system with actual Weaviate instance (create .env file)
+  - Consider implementing relationship graph traversal queries
   - Optional: Create integration tests (Task 6)
   - Optional: Add development documentation (Task 7)
-  - Consider M4: User Preferences system
+  - Consider M5: Template System
 
 notes:
+  - 🎉 Milestone 3 (Relationships & Graph) COMPLETED!
   - 🎉 Milestone 2 (Core Memory System) COMPLETED!
   - 🎉 Milestone 1 (Project Foundation) COMPLETED!
   - ✅ All 23 design documents complete and comprehensive
   - ✅ All 9 milestones defined with clear deliverables
   - ✅ M1: 7 tasks complete (Tasks 1-5, 9 complete; Tasks 6-7 deferred)
-  - ✅ M2: 6/6 tools complete (100% progress)
+  - ✅ M2: 6/6 memory tools complete (100% progress)
+  - ✅ M3: 4/4 relationship tools complete (100% progress)
   - ✅ Complete memory CRUD operations (create, read, update, delete)
+  - ✅ Complete relationship CRUD operations (create, read, update, delete)
   - ✅ Advanced search capabilities (hybrid, similarity, RAG queries)
+  - ✅ Relationship semantic search on observations
   - ✅ Module name mapping (@/) configured across TypeScript, Jest, and esbuild
   - ✅ Project structure follows bootstrap.md pattern
   - ✅ All dependencies installed (497 packages with firebase-admin-sdk-v8)
@@ -397,12 +418,16 @@ notes:
   - ✅ Hybrid search with filters (type, tags, weight, trust, date)
   - ✅ Vector similarity search for finding related memories
   - ✅ RAG-optimized queries with detailed and compact formats
-  - 📋 Ready for M3: Relationship tools (create, update, search, delete)
+  - ✅ N-way relationships connecting 2...N memories
+  - ✅ Bidirectional relationship tracking (memories know their relationships)
+  - ✅ Free-form relationship types (inspired_by, contradicts, caused_by, etc.)
+  - ✅ Relationship observations vectorized for semantic search
+  - 📋 Ready for M4: User Preferences system
   
 current_blockers:
   - No Weaviate instance running (all code ready, needs Weaviate to test end-to-end)
   - Environment variables need to be configured (.env file with WEAVIATE_URL, OPENAI_APIKEY, etc.)
-  - M3 not started: Relationship tools (create, update, search, delete)
+  - M4 not started: User Preferences system
   
 environment_configured:
   - ⚠️  .env file needs to be created from .env.example
