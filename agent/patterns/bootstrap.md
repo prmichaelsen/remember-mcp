@@ -101,7 +101,8 @@ project-root/
     "build:bundle": "node esbuild.build.js",
     "watch": "node esbuild.watch.js",
     "start": "node dist/index.js",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
   },
   
   "keywords": [
