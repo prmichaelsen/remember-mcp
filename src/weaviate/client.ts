@@ -5,23 +5,53 @@ let client: WeaviateClient | null = null;
 
 /**
  * Initialize Weaviate client
+ * Supports both local/self-hosted and Weaviate Cloud instances
  */
 export async function initWeaviateClient(): Promise<WeaviateClient> {
   if (client) {
     return client;
   }
 
-  // Weaviate v3 client initialization
-  client = await weaviate.connectToWeaviateCloud(config.weaviate.url, {
-    authCredentials: config.weaviate.apiKey
-      ? new weaviate.ApiKey(config.weaviate.apiKey)
-      : undefined,
-    headers: config.openai.apiKey
-      ? { 'X-OpenAI-Api-Key': config.openai.apiKey }
-      : undefined,
-  });
+  const weaviateUrl = config.weaviate.url;
+  
+  // Determine if this is a cloud or local instance
+  const isCloud = weaviateUrl.includes('weaviate.cloud') ||
+                  weaviateUrl.includes('wcs.api.weaviate.io');
+  
+  // Use appropriate connection method
+  if (isCloud) {
+    console.log('[Weaviate] Connecting to Weaviate Cloud:', weaviateUrl);
+    client = await weaviate.connectToWeaviateCloud(weaviateUrl, {
+      authCredentials: config.weaviate.apiKey
+        ? new weaviate.ApiKey(config.weaviate.apiKey)
+        : undefined,
+      headers: config.openai.apiKey
+        ? { 'X-OpenAI-Api-Key': config.openai.apiKey }
+        : undefined,
+    });
+  } else {
+    console.log('[Weaviate] Connecting to local/self-hosted Weaviate:', weaviateUrl);
+    // connectToLocal() takes different parameters - just host/port config
+    const localConfig: any = {
+      host: weaviateUrl.replace(/^https?:\/\//, '').split(':')[0],
+      port: weaviateUrl.includes(':')
+        ? parseInt(weaviateUrl.split(':').pop() || '8080')
+        : (weaviateUrl.startsWith('https') ? 443 : 80),
+      scheme: weaviateUrl.startsWith('https') ? 'https' : 'http',
+    };
+    
+    if (config.weaviate.apiKey) {
+      localConfig.authClientSecret = new weaviate.ApiKey(config.weaviate.apiKey);
+    }
+    
+    if (config.openai.apiKey) {
+      localConfig.headers = { 'X-OpenAI-Api-Key': config.openai.apiKey };
+    }
+    
+    client = await weaviate.connectToLocal(localConfig);
+  }
 
-  console.log('[Weaviate] Client initialized');
+  console.log('[Weaviate] Client initialized successfully');
   return client;
 }
 
