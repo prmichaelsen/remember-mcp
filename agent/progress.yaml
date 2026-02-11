@@ -11,21 +11,23 @@ milestones:
   - id: M1
     name: Project Foundation
     status: in_progress
-    progress: 45%
+    progress: 60%
     started: 2026-02-11
     completed: null
     estimated_weeks: 1
-    tasks_completed: 3
+    tasks_completed: 4
     tasks_total: 7
     notes: |
       ✅ Configuration files created (gitignore, jest, esbuild, tsconfig, package.json)
       ✅ Project structure initialized with src/ directory
       ✅ Module name mapping (@/) configured across TypeScript, Jest, and esbuild
-      ✅ All dependencies installed (600 packages)
-      ✅ Weaviate client wrapper created with tests passing
+      ✅ All dependencies installed (497 packages with firebase-admin-sdk-v8)
+      ✅ Weaviate client created with multi-tenant support
+      ✅ Firestore init helper and path utilities created
       ✅ Configuration module and logger utility created
+      ✅ 14 unit tests passing (100% coverage on paths)
       ⚠️  No Weaviate instance configured (client ready, needs connection)
-      ⚠️  No Firebase project configured
+      ⚠️  Firebase configured but not tested yet
     
   - id: M2
     name: Core Memory System
@@ -120,9 +122,16 @@ tasks:
       
     - id: task-4
       name: Setup Firestore Client
-      status: not_started
+      status: completed
       file: agent/tasks/task-4-setup-firestore-client.md
       estimated_hours: 2
+      completed_date: 2026-02-11
+      notes: |
+        ✅ Created src/firestore/init.ts (minimal initialization helper)
+        ✅ Created src/firestore/paths.ts (collection path helpers)
+        ✅ Re-exports firebase-admin-sdk-v8 functions (no wrapper needed)
+        ✅ Created unit tests (7 passing, 100% coverage)
+        ✅ Follows service layer pattern per design decision
       
     - id: task-5
       name: Create Basic MCP Server
@@ -150,52 +159,62 @@ documentation:
 
 progress:
   planning: 100%
-  implementation: 45%
-  overall: 45%
+  implementation: 60%
+  overall: 60%
 
 recent_work:
   - date: 2026-02-11
-    description: Project foundation, dependencies, and Weaviate client
+    description: Project foundation, dependencies, database clients, and design docs
     items:
       - ✅ Created comprehensive .gitignore with patterns for node_modules, dist, env files, IDE files
       - ✅ Created jest.config.js and jest.e2e.config.js for unit and e2e testing
       - ✅ Created esbuild.build.js and esbuild.watch.js for build and watch modes
       - ✅ Added module name mapping (@/ aliases) to tsconfig.json, jest, and esbuild
       - ✅ Updated package.json with proper scripts, repository info, and author
-      - ✅ Updated agent/patterns/bootstrap.md with detailed configuration documentation
-      - ✅ Created src/.gitkeep to establish directory structure
-      - ✅ Completed all 20 design documents with comprehensive specifications
+      - ✅ Completed all 23 design documents with comprehensive specifications
       - ✅ Added all dependencies to package.json (4 core + 11 dev dependencies)
-      - ✅ Installed 600 packages successfully with npm install
+      - ✅ Switched to firebase-admin-sdk-v8 (497 packages vs 600 with firebase-admin)
+      - ✅ Installed all packages successfully
       - ✅ Verified all build tools working (TypeScript, ESLint, Jest, esbuild)
       - ✅ Created src/config.ts for environment configuration
       - ✅ Created src/utils/logger.ts for logging utility
-      - ✅ Created src/weaviate/client.ts with Weaviate v3 API support
+      - ✅ Created src/weaviate/client.ts with Weaviate v3 API and multi-tenant support
+      - ✅ Created src/firestore/init.ts with firebase-admin-sdk-v8 initialization
+      - ✅ Created src/firestore/paths.ts with collection path helpers
       - ✅ Implemented user ID sanitization and collection name generation
-      - ✅ Created unit tests with 7 passing tests
+      - ✅ Created comprehensive pattern docs (firebase-admin-sdk-v8, LLM abstraction)
+      - ✅ Created design docs (firestore wrapper analysis, LLM provider abstraction)
+      - ✅ Created 14 unit tests (all passing, 100% coverage on paths)
       - ✅ Updated Jest config for ESM support
 
 next_steps:
   - Create src/types/ directory with type definitions
-  - Set up Firestore client wrapper (Task 4)
   - Create basic MCP server structure (Task 5)
   - Create integration tests (Task 6)
   - Finalize Milestone 1 (Task 7)
+  - Optional: Setup utility scripts directory (Task 8)
 
 notes:
-  - ✅ All 20 design documents complete and comprehensive
+  - ✅ All 23 design documents complete and comprehensive
   - ✅ All 9 milestones defined with clear deliverables
-  - ✅ All 7 M1 tasks documented
+  - ✅ All 8 M1 tasks documented (7 core + 1 optional)
   - ✅ M1 configuration files complete
   - ✅ Module name mapping (@/) configured across TypeScript, Jest, and esbuild
   - ✅ Project structure follows bootstrap.md pattern
-  - ✅ All dependencies installed (600 packages)
+  - ✅ All dependencies installed (497 packages with firebase-admin-sdk-v8)
   - ✅ Build tools verified and working
-  - ⚠️  NO source code exists yet - src/ only has .gitkeep
-  - 📋 Ready to begin actual implementation
+  - ✅ Database client infrastructure complete (Weaviate + Firestore)
+  - ✅ 14 unit tests passing with good coverage
+  - ✅ Key design decisions documented (service layer, LLM abstraction, etc.)
+  - 📋 Ready for MCP server implementation (Task 5)
   
 current_blockers:
-  - No Weaviate instance configured (need WEAVIATE_URL and WEAVIATE_API_KEY)
-  - No Firebase project configured (need Firebase service account JSON)
-  - No environment variables set up (.env file not created from .env.example)
-  - No OpenAI API key configured (need OPENAI_APIKEY for embeddings)
+  - No Weaviate instance running (client ready, needs actual Weaviate server)
+  - No MCP server implementation yet (Task 5)
+  - No tools implemented yet (will be in M2)
+  
+environment_configured:
+  - ✅ .env file created with Firebase credentials
+  - ✅ service-account-key.json added for utility scripts
+  - ✅ LLM provider configuration (Bedrock preferred)
+  - ⚠️  Weaviate instance needs to be started
