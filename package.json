@@ -1,0 +1,25 @@
+{
+  "name": "remember-mcp",
+  "version": "0.1.0",
+  "description": "Multi-tenant memory system MCP server with vector search and relationships",
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.build.js",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "lint": "eslint src/**/*.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "mcp",
+    "memory",
+    "vector-search",
+    "weaviate",
+    "firebase"
+  ],
+  "author": "",
+  "license": "MIT"
+}
