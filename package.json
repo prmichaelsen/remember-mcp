@@ -4,14 +4,28 @@
   "description": "Multi-tenant memory system MCP server with vector search and relationships",
   "main": "dist/server.js",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prmichaelsen/remember-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/prmichaelsen/remember-mcp/issues"
+  },
+  "homepage": "https://github.com/prmichaelsen/remember-mcp#readme",
   "scripts": {
     "build": "node esbuild.build.js",
+    "build:watch": "node esbuild.watch.js",
+    "clean": "rm -rf dist",
     "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:e2e": "jest --config jest.e2e.config.js",
+    "test:e2e:watch": "jest --config jest.e2e.config.js --watch",
+    "test:all": "npm test && npm run test:e2e",
     "lint": "eslint src/**/*.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run clean && npm run build"
   },
   "keywords": [
     "mcp",
@@ -20,6 +34,6 @@
     "weaviate",
     "firebase"
   ],
-  "author": "",
+  "author": "Patrick Michaelsen",
   "license": "MIT"
 }

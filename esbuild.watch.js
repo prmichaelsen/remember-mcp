@@ -1,6 +1,6 @@
 import * as esbuild from 'esbuild';
 
-await esbuild.build({
+const ctx = await esbuild.context({
   entryPoints: ['src/server.ts'],
   bundle: true,
   platform: 'node',
@@ -21,4 +21,5 @@ await esbuild.build({
   }
 });
 
-console.log('✓ Build complete');
+await ctx.watch();
+console.log('👀 Watching for changes...');
