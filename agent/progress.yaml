@@ -11,11 +11,11 @@ milestones:
   - id: M1
     name: Project Foundation
     status: in_progress
-    progress: 71%
+    progress: 75%
     started: 2026-02-11
     completed: null
     estimated_weeks: 1
-    tasks_completed: 5
+    tasks_completed: 6
     tasks_total: 8
     notes: |
       ✅ Configuration files created (gitignore, jest, esbuild, tsconfig, package.json)
@@ -186,13 +186,20 @@ tasks:
       
     - id: task-9
       name: Create Server Factory for mcp-auth
-      status: not_started
+      status: completed
       file: agent/tasks/task-9-create-server-factory.md
       estimated_hours: 2
+      completed_date: 2026-02-11
       notes: |
-        Creates server-factory.ts for mcp-auth compatibility
-        Enables multi-tenant production deployments
-        Maintains standalone server.ts for local development
+        ✅ Created src/server-factory.ts with createServer(accessToken, userId, options)
+        ✅ Factory function compatible with mcp-auth wrapping pattern
+        ✅ Isolated server instances (no shared state)
+        ✅ All operations scoped to userId
+        ✅ Updated package.json with factory export
+        ✅ Updated esbuild.build.js for dual build (server + factory)
+        ✅ Created 9 unit tests (all passing)
+        ✅ Updated README.md with usage examples
+        ✅ Factory export verified working
 
 documentation:
   design_documents: 23
@@ -207,19 +214,19 @@ progress:
 
 recent_work:
   - date: 2026-02-11
-    description: MVP implementation - Basic memory operations working
+    description: MVP + mcp-auth compatibility complete
     items:
-      - ✅ Created src/types/memory.ts with complete type definitions
-      - ✅ Created src/weaviate/schema.ts with Memory collection schema
-      - ✅ Implemented remember_create_memory tool (create memories)
-      - ✅ Implemented remember_search_memory tool (hybrid search)
-      - ✅ Implemented remember_delete_memory tool (delete with relationships)
-      - ✅ Integrated all 3 memory tools into server.ts
-      - ✅ Server now has 4 tools: health_check + 3 memory operations
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful (bundled server)
-      - ✅ All 16 tests passing
-      - 🎉 MVP functional: Can create, search, and delete memories!
+      - ✅ Created src/server-factory.ts for mcp-auth compatibility
+      - ✅ Dual build: server.js (standalone) + server-factory.js (library)
+      - ✅ Factory export verified working
+      - ✅ 9 new unit tests for server factory (25 total tests passing)
+      - ✅ Updated package.json with factory export
+      - ✅ Updated README with mcp-auth usage examples
+      - ✅ Fixed search filter application (matches index pattern)
+      - ✅ Unified person content type (removed duplicate contact)
+      - ✅ Removed template content type (templates are separate entities)
+      - ✅ 45 content types with dynamic description generation
+      - 🎉 Server now compatible with mcp-auth for production deployments!
       - ✅ Created comprehensive .gitignore with patterns for node_modules, dist, env files, IDE files
       - ✅ Created jest.config.js and jest.e2e.config.js for unit and e2e testing
       - ✅ Created esbuild.build.js and esbuild.watch.js for build and watch modes

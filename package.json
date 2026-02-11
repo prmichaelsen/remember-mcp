@@ -4,6 +4,16 @@
   "description": "Multi-tenant memory system MCP server with vector search and relationships",
   "main": "dist/server.js",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    },
+    "./factory": {
+      "types": "./dist/server-factory.d.ts",
+      "import": "./dist/server-factory.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/prmichaelsen/remember-mcp.git"
