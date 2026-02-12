@@ -3,24 +3,24 @@ import { createServer } from './server-factory.js';
 
 describe('Server Factory', () => {
   describe('Parameter Validation', () => {
-    it('should create server instance with valid parameters', () => {
-      const server = createServer('test-token', 'user123');
+    it('should create server instance with valid parameters', async () => {
+      const server = await createServer('test-token', 'user123');
       expect(server).toBeDefined();
       expect(server).toHaveProperty('setRequestHandler');
     });
 
-    it('should allow empty accessToken (not used by remember-mcp)', () => {
+    it('should allow empty accessToken (not used by remember-mcp)', async () => {
       // accessToken is not used by remember-mcp (self-managed data)
       // Should not throw even with empty string
-      expect(() => createServer('', 'user123')).not.toThrow();
+      await expect(createServer('', 'user123')).resolves.toBeDefined();
     });
 
-    it('should require userId', () => {
-      expect(() => createServer('token', '')).toThrow('userId is required');
+    it('should require userId', async () => {
+      await expect(createServer('token', '')).rejects.toThrow('userId is required');
     });
 
-    it('should accept custom options', () => {
-      const server = createServer('token', 'user123', {
+    it('should accept custom options', async () => {
+      const server = await createServer('token', 'user123', {
         name: 'custom-name',
         version: '2.0.0',
       });
