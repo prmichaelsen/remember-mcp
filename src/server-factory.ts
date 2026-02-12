@@ -128,11 +128,8 @@ export function createServer(
   logger.debug('Creating server instance', { userId });
   
   // Ensure databases are initialized (happens once globally)
-  // Note: This is synchronous to match the Server return type
-  // The actual initialization happens on first tool call
-  ensureDatabasesInitialized().catch(error => {
-    logger.error('Failed to initialize databases:', error);
-  });
+  // Initialization must succeed or server creation fails
+  await ensureDatabasesInitialized();
   
   // Create MCP server
   const server = new Server(
