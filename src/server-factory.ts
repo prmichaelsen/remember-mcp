@@ -113,11 +113,11 @@ async function ensureDatabasesInitialized(): Promise<void> {
  * });
  * ```
  */
-export function createServer(
+export async function createServer(
   accessToken: string,
   userId: string,
   options: ServerOptions = {}
-): Server {
+): Promise<Server> {
   // Note: accessToken is not used by remember-mcp (self-managed data)
   // but required by mcp-auth contract. Can be any value including empty string.
   
