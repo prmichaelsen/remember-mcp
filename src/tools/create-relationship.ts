@@ -182,8 +182,11 @@ export async function handleCreateRelationship(
       tags: args.tags || [],
     };
 
-    // Insert relationship into Weaviate
-    const relationshipId = await collection.data.insert(relationship as any);
+    // Insert relationship into Weaviate v3 API
+    // v3 expects: { properties: {...} }
+    const relationshipId = await collection.data.insert({
+      properties: relationship as any,
+    });
 
     logger.info('Relationship created, updating connected memories', { 
       relationshipId, 

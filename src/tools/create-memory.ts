@@ -180,8 +180,11 @@ export async function handleCreateMemory(
       computed_weight: args.weight ?? 0.5,
     };
 
-    // Insert into Weaviate
-    const result = await collection.data.insert(memory as any);
+    // Insert into Weaviate v3 API
+    // v3 expects: { properties: {...} }
+    const result = await collection.data.insert({
+      properties: memory as any,
+    });
 
     logger.info('Memory created successfully', { memoryId: result, userId });
 
