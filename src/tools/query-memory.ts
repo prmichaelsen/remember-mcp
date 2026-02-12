@@ -6,6 +6,7 @@
 import type { Memory, SearchFilters } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
+import { buildCombinedSearchFilters } from '../utils/weaviate-filters.js';
 
 /**
  * Tool definition for remember_query_memory
@@ -144,58 +145,8 @@ export async function handleQueryMemory(
     const includeContext = args.include_context ?? true;
     const format = args.format ?? 'detailed';
 
-    // Build where filter for memories only
-    const whereFilters: any[] = [
-      {
-        path: 'doc_type',
-        operator: 'Equal',
-        valueText: 'memory',
-      },
-    ];
-
-    // Add type filter
-    if (args.filters?.types && args.filters.types.length > 0) {
-      whereFilters.push({
-        path: 'type',
-        operator: 'ContainsAny',
-        valueTextArray: args.filters.types,
-      });
-    }
-
-    // Add weight filter
-    if (args.filters?.weight_min !== undefined) {
-      whereFilters.push({
-        path: 'weight',
-        operator: 'GreaterThanEqual',
-        valueNumber: args.filters.weight_min,
-      });
-    }
-
-    // Add trust filter
-    if (args.filters?.trust_min !== undefined) {
-      whereFilters.push({
-        path: 'trust',
-        operator: 'GreaterThanEqual',
-        valueNumber: args.filters.trust_min,
-      });
-    }
-
-    // Add date range filters
-    if (args.filters?.date_from) {
-      whereFilters.push({
-        path: 'created_at',
-        operator: 'GreaterThanEqual',
-        valueDate: new Date(args.filters.date_from),
-      });
-    }
-
-    if (args.filters?.date_to) {
-      whereFilters.push({
-        path: 'created_at',
-        operator: 'LessThanEqual',
-        valueDate: new Date(args.filters.date_to),
-      });
-    }
+    // Build filters using v3 API - search both memories and relationships
+    const filters = buildCombinedSearchFilters(collection, args.filters);
 
     // Build search options
     const searchOptions: any = {
@@ -205,11 +156,8 @@ export async function handleQueryMemory(
     };
 
     // Add filters if present
-    if (whereFilters.length > 0) {
-      searchOptions.filters = whereFilters.length > 1 ? {
-        operator: 'And' as const,
-        operands: whereFilters,
-      } : whereFilters[0];
+    if (filters) {
+      searchOptions.filters = filters;
     }
 
     // Perform semantic search using nearText

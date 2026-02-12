@@ -1,30 +1,34 @@
 /**
  * remember_search_memory tool
- * Search memories using hybrid semantic + keyword search
+ * Search memories AND relationships using hybrid semantic + keyword search
  */
 
-import type { Memory, SearchOptions, SearchResult, SearchFilters } from '../types/memory.js';
+import type { Memory, Relationship, SearchOptions, SearchResult, SearchFilters } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
+import { buildCombinedSearchFilters, buildMemoryOnlyFilters } from '../utils/weaviate-filters.js';
 
 /**
  * Tool definition for remember_search_memory
  */
 export const searchMemoryTool = {
   name: 'remember_search_memory',
-  description: `Search memories using hybrid semantic and keyword search.
+  description: `Search memories AND relationships using hybrid semantic and keyword search.
+  
+  By default, searches BOTH memories and relationships to provide comprehensive results.
+  Relationships contain valuable context in their observations.
   
   Supports:
-  - Semantic search (meaning-based)
+  - Semantic search (meaning-based) across memory content and relationship observations
   - Keyword search (exact matches)
   - Hybrid search (balanced with alpha parameter)
   - Filtering by type, tags, weight, trust, date range
-  - Location-based search
+  - Returns both memories and relationships in separate arrays
   
   Examples:
-  - "Find memories about camping trips"
-  - "Search for recipes I saved"
-  - "Show me notes from last week"
+  - "Find memories about camping trips" → returns memories + relationships about camping
+  - "Search for recipes I saved" → returns recipe memories + related relationships
+  - "Show me notes from last week" → returns notes + any relationships created that week
   `,
   inputSchema: {
     type: 'object',
@@ -87,8 +91,8 @@ export const searchMemoryTool = {
       },
       include_relationships: {
         type: 'boolean',
-        description: 'Include relationships in results. Default: false',
-        default: false,
+        description: 'Include relationships in results. Default: true (searches both memories and relationships)',
+        default: true,
       },
     },
     required: ['query'],
@@ -103,65 +107,24 @@ export async function handleSearchMemory(
   userId: string
 ): Promise<string> {
   try {
-    logger.info('Searching memories', { userId, query: args.query });
+    const includeRelationships = args.include_relationships !== false; // Default true
+    
+    logger.info('Searching memories and relationships', {
+      userId,
+      query: args.query,
+      includeRelationships
+    });
 
     const collection = getMemoryCollection(userId);
     const alpha = args.alpha ?? 0.7;
     const limit = args.limit ?? 10;
     const offset = args.offset ?? 0;
 
-    // Build where filter
-    const whereFilters: any[] = [
-      {
-        path: 'doc_type',
-        operator: 'Equal',
-        valueText: 'memory',
-      },
-    ];
-
-    // Add type filter
-    if (args.filters?.types && args.filters.types.length > 0) {
-      whereFilters.push({
-        path: 'type',
-        operator: 'ContainsAny',
-        valueTextArray: args.filters.types,
-      });
-    }
-
-    // Add weight filter
-    if (args.filters?.weight_min !== undefined) {
-      whereFilters.push({
-        path: 'weight',
-        operator: 'GreaterThanEqual',
-        valueNumber: args.filters.weight_min,
-      });
-    }
-
-    // Add trust filter
-    if (args.filters?.trust_min !== undefined) {
-      whereFilters.push({
-        path: 'trust',
-        operator: 'GreaterThanEqual',
-        valueNumber: args.filters.trust_min,
-      });
-    }
-
-    // Add date range filters
-    if (args.filters?.date_from) {
-      whereFilters.push({
-        path: 'created_at',
-        operator: 'GreaterThanEqual',
-        valueDate: new Date(args.filters.date_from),
-      });
-    }
-
-    if (args.filters?.date_to) {
-      whereFilters.push({
-        path: 'created_at',
-        operator: 'LessThanEqual',
-        valueDate: new Date(args.filters.date_to),
-      });
-    }
+    // Build filters using v3 API
+    // Use OR logic to search both memories and relationships
+    const filters = includeRelationships
+      ? buildCombinedSearchFilters(collection, args.filters)
+      : buildMemoryOnlyFilters(collection, args.filters);
 
     // Build search options
     const searchOptions: any = {
@@ -170,11 +133,8 @@ export async function handleSearchMemory(
     };
 
     // Add filters if present
-    if (whereFilters.length > 0) {
-      searchOptions.filters = whereFilters.length > 1 ? {
-        operator: 'And' as const,
-        operands: whereFilters,
-      } : whereFilters[0];
+    if (filters) {
+      searchOptions.filters = filters;
     }
 
     // Perform hybrid search with Weaviate v3 API
@@ -183,29 +143,38 @@ export async function handleSearchMemory(
     // Apply offset
     const paginatedResults = results.objects.slice(offset);
 
-    // Format memories
-    const memories: Partial<Memory>[] = paginatedResults.map((obj: any) => ({
-      id: obj.uuid,
-      ...obj.properties,
-    }));
+    // Separate memories and relationships
+    const memories: Partial<Memory>[] = [];
+    const relationships: Partial<Relationship>[] = [];
+
+    for (const obj of paginatedResults) {
+      const doc: any = {
+        id: obj.uuid,
+        ...obj.properties,
+      };
+
+      if (doc.doc_type === 'memory') {
+        memories.push(doc as Memory);
+      } else if (doc.doc_type === 'relationship') {
+        relationships.push(doc as Relationship);
+      }
+    }
 
     // Build result
     const searchResult: SearchResult = {
       memories: memories as Memory[],
-      total: memories.length,
+      relationships: includeRelationships ? (relationships as Relationship[]) : undefined,
+      total: memories.length + relationships.length,
       offset: offset,
       limit: limit,
     };
 
-    // TODO: Include relationships if requested
-    if (args.include_relationships) {
-      searchResult.relationships = [];
-    }
-
-    logger.info('Search completed', { 
-      userId, 
-      query: args.query, 
-      results: memories.length 
+    logger.info('Search completed', {
+      userId,
+      query: args.query,
+      memoriesFound: memories.length,
+      relationshipsFound: relationships.length,
+      total: searchResult.total
     });
 
     return JSON.stringify(searchResult, null, 2);
