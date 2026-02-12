@@ -2,7 +2,7 @@
 
 project:
   name: remember-mcp
-  version: 0.2.5
+  version: 1.0.1
   started: 2026-02-11
   status: in_progress
   current_milestone: M5
@@ -379,6 +379,31 @@ progress:
 
 recent_work:
   - date: 2026-02-12
+    description: v1.0.1 Released - Or Operator Bug Fix
+    items:
+      - 🎉 v1.0.1 RELEASED - Patch release with bug fix
+      - 🐛 Fixed "no children for operator Or" error
+      - ✅ Added validation to filter out undefined/null values in filter combinations
+      - ✅ Updated combineFiltersWithOr to validate operands
+      - ✅ Updated combineFiltersWithAnd to validate operands
+      - ✅ Added 3 new edge case tests for undefined/null handling
+      - ✅ All 57 tests passing (up from 54)
+      - ✅ Code coverage: 90.56% on weaviate-filters.ts
+      - ✅ Build successful
+      - ✅ CHANGELOG.md updated
+      
+  - date: 2026-02-12
+    description: v1.0.0 Released - Major Version with Breaking Changes
+    items:
+      - 🎉 v1.0.0 RELEASED - First stable release
+      - 🚨 BREAKING: createServer is now async (returns Promise<Server>)
+      - ✅ Database initialization now uses await pattern
+      - ✅ Server factory properly waits for databases before accepting requests
+      - ✅ Updated all server-factory tests for async
+      - ✅ All 54 tests passing
+      - ✅ CHANGELOG.md created with migration guide
+      
+  - date: 2026-02-12
     description: Task 20 COMPLETED - Weaviate v3 Filters & Relationship Search
     items:
       - 🎉 Task 20 (Fix Weaviate v3 Filters) COMPLETED!
@@ -390,12 +415,11 @@ recent_work:
       - ✅ Updated search-memory.ts to search BOTH memories AND relationships by default
       - ✅ Updated query-memory.ts to use v3 filters
       - ✅ Results now separated into memories and relationships arrays
-      - ✅ All 25 unit tests passing
+      - ✅ 29 new unit tests for filter builders
       - ✅ Build successful
       - ✅ TypeScript compiles without errors
       - 🔧 Fixed gRPC "paths needs to have an uneven number of components" error
       - 🔧 Replaced old v2 filter format (path/operator/valueText) with v3 fluent API
-      - 📋 Ready for M5: Template System
       
   - date: 2026-02-12
     description: Project Status Review & Documentation Update
@@ -513,10 +537,11 @@ build_status:
   - ✅ Source maps generated
   - ✅ Type definitions generated (.d.ts files)
   - ✅ Package exports configured for both entry points
-  - ✅ Version 0.2.5 published
-  - ✅ 28 TypeScript source files (added weaviate-filters.ts)
+  - ✅ Version 1.0.1 published (patch release)
+  - ✅ 29 TypeScript source files (added weaviate-filters.ts)
   - ✅ All 12 tools implemented
   - ✅ Weaviate v3 filter API implemented
+  - ✅ Or/And operator validation implemented
 
 tools_status:
   memory_tools:
@@ -552,9 +577,15 @@ task_20_completion:
   date: 2026-02-12
   files_created:
     - src/utils/weaviate-filters.ts
+    - src/utils/weaviate-filters.spec.ts
+    - CHANGELOG.md
   files_modified:
     - src/tools/search-memory.ts
     - src/tools/query-memory.ts
+    - src/server-factory.ts
+    - src/server-factory.spec.ts
+    - tsconfig.json
+    - package.json
   key_changes:
     - Replaced v2 filter format with v3 fluent API
     - Implemented OR logic to search both memories and relationships
@@ -562,5 +593,11 @@ task_20_completion:
     - Added buildMemoryOnlyFilters() for backward compatibility
     - Updated search-memory to return both memories and relationships
     - Fixed gRPC "paths needs to have an uneven number of components" error
-  tests_passing: 25/26 (1 skipped integration test)
+    - Fixed "no children for operator Or" error with validation
+    - Made createServer async for proper initialization (BREAKING CHANGE)
+    - Added 32 new unit tests (29 filter tests + 3 edge case tests)
+  tests_passing: 57/58 (1 skipped integration test)
   build_status: successful
+  releases:
+    - v1.0.0: Major release with breaking change (async createServer)
+    - v1.0.1: Patch release with Or operator bug fix
