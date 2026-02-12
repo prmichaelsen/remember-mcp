@@ -5,6 +5,7 @@
  * Replaces old v2 filter format (path/operator/valueText) with v3 collection.filter.byProperty()
  */
 
+import { Filters } from 'weaviate-client';
 import type { SearchFilters } from '../types/memory.js';
 
 /**
@@ -175,12 +176,8 @@ function combineFiltersWithAnd(filters: any[]): any {
     return validFilters[0];
   }
   
-  // Weaviate v3 uses operator/operands structure for combining filters
-  // Only create And operator if we have 2+ valid filters
-  return {
-    operator: 'And',
-    operands: validFilters
-  };
+  // Weaviate v3 uses Filters.and() from weaviate-client package
+  return Filters.and(...validFilters);
 }
 
 /**
@@ -200,12 +197,8 @@ function combineFiltersWithOr(filters: any[]): any {
     return validFilters[0];
   }
   
-  // Weaviate v3 uses operator/operands structure for combining filters
-  // Only create Or operator if we have 2+ valid filters
-  return {
-    operator: 'Or',
-    operands: validFilters
-  };
+  // Weaviate v3 uses Filters.or() from weaviate-client package
+  return Filters.or(...validFilters);
 }
 
 /**
