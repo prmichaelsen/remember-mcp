@@ -137,6 +137,13 @@ export async function handleSearchMemory(
       searchOptions.filters = filters;
     }
 
+    // Log the query for debugging
+    logger.info('Weaviate query', {
+      query: args.query,
+      searchOptions: JSON.stringify(searchOptions, null, 2),
+      hasFilters: !!filters,
+    });
+
     // Perform hybrid search with Weaviate v3 API
     const results = await collection.query.hybrid(args.query, searchOptions);
 
