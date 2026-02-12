@@ -137,6 +137,11 @@ export async function handleQueryMemory(
   userId: string
 ): Promise<string> {
   try {
+    // Validate query is not empty
+    if (!args.query || args.query.trim() === '') {
+      throw new Error('Query cannot be empty');
+    }
+
     logger.info('Querying memories', { userId, query: args.query });
 
     const collection = getMemoryCollection(userId);

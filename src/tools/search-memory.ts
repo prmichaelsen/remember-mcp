@@ -107,6 +107,11 @@ export async function handleSearchMemory(
   userId: string
 ): Promise<string> {
   try {
+    // Validate query is not empty
+    if (!args.query || args.query.trim() === '') {
+      throw new Error('Query cannot be empty');
+    }
+
     const includeRelationships = args.include_relationships !== false; // Default true
     
     logger.info('Searching memories and relationships', {
