@@ -127,9 +127,9 @@ export async function handleSearchMemory(
 
     // Build filters using v3 API
     // Use OR logic to search both memories and relationships
-    const filters = includeRelationships
-      ? buildCombinedSearchFilters(collection, args.filters)
-      : buildMemoryOnlyFilters(collection, args.filters);
+    // const filters = includeRelationships
+    //   ? buildCombinedSearchFilters(collection, args.filters)
+    //   : buildMemoryOnlyFilters(collection, args.filters);
 
     // Build search options
     const searchOptions: any = {
@@ -138,15 +138,15 @@ export async function handleSearchMemory(
     };
 
     // Add filters if present
-    if (filters) {
-      searchOptions.filters = filters;
-    }
+    // if (filters) {
+    //   searchOptions.filters = filters;
+    // }
 
     // Log the query for debugging
     logger.info('Weaviate query', {
       query: args.query,
       searchOptions: JSON.stringify(searchOptions, null, 2),
-      hasFilters: !!filters,
+      // hasFilters: !!filters,
     });
 
     // Perform hybrid search with Weaviate v3 API
