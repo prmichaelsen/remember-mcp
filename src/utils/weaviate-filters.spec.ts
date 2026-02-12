@@ -64,7 +64,7 @@ describe('weaviate-filters', () => {
 
     it('should build filter with doc_type and multiple content types', () => {
       const filters: SearchFilters = {
-        types: ['note', 'event', 'task'],
+        types: ['note', 'event', 'todo'],
       };
 
       const result = buildMemoryOnlyFilters(mockCollection, filters);
@@ -73,7 +73,7 @@ describe('weaviate-filters', () => {
         operator: 'And',
         operands: [
           { property: 'doc_type', operator: 'equal', value: 'memory' },
-          { property: 'type', operator: 'containsAny', values: ['note', 'event', 'task'] },
+          { property: 'type', operator: 'containsAny', values: ['note', 'event', 'todo'] },
         ],
       });
     });
@@ -178,7 +178,7 @@ describe('weaviate-filters', () => {
 
     it('should build complex filter with multiple criteria', () => {
       const filters: SearchFilters = {
-        types: ['note', 'task'],
+        types: ['note', 'todo'],
         weight_min: 0.5,
         trust_min: 0.3,
         date_from: '2024-01-01',
@@ -191,7 +191,7 @@ describe('weaviate-filters', () => {
         operator: 'And',
         operands: [
           { property: 'doc_type', operator: 'equal', value: 'memory' },
-          { property: 'type', operator: 'containsAny', values: ['note', 'task'] },
+          { property: 'type', operator: 'containsAny', values: ['note', 'todo'] },
           { property: 'weight', operator: 'gte', value: 0.5 },
           { property: 'trust', operator: 'gte', value: 0.3 },
           { property: 'created_at', operator: 'gte', value: new Date('2024-01-01') },
@@ -310,7 +310,7 @@ describe('weaviate-filters', () => {
 
     it('should handle type filter only for memories in combined search', () => {
       const filters: SearchFilters = {
-        types: ['note', 'task'],
+        types: ['note', 'todo'],
         weight_min: 0.5,
       };
 
@@ -323,7 +323,7 @@ describe('weaviate-filters', () => {
             operator: 'And',
             operands: [
               { property: 'doc_type', operator: 'equal', value: 'memory' },
-              { property: 'type', operator: 'containsAny', values: ['note', 'task'] },
+              { property: 'type', operator: 'containsAny', values: ['note', 'todo'] },
               { property: 'weight', operator: 'gte', value: 0.5 },
             ],
           },
@@ -354,11 +354,11 @@ describe('weaviate-filters', () => {
       expect(result.operator).toBe('Or');
       expect(result.operands).toHaveLength(2);
       
-      // Memory filters should include type
+      // Memory filters should include type (single type uses 'equal', not 'containsAny')
       expect(result.operands[0].operands).toContainEqual({
         property: 'type',
-        operator: 'containsAny',
-        values: ['note'],
+        operator: 'equal',
+        value: 'note',
       });
 
       // Relationship filters should NOT include type

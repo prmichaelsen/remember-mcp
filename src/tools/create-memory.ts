@@ -38,6 +38,7 @@ export const createMemoryTool = {
       type: {
         type: 'string',
         description: getContentTypeDescription(),
+        
         default: DEFAULT_CONTENT_TYPE,
       },
       weight: {
