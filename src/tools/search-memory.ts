@@ -191,7 +191,8 @@ export async function handleSearchMemory(
 
     return JSON.stringify(searchResult, null, 2);
   } catch (error) {
-    logger.error('Failed to search memories:', error);
-    throw new Error(`Failed to search memories: ${error instanceof Error ? error.message : String(error)}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Failed to search memories:', { error: errorMessage, userId, query: args.query });
+    throw new Error(`Failed to search memories: ${errorMessage}`);
   }
 }
