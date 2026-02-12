@@ -512,4 +512,53 @@ describe('weaviate-filters', () => {
       });
     });
   });
+
+  describe('undefined/null filter handling', () => {
+    it('should not create Or operator with empty operands', () => {
+      const emptyCollection = {
+        filter: {
+          byProperty: () => ({
+            equal: () => undefined,
+            greaterThanOrEqual: () => undefined,
+            lessThanOrEqual: () => undefined,
+            containsAny: () => undefined,
+          }),
+        },
+      };
+      
+      const result = buildCombinedSearchFilters(emptyCollection);
+      expect(result).toBeUndefined();
+    });
+
+    it('should not create And operator with empty operands', () => {
+      const emptyCollection = {
+        filter: {
+          byProperty: () => ({
+            equal: () => undefined,
+          }),
+        },
+      };
+      
+      const result = buildMemoryOnlyFilters(emptyCollection);
+      expect(result).toBeUndefined();
+    });
+
+    it('should handle mixed valid and undefined filters in OR', () => {
+      const result = buildCombinedSearchFilters(mockCollection, {
+        types: ['note'],
+      });
+      
+      expect(result.operator).toBe('Or');
+      expect(result.operands).toHaveLength(2);
+      expect(result.operands[0]).toBeDefined();
+      expect(result.operands[1]).toBeDefined();
+      
+      if (result.operands[0].operands) {
+        expect(result.operands[0].operands.length).toBeGreaterThan(0);
+      }
+      if (result.operands[1].operands) {
+        expect(result.operands[1].operands.length).toBeGreaterThan(0);
+      }
+    });
+  });
 });

@@ -25,16 +25,17 @@ export function buildCombinedSearchFilters(
   // Build relationship-specific filters
   const relationshipFilters = buildDocTypeFilters(collection, 'relationship', filters);
   
-  // Combine with OR: search both memories and relationships
-  if (memoryFilters && relationshipFilters) {
-    return combineFiltersWithOr([memoryFilters, relationshipFilters]);
-  } else if (memoryFilters) {
-    return memoryFilters;
-  } else if (relationshipFilters) {
-    return relationshipFilters;
-  }
+  // Filter out undefined/null values before combining
+  const validFilters = [memoryFilters, relationshipFilters].filter(f => f !== undefined && f !== null);
   
-  return undefined;
+  // Combine with OR: search both memories and relationships
+  if (validFilters.length === 0) {
+    return undefined;
+  } else if (validFilters.length === 1) {
+    return validFilters[0];
+  } else {
+    return combineFiltersWithOr(validFilters);
+  }
 }
 
 /**
@@ -164,17 +165,21 @@ export function buildRelationshipOnlyFilters(
  * @returns Combined filter or undefined
  */
 function combineFiltersWithAnd(filters: any[]): any {
-  if (filters.length === 0) {
+  // Filter out any undefined/null values
+  const validFilters = filters.filter(f => f !== undefined && f !== null);
+  
+  if (validFilters.length === 0) {
     return undefined;
   }
-  if (filters.length === 1) {
-    return filters[0];
+  if (validFilters.length === 1) {
+    return validFilters[0];
   }
   
   // Weaviate v3 uses operator/operands structure for combining filters
+  // Only create And operator if we have 2+ valid filters
   return {
     operator: 'And',
-    operands: filters
+    operands: validFilters
   };
 }
 
@@ -185,17 +190,21 @@ function combineFiltersWithAnd(filters: any[]): any {
  * @returns Combined filter or undefined
  */
 function combineFiltersWithOr(filters: any[]): any {
-  if (filters.length === 0) {
+  // Filter out any undefined/null values
+  const validFilters = filters.filter(f => f !== undefined && f !== null);
+  
+  if (validFilters.length === 0) {
     return undefined;
   }
-  if (filters.length === 1) {
-    return filters[0];
+  if (validFilters.length === 1) {
+    return validFilters[0];
   }
   
   // Weaviate v3 uses operator/operands structure for combining filters
+  // Only create Or operator if we have 2+ valid filters
   return {
     operator: 'Or',
-    operands: filters
+    operands: validFilters
   };
 }
 

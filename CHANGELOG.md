@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-02-12
+
+### 🐛 Fixed
+
+- **Empty Or/And Operator Bug**: Fixed "no children for operator Or" error
+  - Added validation to filter out undefined/null values before combining filters
+  - `combineFiltersWithOr` now validates operands array is not empty
+  - `combineFiltersWithAnd` now validates operands array is not empty
+  - `buildCombinedSearchFilters` filters out invalid filters before OR combination
+  - Prevents creation of operators with empty children arrays
+
+### ✨ Added
+
+- **Edge Case Tests**: Added 3 new test cases for undefined/null filter handling
+  - Test for empty Or operator prevention
+  - Test for empty And operator prevention
+  - Test for mixed valid and undefined filters
+
+### 📊 Test Results
+
+- **57 tests passing** (up from 54)
+- **4 test suites passing** (all green)
+- **Code coverage: 90.56%** on weaviate-filters.ts (up from 83.67%)
+
+---
+
 ## [1.0.0] - 2026-02-12
 
 ### 🚨 BREAKING CHANGES
