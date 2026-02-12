@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-02-12
+
+### 🐛 Fixed
+
+- **Weaviate v3 Filter API**: Now uses actual `Filters.and()` and `Filters.or()` from weaviate-client package
+  - Replaced object format `{ operator: 'Or', operands: [...] }` with `Filters.or(...filters)`
+  - Replaced object format `{ operator: 'And', operands: [...] }` with `Filters.and(...filters)`
+  - This is the correct v3 API per Weaviate documentation
+  - Fixes "no children for operator Or" error in production
+
+- **Unit Tests**: Updated tests to work with Weaviate's internal filter structures
+  - Tests now verify filters are created (not exact internal structure)
+  - More resilient to Weaviate API changes
+  - All 53 tests passing
+
+### 🔍 Added
+
+- **Debug Logging**: Added query logging to search-memory.ts
+  - Logs query string, searchOptions, and filter presence
+  - Helps troubleshoot query construction issues
+
+---
+
 ## [1.0.1] - 2026-02-12
 
 ### 🐛 Fixed
