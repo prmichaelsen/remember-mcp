@@ -2,11 +2,11 @@
 
 project:
   name: remember-mcp
-  version: 1.0.1
+  version: 2.0.0
   started: 2026-02-11
   status: in_progress
   current_milestone: M5
-  last_updated: 2026-02-12
+  last_updated: 2026-02-14
 
 milestones:
   - id: M1
@@ -378,6 +378,22 @@ progress:
   overall: 50%
 
 recent_work:
+  - date: 2026-02-14
+    description: Project Status Review - ACP Initialization
+    items:
+      - 📊 Comprehensive project review completed via ACP initialization
+      - ✅ All 12 MCP tools implemented and working
+      - ✅ 54 tests passing (53 passed, 1 skipped integration test)
+      - ✅ Test coverage: 29.26% overall
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (v2.0.0)
+      - ✅ 29 TypeScript source files in project
+      - ✅ Dual export: standalone server + factory for mcp-auth
+      - ✅ All 4 milestones complete (M1-M4: 100%)
+      - ✅ Ready to begin M5: Template System
+      - 📋 Project structure follows ACP and bootstrap patterns
+      - 📋 Documentation comprehensive and up-to-date
+      
   - date: 2026-02-12
     description: v1.0.1 Released - Or Operator Bug Fix
     items:
@@ -523,10 +539,14 @@ environment_configured:
   - 📋 Firebase project needs to be created with Firestore enabled
 
 test_status:
-  - ✅ 25 unit tests passing
+  - ✅ 53 unit tests passing
   - ✅ 1 test skipped (integration test requiring live Weaviate)
-  - ✅ Test coverage: 30.37% overall
-  - ✅ All critical paths covered: config, client, factory, paths, content-types
+  - ✅ Test coverage: 29.26% overall
+  - ✅ All critical paths covered: config, client, factory, paths, content-types, weaviate-filters
+  - ✅ 32 tests for weaviate-filters (filter builders and edge cases)
+  - ✅ 9 tests for server-factory (async initialization)
+  - ✅ 7 tests for firestore paths
+  - ✅ 5 tests for weaviate client
   - 📋 Integration tests deferred (Task 6)
   - 📋 E2E tests not yet created
 
@@ -537,11 +557,12 @@ build_status:
   - ✅ Source maps generated
   - ✅ Type definitions generated (.d.ts files)
   - ✅ Package exports configured for both entry points
-  - ✅ Version 1.0.1 published (patch release)
-  - ✅ 29 TypeScript source files (added weaviate-filters.ts)
+  - ✅ Version 2.0.0 published (major release)
+  - ✅ 29 TypeScript source files
   - ✅ All 12 tools implemented
   - ✅ Weaviate v3 filter API implemented
   - ✅ Or/And operator validation implemented
+  - ✅ Async createServer pattern (breaking change in v2.0.0)
 
 tools_status:
   memory_tools:
