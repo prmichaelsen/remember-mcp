@@ -2,15 +2,76 @@
 
 Multi-tenant memory system MCP server with vector search, relationships, and trust-based access control.
 
+## Value Proposition
+
+**remember-mcp** gives AI assistants a persistent, searchable memory system that enables them to:
+
+- **Remember Everything**: Store and recall information across conversations
+- **Find Connections**: Discover relationships between memories using semantic search
+- **Learn Over Time**: Build a knowledge graph that grows with each interaction
+- **Personalize Responses**: Access user preferences and context for tailored interactions
+- **Search Intelligently**: Use hybrid semantic + keyword search to find relevant memories
+- **Organize Knowledge**: Categorize memories with 45+ content types (people, events, recipes, notes, etc.)
+
+### Why Use remember-mcp?
+
+**For AI Assistants**:
+- Persistent memory across sessions (no more forgetting previous conversations)
+- Semantic search finds relevant context even with different wording
+- Relationship tracking reveals connections between memories
+- RAG-optimized queries for natural language understanding
+- Trust-based access control for privacy-sensitive information
+
+**For Developers**:
+- Multi-tenant architecture with per-user isolation
+- Production-ready with comprehensive error handling
+- Compatible with Claude Desktop, mcp-auth, and custom integrations
+- Vector embeddings via OpenAI for semantic understanding
+- Firestore for metadata and preferences
+
+**For Users**:
+- Their AI assistant remembers important information
+- Discovers connections between different topics
+- Provides personalized responses based on preferences
+- Respects privacy with trust-based access control
+
+## Use Cases
+
+### Personal Assistant
+- "Remember that Sarah's birthday is June 15th"
+- "What did I learn about React hooks last week?"
+- "Find all my camping trip memories"
+- "What recipes have I saved that use chicken?"
+
+### Knowledge Management
+- Store research notes with semantic search
+- Track relationships between concepts
+- Build a personal knowledge graph
+- Query with natural language
+
+### Project Tracking
+- Remember project decisions and context
+- Link related tasks and ideas
+- Search across all project memories
+- Track what inspired each decision
+
+### Relationship Management
+- Remember details about people you meet
+- Track connections between contacts
+- Recall conversation context
+- Find related interactions
+
 ## Features
 
-- 10 MCP tools for memory and relationship management
-- Multi-tenant with per-user isolation
-- Vector search with Weaviate (semantic + keyword hybrid search)
-- Knowledge graph with relationship tracking
-- RAG queries with natural language
-- 45 content types (notes, events, people, recipes, etc.)
-- Trust-based access control (planned for M7)
+- **12 MCP Tools**: Complete CRUD for memories, relationships, and preferences
+- **Multi-Tenant**: Per-user isolation with secure data boundaries
+- **Vector Search**: Semantic + keyword hybrid search with Weaviate
+- **Knowledge Graph**: N-way relationships with bidirectional tracking
+- **RAG Queries**: Natural language queries with context-aware responses
+- **45 Content Types**: Notes, events, people, recipes, goals, tasks, and more
+- **User Preferences**: Customizable search, location, privacy, and display settings
+- **Trust-Based Access**: Fine-grained access control (0-1 trust levels)
+- **Production-Ready**: Comprehensive error handling and logging
 
 ## Quick Start
 
