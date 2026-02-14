@@ -5,6 +5,7 @@
 
 import { PreferencesDatabaseService } from '../services/preferences-database.service.js';
 import { logger } from '../utils/logger.js';
+import { handleToolError } from '../utils/error-handler.js';
 import {
   UserPreferences,
   getPreferenceDescription,
@@ -139,7 +140,11 @@ export async function handleSetPreference(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
-    logger.error('Failed to set preferences:', error);
-    throw new Error(`Failed to set preferences: ${error instanceof Error ? error.message : String(error)}`);
+    handleToolError(error, {
+      toolName: 'remember_set_preference',
+      operation: 'set preference',
+      userId,
+      preferencesProvided: Object.keys(args.preferences || {}).length,
+    });
   }
 }

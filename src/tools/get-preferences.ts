@@ -5,6 +5,7 @@
 
 import { PreferencesDatabaseService } from '../services/preferences-database.service.js';
 import { logger } from '../utils/logger.js';
+import { handleToolError } from '../utils/error-handler.js';
 import {
   UserPreferences,
   PreferenceCategory,
@@ -105,7 +106,11 @@ export async function handleGetPreferences(
 
     return JSON.stringify(response, null, 2);
   } catch (error) {
-    logger.error('Failed to get preferences:', error);
-    throw new Error(`Failed to get preferences: ${error instanceof Error ? error.message : String(error)}`);
+    handleToolError(error, {
+      toolName: 'remember_get_preferences',
+      operation: 'get preferences',
+      userId,
+      category: args.category,
+    });
   }
 }

@@ -6,6 +6,7 @@
 import type { Relationship } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
+import { handleToolError } from '../utils/error-handler.js';
 
 /**
  * Tool definition for remember_search_relationship
@@ -222,7 +223,12 @@ export async function handleSearchRelationship(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
-    logger.error('Failed to search relationships:', error);
-    throw new Error(`Failed to search relationships: ${error instanceof Error ? error.message : String(error)}`);
+    handleToolError(error, {
+      toolName: 'remember_search_relationship',
+      operation: 'search relationships',
+      userId,
+      query: args.query,
+      limit: args.limit,
+    });
   }
 }

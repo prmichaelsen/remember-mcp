@@ -5,6 +5,7 @@
 
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
+import { handleToolError } from '../utils/error-handler.js';
 
 /**
  * Tool definition for remember_delete_memory
@@ -120,7 +121,12 @@ export async function handleDeleteMemory(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
-    logger.error('Failed to delete memory:', error);
-    throw new Error(`Failed to delete memory: ${error instanceof Error ? error.message : String(error)}`);
+    handleToolError(error, {
+      toolName: 'remember_delete_memory',
+      operation: 'delete memory',
+      userId,
+      memoryId: args.memory_id,
+      deleteRelationships: args.delete_relationships,
+    });
   }
 }

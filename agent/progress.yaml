@@ -2,7 +2,7 @@
 
 project:
   name: remember-mcp
-  version: 2.0.1
+  version: 2.0.2
   started: 2026-02-11
   status: in_progress
   current_milestone: M5

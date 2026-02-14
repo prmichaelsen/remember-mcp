@@ -6,6 +6,7 @@
 import type { Memory, SearchFilters } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
+import { handleToolError } from '../utils/error-handler.js';
 import { buildCombinedSearchFilters } from '../utils/weaviate-filters.js';
 
 /**
@@ -231,7 +232,12 @@ export async function handleQueryMemory(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
-    logger.error('Failed to query memories:', error);
-    throw new Error(`Failed to query memories: ${error instanceof Error ? error.message : String(error)}`);
+    handleToolError(error, {
+      toolName: 'remember_query_memory',
+      operation: 'query memories',
+      userId,
+      query: args.query,
+      format: args.format,
+    });
   }
 }

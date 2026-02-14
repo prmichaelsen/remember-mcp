@@ -5,6 +5,7 @@
 
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
+import { handleToolError } from '../utils/error-handler.js';
 
 /**
  * Tool definition for remember_delete_relationship
@@ -154,7 +155,11 @@ export async function handleDeleteRelationship(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
-    logger.error('Failed to delete relationship:', error);
-    throw new Error(`Failed to delete relationship: ${error instanceof Error ? error.message : String(error)}`);
+    handleToolError(error, {
+      toolName: 'remember_delete_relationship',
+      operation: 'delete relationship',
+      userId,
+      relationshipId: args.relationship_id,
+    });
   }
 }

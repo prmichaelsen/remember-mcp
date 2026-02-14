@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2026-02-14
+
+### ✨ Added
+
+- **Comprehensive Error Handling**: Applied centralized error handler to all 12 MCP tools
+  - All tools now use `handleToolError()` from `src/utils/error-handler.ts`
+  - Consistent error logging with full context across all operations
+  - Stack traces included in all error messages
+  - Tool-specific context (userId, IDs, operation details) in every error
+
+### 🔧 Improved
+
+- **Error Diagnostics**: Production debugging significantly enhanced
+  - Memory tools: create, update, delete, search, find-similar, query
+  - Relationship tools: create, update, delete, search
+  - Preference tools: set, get
+  - All errors now include operation context and user information
+
+---
+
 ## [2.0.1] - 2026-02-14
 
 ### 🐛 Fixed

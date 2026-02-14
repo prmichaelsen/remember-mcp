@@ -6,6 +6,7 @@
 import type { Memory } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
+import { handleToolError } from '../utils/error-handler.js';
 
 /**
  * Tool definition for remember_find_similar
@@ -193,7 +194,13 @@ export async function handleFindSimilar(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
-    logger.error('Failed to find similar memories:', error);
-    throw new Error(`Failed to find similar memories: ${error instanceof Error ? error.message : String(error)}`);
+    handleToolError(error, {
+      toolName: 'remember_find_similar',
+      operation: 'find similar memories',
+      userId,
+      memoryId: args.memory_id,
+      searchText: args.text,
+      limit: args.limit,
+    });
   }
 }

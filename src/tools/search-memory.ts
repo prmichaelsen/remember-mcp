@@ -6,6 +6,7 @@
 import type { Memory, Relationship, SearchOptions, SearchResult, SearchFilters } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
+import { handleToolError } from '../utils/error-handler.js';
 import { buildCombinedSearchFilters, buildMemoryOnlyFilters } from '../utils/weaviate-filters.js';
 
 /**
@@ -191,8 +192,12 @@ export async function handleSearchMemory(
 
     return JSON.stringify(searchResult, null, 2);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error('Failed to search memories:', { error: errorMessage, userId, query: args.query });
-    throw new Error(`Failed to search memories: ${errorMessage}`);
+    handleToolError(error, {
+      toolName: 'remember_search_memory',
+      operation: 'search memories',
+      userId,
+      query: args.query,
+      includeRelationships: args.include_relationships,
+    });
   }
 }

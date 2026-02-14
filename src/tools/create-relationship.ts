@@ -6,6 +6,7 @@
 import type { Relationship, MemoryContext } from '../types/memory.js';
 import { ensureMemoryCollection, getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
+import { handleToolError } from '../utils/error-handler.js';
 
 /**
  * Tool definition for remember_create_relationship
@@ -239,7 +240,12 @@ export async function handleCreateRelationship(
 
     return JSON.stringify(response, null, 2);
   } catch (error) {
-    logger.error('Failed to create relationship:', error);
-    throw new Error(`Failed to create relationship: ${error instanceof Error ? error.message : String(error)}`);
+    handleToolError(error, {
+      toolName: 'remember_create_relationship',
+      operation: 'create relationship',
+      userId,
+      memoryCount: args.memory_ids.length,
+      relationshipType: args.relationship_type,
+    });
   }
 }

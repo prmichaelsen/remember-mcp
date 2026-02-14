@@ -6,6 +6,7 @@
 import type { RelationshipUpdate } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
+import { handleToolError } from '../utils/error-handler.js';
 
 /**
  * Tool definition for remember_update_relationship
@@ -183,7 +184,12 @@ export async function handleUpdateRelationship(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
-    logger.error('Failed to update relationship:', error);
-    throw new Error(`Failed to update relationship: ${error instanceof Error ? error.message : String(error)}`);
+    handleToolError(error, {
+      toolName: 'remember_update_relationship',
+      operation: 'update relationship',
+      userId,
+      relationshipId: args.relationship_id,
+      updatedFields: Object.keys(args).filter(k => k !== 'relationship_id'),
+    });
   }
 }
