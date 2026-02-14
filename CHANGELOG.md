@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-02-14
+
+### 🐛 Fixed
+
+- **Error Reporting**: Improved error logging in `remember_update_memory` for better debugging
+  - Added detailed error context including userId, memoryId, and provided fields
+  - Added stack traces to error messages for easier troubleshooting
+  - Added specific error handling for fetch and update operations
+  - Errors now include collection name and operation details
+  - Helps diagnose production issues in Cloud Run logs
+
+### 📝 Changes
+
+- Error messages now include full context for debugging
+- Separate try-catch blocks for fetch and update operations
+- Better structured logging with error details
+
+---
+
+## [2.0.0] - 2026-02-12
+
+### 🚨 BREAKING CHANGES
+
+- **`createServer` is now async**: The factory function now returns `Promise<Server>` instead of `Server`
+- Same breaking change as v1.0.0, but bumped to v2.0.0 for clarity
+
+---
+
 ## [1.0.2] - 2026-02-12
 
 ### 🐛 Fixed

@@ -2,7 +2,7 @@
 
 project:
   name: remember-mcp
-  version: 2.0.0
+  version: 2.0.1
   started: 2026-02-11
   status: in_progress
   current_milestone: M5
@@ -379,6 +379,20 @@ progress:
 
 recent_work:
   - date: 2026-02-14
+    description: v2.0.1 Released - Enhanced Error Logging Framework
+    items:
+      - 🎉 v2.0.1 RELEASED - Patch release with error handling improvements
+      - ✅ Created centralized error-handler utility (src/utils/error-handler.ts)
+      - ✅ Enhanced error logging in remember_update_memory
+      - ✅ Detailed error context: userId, memoryId, operation, stack traces
+      - ✅ Separate error handling for fetch and update operations
+      - ✅ Error messages now include full context for Cloud Run debugging
+      - ✅ Framework ready for application to all 12 tools
+      - ✅ Build successful
+      - ✅ All tests passing
+      - 📋 Production error diagnostics significantly improved
+      
+  - date: 2026-02-14
     description: Project Status Review - ACP Initialization
     items:
       - 📊 Comprehensive project review completed via ACP initialization
@@ -387,7 +401,7 @@ recent_work:
       - ✅ Test coverage: 29.26% overall
       - ✅ TypeScript compiles without errors
       - ✅ Build successful (v2.0.0)
-      - ✅ 29 TypeScript source files in project
+      - ✅ 30 TypeScript source files in project (added error-handler.ts)
       - ✅ Dual export: standalone server + factory for mcp-auth
       - ✅ All 4 milestones complete (M1-M4: 100%)
       - ✅ Ready to begin M5: Template System
@@ -557,12 +571,13 @@ build_status:
   - ✅ Source maps generated
   - ✅ Type definitions generated (.d.ts files)
   - ✅ Package exports configured for both entry points
-  - ✅ Version 2.0.0 published (major release)
-  - ✅ 29 TypeScript source files
+  - ✅ Version 2.0.1 published (patch release - error logging)
+  - ✅ 30 TypeScript source files (added error-handler.ts)
   - ✅ All 12 tools implemented
   - ✅ Weaviate v3 filter API implemented
   - ✅ Or/And operator validation implemented
   - ✅ Async createServer pattern (breaking change in v2.0.0)
+  - ✅ Centralized error handling framework
 
 tools_status:
   memory_tools:

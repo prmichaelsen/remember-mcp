@@ -6,6 +6,7 @@
 import type { Memory, ContentType, Location, MemoryContext } from '../types/memory.js';
 import { ensureMemoryCollection, getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
+import { handleToolError } from '../utils/error-handler.js';
 import { DEFAULT_CONTENT_TYPE, getContentTypeDescription, isValidContentType } from '../constants/content-types.js';
 
 /**
@@ -196,7 +197,12 @@ export async function handleCreateMemory(
 
     return JSON.stringify(response, null, 2);
   } catch (error) {
-    logger.error('Failed to create memory:', error);
-    throw new Error(`Failed to create memory: ${error instanceof Error ? error.message : String(error)}`);
+    handleToolError(error, {
+      toolName: 'remember_create_memory',
+      operation: 'create memory',
+      userId,
+      contentType: args.type,
+      hasContent: !!args.content,
+    });
   }
 }

@@ -6,6 +6,7 @@
 import type { Memory, MemoryUpdate } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
+import { handleToolError, withErrorHandling } from '../utils/error-handler.js';
 import { isValidContentType } from '../constants/content-types.js';
 
 /**
