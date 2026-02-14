@@ -113,12 +113,24 @@ export async function handleUpdateMemory(
     const collection = getMemoryCollection(userId);
 
     // Get existing memory to verify ownership and get current version
-    const existingMemory = await collection.query.fetchObjectById(args.memory_id, {
-      returnProperties: ['user_id', 'doc_type', 'version', 'type', 'weight', 'base_weight'],
-    });
+    let existingMemory;
+    try {
+      existingMemory = await collection.query.fetchObjectById(args.memory_id, {
+        returnProperties: ['user_id', 'doc_type', 'version', 'type', 'weight', 'base_weight'],
+      });
+    } catch (fetchError) {
+      const fetchErrorMsg = fetchError instanceof Error ? fetchError.message : String(fetchError);
+      logger.error('Failed to fetch memory for update:', {
+        error: fetchErrorMsg,
+        userId,
+        memoryId: args.memory_id,
+        collectionName: `Memory_${userId}`,
+      });
+      throw new Error(`Failed to fetch memory ${args.memory_id}: ${fetchErrorMsg}`);
+    }
 
     if (!existingMemory) {
-      throw new Error(`Memory not found: ${args.memory_id}`);
+      throw new Error(`Memory not found: ${args.memory_id}. It may have been deleted or never existed.`);
     }
 
     // Verify ownership
@@ -202,10 +214,22 @@ export async function handleUpdateMemory(
     updates.version = (existingMemory.properties.version as number) + 1;
 
     // Perform update in Weaviate
-    await collection.data.update({
-      id: args.memory_id,
-      properties: updates,
-    });
+    try {
+      await collection.data.update({
+        id: args.memory_id,
+        properties: updates,
+      });
+    } catch (updateError) {
+      const updateErrorMsg = updateError instanceof Error ? updateError.message : String(updateError);
+      logger.error('Failed to perform Weaviate update:', {
+        error: updateErrorMsg,
+        userId,
+        memoryId: args.memory_id,
+        updateFields: Object.keys(updates),
+        collectionName: `Memory_${userId}`,
+      });
+      throw new Error(`Failed to update memory in Weaviate: ${updateErrorMsg}`);
+    }
 
     logger.info('Memory updated successfully', {
       userId,
@@ -224,7 +248,22 @@ export async function handleUpdateMemory(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
-    logger.error('Failed to update memory:', error);
-    throw new Error(`Failed to update memory: ${error instanceof Error ? error.message : String(error)}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    logger.error('Failed to update memory:', {
+      error: errorMessage,
+      stack: errorStack,
+      userId,
+      memoryId: args.memory_id,
+      providedFields: Object.keys(args).filter(k => k !== 'memory_id'),
+    });
+    
+    // Include detailed error information for debugging
+    throw new Error(
+      `Failed to update memory: ${errorMessage}` +
+      (errorStack ? `\n\nStack trace:\n${errorStack}` : '') +
+      `\n\nContext: userId=${userId}, memoryId=${args.memory_id}`
+    );
   }
 }
