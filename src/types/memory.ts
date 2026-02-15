@@ -30,6 +30,7 @@ export type ContentType =
   | 'image'
   | 'video'
   | 'audio'
+  | 'song'
   | 'transcript'
   | 'presentation'
   | 'spreadsheet'

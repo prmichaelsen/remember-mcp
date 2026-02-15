@@ -37,6 +37,7 @@ export const CONTENT_TYPES: readonly ContentType[] = [
   'spreadsheet',
   'pdf',
   // Creative
+  'song',
   'screenplay',
   'recipe',
   'idea',
@@ -241,6 +242,13 @@ export const CONTENT_TYPE_METADATA: Record<ContentType, ContentTypeMetadata> = {
   },
 
   // Creative
+  song: {
+    name: 'song',
+    category: 'creative',
+    description: 'Music tracks and songs',
+    examples: ['Songs', 'Music tracks', 'Albums', 'Playlists'],
+    common_fields: ['artist', 'album', 'genre', 'duration', 'release_date', 'url'],
+  },
   screenplay: {
     name: 'screenplay',
     category: 'creative',
@@ -371,7 +379,7 @@ export const CONTENT_TYPE_CATEGORIES = {
   communication: ['email', 'conversation', 'meeting', 'person'],
   content: ['article', 'webpage', 'social', 'presentation', 'spreadsheet', 'pdf'],
   media: ['image', 'video', 'audio', 'transcript'],
-  creative: ['screenplay', 'recipe', 'idea', 'quote'],
+  creative: ['song', 'screenplay', 'recipe', 'idea', 'quote'],
   personal: ['journal', 'memory', 'event'],
   organizational: ['bookmark', 'form', 'location'],
   business: ['invoice', 'contract'],
