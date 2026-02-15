@@ -3,6 +3,7 @@
  * Search relationships by observation text or type
  */
 
+import { Filters } from 'weaviate-client';
 import type { Relationship } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
@@ -101,71 +102,64 @@ export async function handleSearchRelationship(
   userId: string
 ): Promise<string> {
   try {
-    logger.info('Searching relationships', { 
-      userId, 
+    logger.info('Searching relationships', {
+      userId,
       query: args.query,
-      types: args.relationship_types 
+      types: args.relationship_types
     });
 
     const collection = getMemoryCollection(userId);
     const limit = args.limit ?? 10;
     const offset = args.offset ?? 0;
 
-    // Build where filter for doc_type and other filters
-    const whereFilters: any[] = [
-      {
-        path: 'doc_type',
-        operator: 'Equal',
-        valueText: 'relationship',
-      },
-    ];
+    // Build filters using Weaviate v3 API
+    const filterList: any[] = [];
+
+    // Always filter by doc_type = 'relationship'
+    filterList.push(
+      collection.filter.byProperty('doc_type').equal('relationship')
+    );
 
     // Add relationship type filter
     if (args.relationship_types && args.relationship_types.length > 0) {
       if (args.relationship_types.length === 1) {
-        whereFilters.push({
-          path: 'relationship_type',
-          operator: 'Equal',
-          valueText: args.relationship_types[0],
-        });
+        filterList.push(
+          collection.filter.byProperty('relationship_type').equal(args.relationship_types[0])
+        );
       } else {
-        whereFilters.push({
-          operator: 'Or',
-          operands: args.relationship_types.map(type => ({
-            path: 'relationship_type',
-            operator: 'Equal',
-            valueText: type,
-          })),
-        });
+        // Multiple types: use OR logic
+        const typeFilters = args.relationship_types.map(type =>
+          collection.filter.byProperty('relationship_type').equal(type)
+        );
+        filterList.push(Filters.or(...typeFilters));
       }
     }
 
     // Add strength filter
     if (args.strength_min !== undefined) {
-      whereFilters.push({
-        path: 'strength',
-        operator: 'GreaterThanEqual',
-        valueNumber: args.strength_min,
-      });
+      filterList.push(
+        collection.filter.byProperty('strength').greaterOrEqual(args.strength_min)
+      );
     }
 
     // Add confidence filter
     if (args.confidence_min !== undefined) {
-      whereFilters.push({
-        path: 'confidence',
-        operator: 'GreaterThanEqual',
-        valueNumber: args.confidence_min,
-      });
+      filterList.push(
+        collection.filter.byProperty('confidence').greaterOrEqual(args.confidence_min)
+      );
     }
 
     // Add tags filter
     if (args.tags && args.tags.length > 0) {
-      whereFilters.push({
-        path: 'tags',
-        operator: 'ContainsAny',
-        valueTextArray: args.tags,
-      });
+      filterList.push(
+        collection.filter.byProperty('tags').containsAny(args.tags)
+      );
     }
+
+    // Combine all filters with AND logic
+    const combinedFilters = filterList.length > 1
+      ? Filters.and(...filterList)
+      : filterList[0];
 
     // Build search options
     const searchOptions: any = {
@@ -173,12 +167,9 @@ export async function handleSearchRelationship(
       limit: limit + offset, // Get extra for offset
     };
 
-    // Add filters if present
-    if (whereFilters.length > 0) {
-      searchOptions.filters = whereFilters.length > 1 ? {
-        operator: 'And' as const,
-        operands: whereFilters,
-      } : whereFilters[0];
+    // Add filters
+    if (combinedFilters) {
+      searchOptions.filters = combinedFilters;
     }
 
     // Perform hybrid search (semantic search on observation field)
