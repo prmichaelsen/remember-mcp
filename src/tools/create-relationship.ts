@@ -111,6 +111,8 @@ export async function handleCreateRelationship(
     const collection = getMemoryCollection(userId);
 
     // Verify all memories exist and belong to user
+    logger.info('Validating memories', { userId, memoryIds: args.memory_ids });
+    
     const memoryChecks = await Promise.all(
       args.memory_ids.map(async (memoryId) => {
         try {
@@ -119,24 +121,41 @@ export async function handleCreateRelationship(
           });
           
           if (!memory) {
+            logger.warn('Memory not found', { userId, memoryId });
             return { memoryId, error: 'Memory not found' };
           }
           
           if (memory.properties.user_id !== userId) {
+            logger.warn('Unauthorized memory access attempt', {
+              userId,
+              memoryId,
+              actualUserId: memory.properties.user_id
+            });
             return { memoryId, error: 'Unauthorized: Memory belongs to another user' };
           }
           
           if (memory.properties.doc_type !== 'memory') {
+            logger.warn('Invalid doc_type for relationship', {
+              userId,
+              memoryId,
+              docType: memory.properties.doc_type
+            });
             return { memoryId, error: 'Cannot create relationship with non-memory document' };
           }
           
-          return { 
-            memoryId, 
+          return {
+            memoryId,
             memory,
             relationships: (memory.properties.relationships as string[]) || []
           };
         } catch (error) {
-          return { memoryId, error: `Failed to fetch memory: ${error}` };
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          logger.error('Failed to fetch memory for relationship', {
+            userId,
+            memoryId,
+            error: errorMsg
+          });
+          return { memoryId, error: `Failed to fetch memory: ${errorMsg}` };
         }
       })
     );
@@ -145,8 +164,18 @@ export async function handleCreateRelationship(
     const errors = memoryChecks.filter(check => check.error);
     if (errors.length > 0) {
       const errorMessages = errors.map(e => `${e.memoryId}: ${e.error}`).join('; ');
+      logger.error('Memory validation failed', {
+        userId,
+        errorCount: errors.length,
+        errors: errorMessages
+      });
       throw new Error(`Memory validation failed: ${errorMessages}`);
     }
+    
+    logger.info('All memories validated successfully', {
+      userId,
+      validatedCount: memoryChecks.length
+    });
 
     // Build relationship object
     const now = new Date().toISOString();
@@ -244,8 +273,10 @@ export async function handleCreateRelationship(
       toolName: 'remember_create_relationship',
       operation: 'create relationship',
       userId,
+      memoryIds: args.memory_ids.join(', '),
       memoryCount: args.memory_ids.length,
       relationshipType: args.relationship_type,
+      observation: args.observation?.substring(0, 100), // First 100 chars
     });
   }
 }
