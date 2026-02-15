@@ -16,6 +16,8 @@ export const queryMemoryTool = {
   name: 'remember_query_memory',
   description: `Query memories using natural language for RAG (Retrieval-Augmented Generation).
   
+  **BEST FOR**: Broad, concept-based searches and natural language questions. Uses pure semantic search to find memories by meaning, not just keywords. Great for exploratory queries and when you're not sure of exact terms.
+  
   This tool is optimized for LLM context retrieval. It returns relevant memories
   with their full content and context, formatted for easy consumption by LLMs.
   
@@ -24,12 +26,23 @@ export const queryMemoryTool = {
   - Provide context for conversations
   - Retrieve information for decision-making
   - Build responses using past knowledge
+  - Find memories by concept rather than exact keywords
   
   Examples:
   - "What do I know about camping?"
   - "Tell me about the recipes I've saved"
   - "What meetings did I have last week?"
   - "What are my project goals?"
+  
+  **AGENT GUIDANCE**:
+  - If query results are too broad or include irrelevant content, try remember_search_memory instead - it uses hybrid search with keyword matching which is better for precise, specific searches. You can inform the user: "The results were too broad. Let me try a more precise keyword search using the search tool."
+  - **CRITICAL**: If no results are returned, DO NOT make up or fabricate memories. Only report what was actually found. Tell the user honestly that no matching memories were found and suggest they:
+    * Create a new memory with the information they're looking for
+    * Try the other search tool (remember_search_memory for more precise keyword-based search)
+    * Remove or relax filters if they applied any
+    * Increase the limit parameter to see more results
+    * Lower the min_relevance threshold to include less relevant matches
+    * Try rephrasing the query with different terms
   `,
   inputSchema: {
     type: 'object',

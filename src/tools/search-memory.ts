@@ -16,6 +16,8 @@ export const searchMemoryTool = {
   name: 'remember_search_memory',
   description: `Search memories AND relationships using hybrid semantic and keyword search.
   
+  **BEST FOR**: Precise searches with specific keywords or exact phrases. Good for finding specific items when you know what you're looking for.
+  
   By default, searches BOTH memories and relationships to provide comprehensive results.
   Relationships contain valuable context in their observations.
   
@@ -30,6 +32,15 @@ export const searchMemoryTool = {
   - "Find memories about camping trips" → returns memories + relationships about camping
   - "Search for recipes I saved" → returns recipe memories + related relationships
   - "Show me notes from last week" → returns notes + any relationships created that week
+  
+  **AGENT GUIDANCE**:
+  - If search results are too narrow or miss relevant content, try remember_query_memory instead - it uses pure semantic search which is better for broader, concept-based queries. You can inform the user: "I didn't find what you're looking for with keyword search. Let me try a broader semantic search using the query tool."
+  - **CRITICAL**: If no results are returned, DO NOT make up or fabricate memories. Only report what was actually found. Tell the user honestly that no matching memories were found and suggest they:
+    * Create a new memory with the information they're looking for
+    * Try the other search tool (remember_query_memory for broader semantic search)
+    * Remove or relax filters if they applied any
+    * Increase the limit parameter to see more results
+    * Try different search terms or keywords
   `,
   inputSchema: {
     type: 'object',
