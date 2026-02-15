@@ -249,22 +249,13 @@ export async function handleUpdateMemory(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : undefined;
-    
-    logger.error('Failed to update memory:', {
-      error: errorMessage,
-      stack: errorStack,
+    handleToolError(error, {
+      toolName: 'remember_update_memory',
+      operation: 'update memory',
       userId,
       memoryId: args.memory_id,
-      providedFields: Object.keys(args).filter(k => k !== 'memory_id'),
+      providedFields: Object.keys(args).filter(k => k !== 'memory_id').join(', '),
+      updateCount: Object.keys(args).filter(k => k !== 'memory_id').length,
     });
-    
-    // Include detailed error information for debugging
-    throw new Error(
-      `Failed to update memory: ${errorMessage}` +
-      (errorStack ? `\n\nStack trace:\n${errorStack}` : '') +
-      `\n\nContext: userId=${userId}, memoryId=${args.memory_id}`
-    );
   }
 }
