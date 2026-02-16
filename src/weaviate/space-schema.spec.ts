@@ -8,6 +8,8 @@ import {
   getSpaceDisplayName,
   isValidSpaceId,
   ensureSpaceCollection,
+  ensurePublicCollection,
+  PUBLIC_COLLECTION_NAME,
 } from './space-schema';
 import type { WeaviateClient } from 'weaviate-client';
 
@@ -120,12 +122,65 @@ describe('Space Schema Utilities', () => {
       
       // Check for space-specific properties
       const propertyNames = createCall.properties.map((p: any) => p.name);
+      expect(propertyNames).toContain('spaces'); // ✅ New array field
       expect(propertyNames).toContain('space_id');
       expect(propertyNames).toContain('author_id');
       expect(propertyNames).toContain('ghost_id');
       expect(propertyNames).toContain('published_at');
       expect(propertyNames).toContain('discovery_count');
       expect(propertyNames).toContain('attribution');
+    });
+  });
+
+  describe('Unified Public Collection', () => {
+    it('should create Memory_public collection', async () => {
+      const mockCollection = { name: 'Memory_public' };
+      (mockWeaviateClient.collections.exists as jest.Mock).mockResolvedValue(false);
+      (mockWeaviateClient.collections.create as jest.Mock).mockResolvedValue(undefined);
+      (mockWeaviateClient.collections.get as jest.Mock).mockReturnValue(mockCollection);
+
+      const result = await ensurePublicCollection(mockWeaviateClient);
+
+      expect(result).toBe(mockCollection);
+      expect(mockWeaviateClient.collections.exists).toHaveBeenCalledWith('Memory_public');
+      expect(mockWeaviateClient.collections.create).toHaveBeenCalled();
+      expect(mockWeaviateClient.collections.get).toHaveBeenCalledWith('Memory_public');
+    });
+
+    it('should return existing Memory_public if it exists', async () => {
+      const mockCollection = { name: 'Memory_public' };
+      (mockWeaviateClient.collections.exists as jest.Mock).mockResolvedValue(true);
+      (mockWeaviateClient.collections.get as jest.Mock).mockReturnValue(mockCollection);
+
+      const result = await ensurePublicCollection(mockWeaviateClient);
+
+      expect(result).toBe(mockCollection);
+      expect(mockWeaviateClient.collections.exists).toHaveBeenCalledWith('Memory_public');
+      expect(mockWeaviateClient.collections.get).toHaveBeenCalledWith('Memory_public');
+      expect(mockWeaviateClient.collections.create).not.toHaveBeenCalled();
+    });
+
+    it('should have spaces array field in schema', async () => {
+      (mockWeaviateClient.collections.exists as jest.Mock).mockResolvedValue(false);
+      (mockWeaviateClient.collections.create as jest.Mock).mockResolvedValue(undefined);
+      (mockWeaviateClient.collections.get as jest.Mock).mockReturnValue({});
+
+      await ensurePublicCollection(mockWeaviateClient);
+
+      const createCall = (mockWeaviateClient.collections.create as jest.Mock).mock.calls[0][0];
+      const propertyNames = createCall.properties.map((p: any) => p.name);
+      
+      // Verify spaces array field exists
+      expect(propertyNames).toContain('spaces');
+      
+      // Find spaces property and verify it's an array
+      const spacesProperty = createCall.properties.find((p: any) => p.name === 'spaces');
+      expect(spacesProperty).toBeDefined();
+      expect(spacesProperty.dataType).toBe('text[]');
+    });
+
+    it('should verify PUBLIC_COLLECTION_NAME constant', () => {
+      expect(PUBLIC_COLLECTION_NAME).toBe('Memory_public');
     });
   });
 });

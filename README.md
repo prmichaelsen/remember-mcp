@@ -149,11 +149,40 @@ await wrapped.start();
 ## Architecture
 
 - **Weaviate**: Vector storage for memories, relationships, and shared spaces
-  - Personal collections: `Memory_{user_id}`
-  - Shared collections: `Memory_the_void`, `Memory_public_space`
+  - Personal collections: `Memory_{user_id}` (per-user isolation)
+  - Unified public collection: `Memory_public` (all public spaces)
+  - Multi-space support: Memories can belong to multiple spaces via `spaces` array
 - **Firestore**: Permissions, preferences, confirmation tokens
   - User data: `users/{user_id}/preferences`, `users/{user_id}/requests`
 - **Firebase Auth**: User authentication
+
+### Multi-Space Architecture (v2.4.0+)
+
+**Unified Collection**: All public memories stored in single `Memory_public` collection
+
+**Benefits**:
+- ✅ Search multiple spaces in one query
+- ✅ Publish to multiple spaces in one operation
+- ✅ No memory duplication
+- ✅ Efficient storage (N× reduction)
+
+**Example**:
+```typescript
+// One memory, three spaces
+{
+  "id": "abc123",
+  "spaces": ["the_void", "dogs", "cats"],
+  "content": "My dog is adorable!",
+  "author_id": "user123"
+}
+
+// Search across spaces
+remember_search_space({
+  spaces: ["the_void", "dogs"],
+  query: "adorable pets"
+})
+// Finds memories published to ANY of the requested spaces
+```
 
 ## Shared Spaces
 
@@ -167,19 +196,35 @@ Publish memories to shared discovery spaces where other users can find them.
 
 1. **Request Publication**: Generate confirmation token
 ```typescript
-remember_publish({ memory_id: "abc123", target: "the_void" })
+// Publish to single space
+remember_publish({ memory_id: "abc123", spaces: ["the_void"] })
+
+// Publish to multiple spaces at once!
+remember_publish({ memory_id: "abc123", spaces: ["the_void", "dogs", "cats"] })
+
 // Returns: { success: true, token: "xyz789" }
 ```
 
 2. **User Confirms**: Execute the publication
 ```typescript
 remember_confirm({ token: "xyz789" })
-// Returns: { success: true, space_memory_id: "new-id" }
+// Returns: {
+//   success: true,
+//   space_memory_id: "new-id",
+//   spaces: ["the_void", "dogs", "cats"]
+// }
 ```
 
 3. **Discover**: Search shared spaces
 ```typescript
-remember_search_space({ query: "interesting ideas", space: "the_void" })
+// Search single space
+remember_search_space({ query: "interesting ideas", spaces: ["the_void"] })
+
+// Search multiple spaces at once!
+remember_search_space({
+  query: "cute dog pictures",
+  spaces: ["the_void", "dogs"]
+})
 ```
 
 ### Space Tools (5 new)
