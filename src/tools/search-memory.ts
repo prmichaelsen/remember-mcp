@@ -34,6 +34,11 @@ export const searchMemoryTool = {
   - "Show me notes from last week" → returns notes + any relationships created that week
   
   **AGENT GUIDANCE**:
+  - ⚠️ **CRITICAL - CONTENT TYPE FILTERING**: Do NOT add filters.types unless the user explicitly requests filtering by content type.
+    * ✅ CORRECT: User says "search for hiking" → { query: "hiking" }
+    * ❌ WRONG: User says "search for hiking" → { query: "hiking", filters: { types: ["note"] } }
+    * ✅ CORRECT: User says "search for note memories about hiking" → { query: "hiking", filters: { types: ["note"] } }
+    * Let the search algorithm find ALL relevant memories regardless of type unless explicitly requested.
   - If search results are too narrow or miss relevant content, try remember_query_memory instead - it uses pure semantic search which is better for broader, concept-based queries. You can inform the user: "I didn't find what you're looking for with keyword search. Let me try a broader semantic search using the query tool."
   - **CRITICAL**: If no results are returned, DO NOT make up or fabricate memories. Only report what was actually found. Tell the user honestly that no matching memories were found and suggest they:
     * Create a new memory with the information they're looking for

@@ -18,7 +18,14 @@ import type { SearchFilters } from '../types/memory.js';
  */
 export const searchSpaceTool: Tool = {
   name: 'remember_search_space',
-  description: 'Search one or more shared spaces to discover thoughts, ideas, and memories. By default, excludes comments to keep discovery clean. Set include_comments: true to include threaded discussions. Can search multiple spaces in a single query.',
+  description: `Search one or more shared spaces to discover thoughts, ideas, and memories. By default, excludes comments to keep discovery clean. Set include_comments: true to include threaded discussions. Can search multiple spaces in a single query.
+
+⚠️ **CRITICAL - CONTENT TYPE FILTERING**: Do NOT add content_type filter unless the user explicitly requests filtering by type.
+- ✅ CORRECT: User says "search The Void for hiking" → { spaces: ["the_void"], query: "hiking" }
+- ❌ WRONG: User says "search The Void for hiking" → { spaces: ["the_void"], query: "hiking", content_type: "note" }
+- ✅ CORRECT: User says "search The Void for note memories about hiking" → { spaces: ["the_void"], query: "hiking", content_type: "note" }
+
+Let the search algorithm find ALL relevant memories regardless of type unless explicitly requested.`,
   inputSchema: {
     type: 'object',
     properties: {

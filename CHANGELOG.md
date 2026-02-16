@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.4] - 2026-02-16
+
+### 🔧 Improved
+
+- **Enhanced Tool Descriptions to Prevent Over-Filtering**
+  - Added explicit warnings to all search/query tools about content type filtering
+  - Agents now instructed to NOT add content_type filters unless explicitly requested by user
+  - Prevents missed results from over-filtering by content type
+  - Improves search quality and user experience
+
+### 📝 Changed
+
+- Updated `remember_search_memory` description with content type filtering guidance
+- Updated `remember_query_memory` description with content type filtering guidance
+- Updated `remember_search_space` description with content type filtering guidance
+- Updated `remember_query_space` description with content type filtering guidance
+- Added ✅ CORRECT and ❌ WRONG examples to clarify when to filter
+
+### 🎯 Impact
+
+- **Better Search Results**: No more over-filtering by content type
+- **More Relevant Memories**: All types included unless user specifies
+- **Clearer Agent Behavior**: Explicit guidance on when to use filters
+- **Improved UX**: Users get comprehensive results by default
+
+---
+
 ## [2.6.3] - 2026-02-16
 
 ### 🐛 Fixed

@@ -35,6 +35,11 @@ export const queryMemoryTool = {
   - "What are my project goals?"
   
   **AGENT GUIDANCE**:
+  - ⚠️ **CRITICAL - CONTENT TYPE FILTERING**: Do NOT add filters.types unless the user explicitly requests filtering by content type.
+    * ✅ CORRECT: User says "what do I know about hiking?" → { query: "hiking" }
+    * ❌ WRONG: User says "what do I know about hiking?" → { query: "hiking", filters: { types: ["note"] } }
+    * ✅ CORRECT: User says "what notes do I have about hiking?" → { query: "hiking", filters: { types: ["note"] } }
+    * Let the query algorithm find ALL relevant memories regardless of type unless explicitly requested.
   - If query results are too broad or include irrelevant content, try remember_search_memory instead - it uses hybrid search with keyword matching which is better for precise, specific searches. You can inform the user: "The results were too broad. Let me try a more precise keyword search using the search tool."
   - **CRITICAL**: If no results are returned, DO NOT make up or fabricate memories. Only report what was actually found. Tell the user honestly that no matching memories were found and suggest they:
     * Create a new memory with the information they're looking for

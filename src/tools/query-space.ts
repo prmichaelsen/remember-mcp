@@ -17,7 +17,14 @@ import { handleToolError } from '../utils/error-handler.js';
  */
 export const querySpaceTool: Tool = {
   name: 'remember_query_space',
-  description: 'Ask natural language questions about memories in shared spaces. By default, excludes comments to focus on original content. Set include_comments: true to include discussions in answers.',
+  description: `Ask natural language questions about memories in shared spaces. By default, excludes comments to focus on original content. Set include_comments: true to include discussions in answers.
+
+⚠️ **CRITICAL - CONTENT TYPE FILTERING**: Do NOT add content_type filter unless the user explicitly requests filtering by type.
+- ✅ CORRECT: User says "what's in The Void about hiking?" → { spaces: ["the_void"], question: "hiking" }
+- ❌ WRONG: User says "what's in The Void about hiking?" → { spaces: ["the_void"], question: "hiking", content_type: "note" }
+- ✅ CORRECT: User says "what notes are in The Void about hiking?" → { spaces: ["the_void"], question: "hiking", content_type: "note" }
+
+Let the query algorithm find ALL relevant memories regardless of type unless explicitly requested.`,
   inputSchema: {
     type: 'object',
     properties: {
