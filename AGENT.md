@@ -1,7 +1,7 @@
 # Agent Context Protocol (ACP)
 
 **Also Known As**: The Agent Directory Pattern
-**Version**: 1.3.1
+**Version**: 1.4.2
 **Created**: 2026-02-11
 **Status**: Production Pattern
 
@@ -878,7 +878,7 @@ Run ./agent/scripts/uninstall.sh to remove all ACP files (agent/ directory and A
 7. **CRITICAL: Always update CHANGELOG.md for version changes**
    - ❌ **DO NOT** commit version changes without updating CHANGELOG.md
    - ❌ **DO NOT** forget to update version numbers in all project files
-   - ✅ **DO** use [`@acp.commit`](agent/commands/acp.commit.md) for version-aware commits
+   - ✅ **DO** use [`@git.commit`](agent/commands/git.commit.md) for version-aware commits
    - ✅ **DO** detect version impact: major (breaking), minor (features), patch (fixes)
    - ✅ **DO** update CHANGELOG.md with clear, user-focused descriptions
    - ✅ **DO** update all version files (package.json, AGENT.md, etc.)

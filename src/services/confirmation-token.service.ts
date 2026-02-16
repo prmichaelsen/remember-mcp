@@ -50,40 +50,84 @@ export class ConfirmationTokenService {
     payload: any,
     targetCollection?: string
   ): Promise<{ requestId: string; token: string }> {
-    const token = randomUUID();
+    try {
+      const token = randomUUID();
 
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + this.EXPIRY_MINUTES * 60 * 1000);
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + this.EXPIRY_MINUTES * 60 * 1000);
 
-    const request: ConfirmationRequest = {
-      user_id: userId,
-      token,
-      action,
-      target_collection: targetCollection,
-      payload,
-      created_at: now.toISOString(),
-      expires_at: expiresAt.toISOString(),
-      status: 'pending',
-    };
+      const request: ConfirmationRequest = {
+        user_id: userId,
+        token,
+        action,
+        target_collection: targetCollection,
+        payload,
+        created_at: now.toISOString(),
+        expires_at: expiresAt.toISOString(),
+        status: 'pending',
+      };
 
-    // Add document to Firestore (auto-generates ID)
-    const collectionPath = `users/${userId}/requests`;
-    console.log('[ConfirmationTokenService] Creating request:', {
-      userId,
-      action,
-      targetCollection,
-      collectionPath,
-    });
-    
-    const docRef = await addDocument(collectionPath, request);
-    
-    console.log('[ConfirmationTokenService] Request created:', {
-      requestId: docRef.id,
-      token,
-      expiresAt: request.expires_at,
-    });
+      // Add document to Firestore (auto-generates ID)
+      const collectionPath = `users/${userId}/requests`;
+      console.log('[ConfirmationTokenService] Creating request:', {
+        userId,
+        action,
+        targetCollection,
+        collectionPath,
+        requestData: {
+          token,
+          action,
+          payloadKeys: Object.keys(payload),
+        },
+      });
+      
+      console.log('[ConfirmationTokenService] Calling addDocument...');
+      const docRef = await addDocument(collectionPath, request);
+      console.log('[ConfirmationTokenService] addDocument returned:', {
+        hasDocRef: !!docRef,
+        hasId: !!docRef?.id,
+        docRefId: docRef?.id,
+      });
+      
+      // Validate docRef
+      if (!docRef) {
+        const error = new Error('Firestore addDocument returned null/undefined');
+        console.error('[ConfirmationTokenService] CRITICAL: addDocument returned null', {
+          userId,
+          collectionPath,
+        });
+        throw error;
+      }
+      
+      if (!docRef.id) {
+        const error = new Error('Firestore addDocument returned docRef without ID');
+        console.error('[ConfirmationTokenService] CRITICAL: docRef has no ID', {
+          userId,
+          collectionPath,
+          docRef,
+        });
+        throw error;
+      }
+      
+      console.log('[ConfirmationTokenService] Request created successfully:', {
+        requestId: docRef.id,
+        token,
+        expiresAt: request.expires_at,
+      });
 
-    return { requestId: docRef.id, token };
+      return { requestId: docRef.id, token };
+    } catch (error) {
+      console.error('[ConfirmationTokenService] FAILED to create request:', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId,
+        action,
+        collectionPath: `users/${userId}/requests`,
+      });
+      
+      // Re-throw so caller (tool handler) can catch and return error response
+      throw error;
+    }
   }
 
   /**

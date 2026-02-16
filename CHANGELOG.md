@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.1] - 2026-02-16
+
+### 🐛 Fixed
+
+- **Critical: Enhanced error handling in confirmation token service**
+  - Added try-catch around Firestore operations in `createRequest`
+  - Added validation that `addDocument` returns valid docRef with ID
+  - Added comprehensive error logging with full context
+  - Errors now properly propagate to tool handlers
+  - Prevents silent failures when Firestore operations fail
+
+### 🔧 Improved
+
+- **Diagnostic Logging**: Enhanced logging in token service
+  - Logs before/after Firestore operations
+  - Validates docRef and docRef.id
+  - Logs full error details including stack traces
+  - Helps diagnose production Firestore issues
+
+---
+
 ## [2.4.0] - 2026-02-16
 
 ### ✨ Added

@@ -5,18 +5,28 @@
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Colors for output using tput (more reliable than ANSI codes)
+if command -v tput >/dev/null 2>&1 && [ -t 1 ]; then
+    RED=$(tput setaf 1)
+    GREEN=$(tput setaf 2)
+    YELLOW=$(tput setaf 3)
+    BLUE=$(tput setaf 4)
+    BOLD=$(tput bold)
+    NC=$(tput sgr0)
+else
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    BOLD=''
+    NC=''
+fi
 
 # Repository details
 REPO_URL="https://github.com/prmichaelsen/agent-context-protocol.git"
 BRANCH="mainline"
 
-echo -e "${GREEN}Agent Context Protocol (ACP) Installer${NC}"
+echo "${GREEN}Agent Context Protocol (ACP) Installer${NC}"
 echo "========================================"
 echo ""
 
@@ -28,7 +38,7 @@ echo ""
 
 # Check if agent directory already exists
 if [ -d "$TARGET_DIR/agent" ]; then
-    echo -e "${YELLOW}Note: agent/ directory already exists${NC}"
+    echo "${YELLOW}Note: agent/ directory already exists${NC}"
     echo "All ACP files will be updated to latest versions."
     echo ""
 fi
@@ -39,12 +49,12 @@ trap "rm -rf $TEMP_DIR" EXIT
 
 echo "Cloning ACP repository..."
 if ! git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$TEMP_DIR" &>/dev/null; then
-    echo -e "${RED}Error: Failed to clone repository${NC}"
+    echo "${RED}Error: Failed to clone repository${NC}"
     echo "Please check your internet connection and try again."
     exit 1
 fi
 
-echo -e "${GREEN}✓${NC} Repository cloned"
+echo "${GREEN}✓${NC} Repository cloned"
 echo ""
 
 # Create directory structure
@@ -72,7 +82,7 @@ cat > "$TARGET_DIR/agent/.gitignore" << 'EOF'
 reports/
 EOF
 
-echo -e "${GREEN}✓${NC} Directory structure created"
+echo "${GREEN}✓${NC} Directory structure created"
 echo ""
 
 # Copy files
@@ -107,11 +117,11 @@ cp "$TEMP_DIR/agent/scripts/version.sh" "$TARGET_DIR/agent/scripts/"
 cp "$TEMP_DIR/agent/scripts/install.sh" "$TARGET_DIR/agent/scripts/"
 chmod +x "$TARGET_DIR/agent/scripts"/*.sh
 
-echo -e "${GREEN}✓${NC} All files installed"
+echo "${GREEN}✓${NC} All files installed"
 echo ""
-echo -e "${GREEN}Installation complete!${NC}"
+echo "${GREEN}Installation complete!${NC}"
 echo ""
-echo -e "${GREEN}Next steps:${NC}"
+echo "${GREEN}Next steps:${NC}"
 echo "1. Create your requirements document:"
 echo "   cp agent/design/requirements.template.md agent/design/requirements.md"
 echo ""
@@ -123,7 +133,7 @@ echo "   cp agent/progress.template.yaml agent/progress.yaml"
 echo ""
 echo "4. Read AGENT.md for complete documentation"
 echo ""
-echo -e "${BLUE}ACP Commands Available:${NC}"
+echo "${BLUE}ACP Commands Available:${NC}"
 echo ""
 echo "  ${GREEN}@acp.init${NC}                    - Initialize agent context (start here!)"
 echo "  ${GREEN}@acp.proceed${NC}                 - Continue with next task"
@@ -137,6 +147,11 @@ echo "  ${GREEN}@acp.version-check-for-updates${NC} - Check for ACP updates"
 echo "  ${GREEN}@acp.version-update${NC}          - Update ACP to latest version"
 echo "  ${GREEN}@acp.package-install${NC}         - Install third-party command packages"
 echo ""
-echo -e "${BLUE}For AI agents:${NC}"
+echo "${BLUE}Git Commands Available:${NC}"
+echo ""
+echo "  ${GREEN}@git.init${NC}                    - Initialize git repository with smart .gitignore"
+echo "  ${GREEN}@git.commit${NC}                  - Intelligent version-aware git commit"
+echo ""
+echo "${BLUE}For AI agents:${NC}"
 echo "Type '${GREEN}@acp.init${NC}' to get started."
 echo ""
