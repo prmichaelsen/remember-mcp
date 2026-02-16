@@ -56,8 +56,16 @@ export async function handlePublish(
   userId: string
 ): Promise<string> {
   try {
+    console.log('[remember_publish] Starting publish request:', {
+      userId,
+      memoryId: args.memory_id,
+      target: args.target,
+      additionalTags: args.additional_tags?.length || 0,
+    });
+    
     // Validate space ID
     if (!isValidSpaceId(args.target)) {
+      console.log('[remember_publish] Invalid space ID:', args.target);
       return JSON.stringify(
         {
           success: false,
@@ -75,13 +83,20 @@ export async function handlePublish(
 
     // Verify memory exists and user owns it
     const weaviateClient = getWeaviateClient();
-    const userCollection = weaviateClient.collections.get(
-      getMemoryCollectionName(userId)
-    );
+    const collectionName = getMemoryCollectionName(userId);
+    console.log('[remember_publish] Fetching memory from collection:', collectionName);
+    
+    const userCollection = weaviateClient.collections.get(collectionName);
 
     const memory = await userCollection.query.fetchObjectById(args.memory_id);
+    
+    console.log('[remember_publish] Memory fetch result:', {
+      found: !!memory,
+      memoryId: args.memory_id,
+    });
 
     if (!memory) {
+      console.log('[remember_publish] Memory not found');
       return JSON.stringify(
         {
           success: false,
@@ -138,6 +153,8 @@ export async function handlePublish(
       additional_tags: args.additional_tags || [],
     };
 
+    console.log('[remember_publish] Generating confirmation token');
+    
     // Generate confirmation token
     const { requestId, token } = await confirmationTokenService.createRequest(
       userId,
@@ -145,6 +162,12 @@ export async function handlePublish(
       payload,
       args.target
     );
+    
+    console.log('[remember_publish] Token generated:', {
+      requestId,
+      token,
+      action: 'publish_memory',
+    });
 
     // Return minimal response - agent already knows memory details
     return JSON.stringify(

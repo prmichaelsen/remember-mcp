@@ -68,7 +68,20 @@ export class ConfirmationTokenService {
 
     // Add document to Firestore (auto-generates ID)
     const collectionPath = `users/${userId}/requests`;
+    console.log('[ConfirmationTokenService] Creating request:', {
+      userId,
+      action,
+      targetCollection,
+      collectionPath,
+    });
+    
     const docRef = await addDocument(collectionPath, request);
+    
+    console.log('[ConfirmationTokenService] Request created:', {
+      requestId: docRef.id,
+      token,
+      expiresAt: request.expires_at,
+    });
 
     return { requestId: docRef.id, token };
   }
@@ -85,6 +98,12 @@ export class ConfirmationTokenService {
     token: string
   ): Promise<(ConfirmationRequest & { request_id: string }) | null> {
     const collectionPath = `users/${userId}/requests`;
+    
+    console.log('[ConfirmationTokenService] Validating token:', {
+      userId,
+      token,
+      collectionPath,
+    });
 
     // Query for the token
     const queryOptions: QueryOptions = {
@@ -96,17 +115,31 @@ export class ConfirmationTokenService {
     };
 
     const results = await queryDocuments(collectionPath, queryOptions);
+    
+    console.log('[ConfirmationTokenService] Query results:', {
+      resultsFound: results.length,
+      hasResults: results.length > 0,
+    });
 
     if (results.length === 0) {
+      console.log('[ConfirmationTokenService] Token not found or not pending');
       return null;
     }
 
     const doc = results[0];
     const request = doc.data as ConfirmationRequest;
+    
+    console.log('[ConfirmationTokenService] Request found:', {
+      requestId: doc.id,
+      action: request.action,
+      status: request.status,
+      expiresAt: request.expires_at,
+    });
 
     // Check expiry
     const expiresAt = new Date(request.expires_at);
     if (expiresAt.getTime() < Date.now()) {
+      console.log('[ConfirmationTokenService] Token expired');
       await this.updateStatus(userId, doc.id, 'expired');
       return null;
     }

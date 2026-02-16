@@ -41,10 +41,21 @@ export async function handleConfirm(
   userId: string
 ): Promise<string> {
   try {
+    console.log('[remember_confirm] Starting confirmation:', {
+      userId,
+      token: args.token,
+    });
+    
     // Validate and confirm token
     const request = await confirmationTokenService.confirmRequest(userId, args.token);
+    
+    console.log('[remember_confirm] Token validation result:', {
+      requestFound: !!request,
+      action: request?.action,
+    });
 
     if (!request) {
+      console.log('[remember_confirm] Token invalid or expired');
       return JSON.stringify(
         {
           success: false,
@@ -55,6 +66,8 @@ export async function handleConfirm(
         2
       );
     }
+
+    console.log('[remember_confirm] Executing action:', request.action);
 
     // GENERIC: Execute action based on type
     // This is where the generic pattern delegates to action-specific executors
@@ -86,17 +99,31 @@ async function executePublishMemory(
   userId: string
 ): Promise<string> {
   try {
+    console.log('[executePublishMemory] Starting execution:', {
+      userId,
+      memoryId: request.payload.memory_id,
+      targetSpace: request.target_collection,
+    });
+    
     // Fetch the memory NOW (during confirmation, not from stored payload)
     const weaviateClient = getWeaviateClient();
     const userCollection = weaviateClient.collections.get(
       getMemoryCollectionName(userId)
     );
+    
+    console.log('[executePublishMemory] Fetching original memory from:', getMemoryCollectionName(userId));
 
     const originalMemory = await userCollection.query.fetchObjectById(
       request.payload.memory_id
     );
+    
+    console.log('[executePublishMemory] Original memory fetch result:', {
+      found: !!originalMemory,
+      memoryId: request.payload.memory_id,
+    });
 
     if (!originalMemory) {
+      console.log('[executePublishMemory] Memory not found');
       return JSON.stringify(
         {
           success: false,
@@ -110,6 +137,7 @@ async function executePublishMemory(
 
     // Verify ownership again
     if (originalMemory.properties.user_id !== userId) {
+      console.log('[executePublishMemory] Permission denied - wrong owner');
       return JSON.stringify(
         {
           success: false,
@@ -120,12 +148,16 @@ async function executePublishMemory(
         2
       );
     }
+    
+    console.log('[executePublishMemory] Ensuring space collection:', request.target_collection || 'the_void');
 
     // Get target collection
     const targetCollection = await ensureSpaceCollection(
       weaviateClient,
       request.target_collection || 'the_void'
     );
+    
+    console.log('[executePublishMemory] Space collection ready');
 
     // Create published memory (copy with modifications)
     const originalTags = Array.isArray(originalMemory.properties.tags)
@@ -152,8 +184,19 @@ async function executePublishMemory(
       version: 1,
     };
 
+    console.log('[executePublishMemory] Inserting into space collection:', {
+      spaceId: request.target_collection || 'the_void',
+      memoryId: request.payload.memory_id,
+      hasProperties: !!publishedMemory,
+    });
+    
     const result = await targetCollection.data.insert({
       properties: publishedMemory as any,
+    });
+    
+    console.log('[executePublishMemory] Insert result:', {
+      success: !!result,
+      spaceMemoryId: result,
     });
 
     // Return minimal response - agent already knows original memory
