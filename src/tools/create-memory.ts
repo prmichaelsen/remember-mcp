@@ -20,6 +20,13 @@ export const createMemoryTool = {
   Each memory has a weight (significance 0-1) and trust level (access control 0-1).
   Location and context are automatically captured from the request.
   
+  **IMPORTANT - Content vs Summary**:
+  - **content**: MUST be EXACT user-provided text. DO NOT paraphrase or modify.
+  - **summary**: Use for AI-generated summaries or interpretations.
+  - Example: User says "Remember: Meeting at 3pm tomorrow"
+    → content: "Meeting at 3pm tomorrow" (EXACT)
+    → summary: "User has meeting on 2026-02-17 at 15:00" (AI interpretation)
+  
   Examples:
   - "Remember that I met Sarah at the conference"
   - "Save this recipe for chocolate chip cookies"
