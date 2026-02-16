@@ -152,7 +152,8 @@ export const ALL_MEMORY_PROPERTIES = [
   'tags',
   'weight',
   'base_weight',
-  'trust_level',
+  'trust',  // ✅ Fixed: was 'trust_level', schema has 'trust'
+  'confidence',
   'context',
   'location',
   'relationships',
