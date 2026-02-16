@@ -8,7 +8,7 @@
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { confirmationTokenService, type ConfirmationRequest } from '../services/confirmation-token.service.js';
 import { getWeaviateClient, getMemoryCollectionName } from '../weaviate/client.js';
-import { ensureSpaceCollection } from '../weaviate/space-schema.js';
+import { ensurePublicCollection } from '../weaviate/space-schema.js';
 import { handleToolError } from '../utils/error-handler.js';
 
 /**
@@ -102,7 +102,8 @@ async function executePublishMemory(
     console.log('[executePublishMemory] Starting execution:', {
       userId,
       memoryId: request.payload.memory_id,
-      targetSpace: request.target_collection,
+      spaces: request.payload.spaces,
+      spaceCount: request.payload.spaces?.length || 0,
     });
     
     // Fetch the memory NOW (during confirmation, not from stored payload)
@@ -149,15 +150,12 @@ async function executePublishMemory(
       );
     }
     
-    console.log('[executePublishMemory] Ensuring space collection:', request.target_collection || 'the_void');
+    console.log('[executePublishMemory] Ensuring public collection');
 
-    // Get target collection
-    const targetCollection = await ensureSpaceCollection(
-      weaviateClient,
-      request.target_collection || 'the_void'
-    );
+    // Get unified public collection
+    const publicCollection = await ensurePublicCollection(weaviateClient);
     
-    console.log('[executePublishMemory] Space collection ready');
+    console.log('[executePublishMemory] Public collection ready');
 
     // Create published memory (copy with modifications)
     const originalTags = Array.isArray(originalMemory.properties.tags)
@@ -171,7 +169,7 @@ async function executePublishMemory(
     const publishedMemory = {
       ...originalMemory.properties,
       // Add space-specific fields
-      space_id: request.target_collection || 'the_void',
+      spaces: request.payload.spaces || ['the_void'],  // ✅ Array of spaces!
       author_id: userId, // Track original author
       published_at: new Date().toISOString(),
       discovery_count: 0,
@@ -185,27 +183,28 @@ async function executePublishMemory(
       version: 1,
     };
 
-    console.log('[executePublishMemory] Inserting into space collection:', {
-      spaceId: request.target_collection || 'the_void',
+    console.log('[executePublishMemory] Inserting into Memory_public:', {
+      spaces: request.payload.spaces,
+      spaceCount: request.payload.spaces?.length || 0,
       memoryId: request.payload.memory_id,
       hasUserId: !!(publishedMemory as any).user_id,
       hasAuthorId: !!publishedMemory.author_id,
-      hasSpaceId: !!publishedMemory.space_id,
     });
     
-    // Insert directly - publishedMemory is already the properties object
-    const result = await targetCollection.data.insert(publishedMemory as any);
+    // Insert directly into unified public collection
+    const result = await publicCollection.data.insert(publishedMemory as any);
     
     console.log('[executePublishMemory] Insert result:', {
       success: !!result,
       spaceMemoryId: result,
     });
 
-    // Return minimal response - agent already knows original memory
+    // Return minimal response with spaces array
     return JSON.stringify(
       {
         success: true,
         space_memory_id: result,
+        spaces: request.payload.spaces || ['the_void'],
       },
       null,
       2

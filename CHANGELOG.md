@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-02-16
+
+### ✨ Added
+
+- **Multi-Space Support**: Publish and search across multiple spaces simultaneously
+  - `spaces` array parameter in `remember_publish` (replaces `target`)
+  - `spaces` array parameter in `remember_search_space` (replaces `space`)
+  - `spaces` array parameter in `remember_query_space` (replaces `space`)
+  - Single memory can belong to multiple spaces
+  - No duplication - one memory, multiple spaces
+  - Search multiple spaces in one query
+
+- **Unified Public Collection**: `Memory_public` replaces per-space collections
+  - All public memories in single collection
+  - Efficient storage (N× reduction in documents)
+  - Simpler architecture
+  - Uses `containsAny` filter for multi-space queries
+
+### 🔧 Changed
+
+- **SpaceMemory type**: `space_id: string` → `spaces: string[]`
+- **remember_publish**: `target` parameter → `spaces` array
+- **remember_search_space**: `space` parameter → `spaces` array
+- **remember_query_space**: `space` parameter → `spaces` array
+- **Collection strategy**: Per-space collections → Unified `Memory_public`
+- **Search results**: Include `spaces_searched` or `spaces_queried` in response
+
+### 📚 Documentation
+
+- Created Milestone 11: Unified Public Collection
+- Created Tasks 46-54 for implementation
+- Created design document: `agent/design/unified-public-collection.md`
+- Created design document: `agent/design/comment-memory-type.md`
+
+### ⚠️ Deprecation
+
+- `ensureSpaceCollection()` deprecated (use `ensurePublicCollection()`)
+- `getSpaceCollectionName()` deprecated (use `PUBLIC_COLLECTION_NAME`)
+- Per-space collections (`Memory_the_void`, etc.) will be removed in v3.0.0
+
+---
+
 ## [2.3.3] - 2026-02-16
 
 ### 🐛 Fixed

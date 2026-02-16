@@ -8,7 +8,7 @@
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { Filters } from 'weaviate-client';
 import { getWeaviateClient } from '../weaviate/client.js';
-import { ensureSpaceCollection, isValidSpaceId } from '../weaviate/space-schema.js';
+import { ensurePublicCollection, isValidSpaceId } from '../weaviate/space-schema.js';
 import { SUPPORTED_SPACES } from '../types/space-memory.js';
 import { handleToolError } from '../utils/error-handler.js';
 import type { SearchFilters } from '../types/memory.js';
@@ -18,7 +18,7 @@ import type { SearchFilters } from '../types/memory.js';
  */
 export const searchSpaceTool: Tool = {
   name: 'remember_search_space',
-  description: 'Search shared spaces to discover thoughts, ideas, and memories. Works like remember_search_memory but searches shared spaces instead of personal memories.',
+  description: 'Search one or more shared spaces to discover thoughts, ideas, and memories. Works like remember_search_memory but searches shared spaces instead of personal memories. Can search multiple spaces in a single query.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -26,11 +26,15 @@ export const searchSpaceTool: Tool = {
         type: 'string',
         description: 'Search query (semantic + keyword hybrid)',
       },
-      space: {
-        type: 'string',
-        description: 'Which space to search',
-        enum: SUPPORTED_SPACES,
-        default: 'the_void',
+      spaces: {
+        type: 'array',
+        items: {
+          type: 'string',
+          enum: SUPPORTED_SPACES,
+        },
+        description: 'Spaces to search (e.g., ["the_void", "dogs"]). Can search multiple spaces at once.',
+        minItems: 1,
+        default: ['the_void'],
       },
       content_type: {
         type: 'string',
@@ -72,13 +76,13 @@ export const searchSpaceTool: Tool = {
         description: 'Offset for pagination',
       },
     },
-    required: ['query', 'space'],
+    required: ['query', 'spaces'],
   },
 };
 
 interface SearchSpaceArgs {
   query: string;
-  space: string;
+  spaces: string[];
   content_type?: string;
   tags?: string[];
   min_weight?: number;
@@ -97,13 +101,32 @@ export async function handleSearchSpace(
   userId: string  // May be used for private spaces in future
 ): Promise<string> {
   try {
-    // Validate space ID
-    if (!isValidSpaceId(args.space)) {
+    // Validate all space IDs
+    const invalidSpaces = args.spaces.filter(s => !isValidSpaceId(s));
+    if (invalidSpaces.length > 0) {
       return JSON.stringify(
         {
           success: false,
-          error: 'Invalid space ID',
-          message: `Space "${args.space}" is not supported. Supported spaces: ${SUPPORTED_SPACES.join(', ')}`,
+          error: 'Invalid space IDs',
+          message: `Invalid spaces: ${invalidSpaces.join(', ')}. Supported spaces: ${SUPPORTED_SPACES.join(', ')}`,
+          context: {
+            invalid_spaces: invalidSpaces,
+            provided_spaces: args.spaces,
+            supported_spaces: SUPPORTED_SPACES,
+          },
+        },
+        null,
+        2
+      );
+    }
+    
+    // Validate not empty
+    if (args.spaces.length === 0) {
+      return JSON.stringify(
+        {
+          success: false,
+          error: 'Empty spaces array',
+          message: 'Must specify at least one space to search',
         },
         null,
         2
@@ -111,51 +134,51 @@ export async function handleSearchSpace(
     }
 
     const weaviateClient = getWeaviateClient();
-    const spaceCollection = await ensureSpaceCollection(weaviateClient, args.space);
+    const publicCollection = await ensurePublicCollection(weaviateClient);
 
     // Build filters for space search
     const filterList: any[] = [];
 
-    // Filter by space_id
-    filterList.push(spaceCollection.filter.byProperty('space_id').equal(args.space));
+    // Filter by spaces array (memory must be in at least one requested space)
+    filterList.push(publicCollection.filter.byProperty('spaces').containsAny(args.spaces));
 
     // Filter by doc_type (space_memory)
-    filterList.push(spaceCollection.filter.byProperty('doc_type').equal('space_memory'));
+    filterList.push(publicCollection.filter.byProperty('doc_type').equal('space_memory'));
 
     // Apply content type filter
     if (args.content_type) {
-      filterList.push(spaceCollection.filter.byProperty('type').equal(args.content_type));
+      filterList.push(publicCollection.filter.byProperty('type').equal(args.content_type));
     }
 
     // Apply tags filter
     if (args.tags && args.tags.length > 0) {
       args.tags.forEach(tag => {
-        filterList.push(spaceCollection.filter.byProperty('tags').containsAny([tag]));
+        filterList.push(publicCollection.filter.byProperty('tags').containsAny([tag]));
       });
     }
 
     // Apply weight filters
     if (args.min_weight !== undefined) {
-      filterList.push(spaceCollection.filter.byProperty('weight').greaterOrEqual(args.min_weight));
+      filterList.push(publicCollection.filter.byProperty('weight').greaterOrEqual(args.min_weight));
     }
 
     if (args.max_weight !== undefined) {
-      filterList.push(spaceCollection.filter.byProperty('weight').lessOrEqual(args.max_weight));
+      filterList.push(publicCollection.filter.byProperty('weight').lessOrEqual(args.max_weight));
     }
 
     // Apply date filters (convert ISO strings to Date objects)
     if (args.date_from) {
-      filterList.push(spaceCollection.filter.byProperty('created_at').greaterOrEqual(new Date(args.date_from)));
+      filterList.push(publicCollection.filter.byProperty('created_at').greaterOrEqual(new Date(args.date_from)));
     }
 
     if (args.date_to) {
-      filterList.push(spaceCollection.filter.byProperty('created_at').lessOrEqual(new Date(args.date_to)));
+      filterList.push(publicCollection.filter.byProperty('created_at').lessOrEqual(new Date(args.date_to)));
     }
 
     const whereFilter = filterList.length > 0 ? Filters.and(...filterList) : undefined;
 
     // Execute hybrid search
-    const searchResults = await spaceCollection.query.hybrid(args.query, {
+    const searchResults = await publicCollection.query.hybrid(args.query, {
       limit: args.limit || 10,
       offset: args.offset || 0,
       ...(whereFilter && { where: whereFilter }),
@@ -169,7 +192,7 @@ export async function handleSearchSpace(
     }));
 
     const result = {
-      space: args.space,
+      spaces_searched: args.spaces,
       query: args.query,
       memories,
       total: memories.length,
@@ -179,10 +202,10 @@ export async function handleSearchSpace(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
-    handleToolError(error, {
+    return handleToolError(error, {
       toolName: 'remember_search_space',
-      operation: 'search space',
-      space: args.space,
+      operation: 'search spaces',
+      spaces: args.spaces,
       query: args.query,
     });
   }

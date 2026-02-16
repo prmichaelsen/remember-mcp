@@ -14,10 +14,12 @@ import type { Memory, SearchOptions, SearchResult } from './memory.js';
  */
 export interface SpaceMemory extends Omit<Memory, 'user_id' | 'doc_type'> {
   /**
-   * Space identifier (snake_case)
-   * Examples: 'the_void', 'public_space'
+   * Spaces this memory is published to (snake_case array)
+   * Examples: ['the_void'], ['dogs', 'cats'], ['the_void', 'dogs']
+   *
+   * A memory can belong to multiple spaces simultaneously.
    */
-  space_id: string;
+  spaces: string[];
 
   /**
    * Original author's user_id (for permissions)

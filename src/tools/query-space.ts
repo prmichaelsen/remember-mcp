@@ -8,7 +8,7 @@
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { Filters } from 'weaviate-client';
 import { getWeaviateClient } from '../weaviate/client.js';
-import { ensureSpaceCollection, isValidSpaceId } from '../weaviate/space-schema.js';
+import { ensurePublicCollection, isValidSpaceId } from '../weaviate/space-schema.js';
 import { SUPPORTED_SPACES } from '../types/space-memory.js';
 import { handleToolError } from '../utils/error-handler.js';
 
@@ -66,13 +66,13 @@ export const querySpaceTool: Tool = {
         description: 'Output format: detailed (full objects) or compact (text summary)',
       },
     },
-    required: ['question', 'space'],
+    required: ['question', 'spaces'],
   },
 };
 
 interface QuerySpaceArgs {
   question: string;
-  space: string;
+  spaces: string[];
   content_type?: string;
   tags?: string[];
   min_weight?: number;
@@ -90,13 +90,27 @@ export async function handleQuerySpace(
   userId: string  // May be used for private spaces in future
 ): Promise<string> {
   try {
-    // Validate space ID
-    if (!isValidSpaceId(args.space)) {
+    // Validate all space IDs
+    const invalidSpaces = args.spaces.filter(s => !isValidSpaceId(s));
+    if (invalidSpaces.length > 0) {
       return JSON.stringify(
         {
           success: false,
-          error: 'Invalid space ID',
-          message: `Space "${args.space}" is not supported. Supported spaces: ${SUPPORTED_SPACES.join(', ')}`,
+          error: 'Invalid space IDs',
+          message: `Invalid spaces: ${invalidSpaces.join(', ')}. Supported spaces: ${SUPPORTED_SPACES.join(', ')}`,
+        },
+        null,
+        2
+      );
+    }
+    
+    // Validate not empty
+    if (args.spaces.length === 0) {
+      return JSON.stringify(
+        {
+          success: false,
+          error: 'Empty spaces array',
+          message: 'Must specify at least one space to query',
         },
         null,
         2
@@ -104,47 +118,47 @@ export async function handleQuerySpace(
     }
 
     const weaviateClient = getWeaviateClient();
-    const spaceCollection = await ensureSpaceCollection(weaviateClient, args.space);
+    const publicCollection = await ensurePublicCollection(weaviateClient);
 
     // Build filters
     const filterList: any[] = [];
 
-    // Filter by space_id
-    filterList.push(spaceCollection.filter.byProperty('space_id').equal(args.space));
+    // Filter by spaces array (memory must be in at least one requested space)
+    filterList.push(publicCollection.filter.byProperty('spaces').containsAny(args.spaces));
 
     // Filter by doc_type (space_memory)
-    filterList.push(spaceCollection.filter.byProperty('doc_type').equal('space_memory'));
+    filterList.push(publicCollection.filter.byProperty('doc_type').equal('space_memory'));
 
     // Apply content type filter
     if (args.content_type) {
-      filterList.push(spaceCollection.filter.byProperty('type').equal(args.content_type));
+      filterList.push(publicCollection.filter.byProperty('type').equal(args.content_type));
     }
 
     // Apply tags filter
     if (args.tags && args.tags.length > 0) {
       args.tags.forEach(tag => {
-        filterList.push(spaceCollection.filter.byProperty('tags').containsAny([tag]));
+        filterList.push(publicCollection.filter.byProperty('tags').containsAny([tag]));
       });
     }
 
     // Apply weight filter
     if (args.min_weight !== undefined) {
-      filterList.push(spaceCollection.filter.byProperty('weight').greaterOrEqual(args.min_weight));
+      filterList.push(publicCollection.filter.byProperty('weight').greaterOrEqual(args.min_weight));
     }
 
     // Apply date filters
     if (args.date_from) {
-      filterList.push(spaceCollection.filter.byProperty('created_at').greaterOrEqual(new Date(args.date_from)));
+      filterList.push(publicCollection.filter.byProperty('created_at').greaterOrEqual(new Date(args.date_from)));
     }
 
     if (args.date_to) {
-      filterList.push(spaceCollection.filter.byProperty('created_at').lessOrEqual(new Date(args.date_to)));
+      filterList.push(publicCollection.filter.byProperty('created_at').lessOrEqual(new Date(args.date_to)));
     }
 
     const whereFilter = filterList.length > 0 ? Filters.and(...filterList) : undefined;
 
     // Execute semantic search using nearText
-    const searchResults = await spaceCollection.query.nearText(args.question, {
+    const searchResults = await publicCollection.query.nearText(args.question, {
       limit: args.limit || 10,
       ...(whereFilter && { where: whereFilter }),
     });
@@ -154,14 +168,14 @@ export async function handleQuerySpace(
 
     if (format === 'compact') {
       // Compact format: text summary for LLM context
-      const summaries = searchResults.objects.map((obj, idx) => {
+      const summaries = searchResults.objects.map((obj: any, idx: number) => {
         const props = obj.properties;
         return `${idx + 1}. ${props.title || props.content?.substring(0, 100) || 'Untitled'}`;
       });
 
       const result = {
         question: args.question,
-        space: args.space,
+        spaces_queried: args.spaces,
         format: 'compact',
         summary: summaries.join('\n'),
         count: searchResults.objects.length,
@@ -170,7 +184,7 @@ export async function handleQuerySpace(
       return JSON.stringify(result, null, 2);
     } else {
       // Detailed format: full objects
-      const memories = searchResults.objects.map((obj) => ({
+      const memories = searchResults.objects.map((obj: any) => ({
         id: obj.uuid,
         ...obj.properties,
         _distance: obj.metadata?.distance,
@@ -178,7 +192,7 @@ export async function handleQuerySpace(
 
       const result = {
         question: args.question,
-        space: args.space,
+        spaces_queried: args.spaces,
         format: 'detailed',
         memories,
         total: memories.length,
@@ -187,10 +201,10 @@ export async function handleQuerySpace(
       return JSON.stringify(result, null, 2);
     }
   } catch (error) {
-    handleToolError(error, {
+    return handleToolError(error, {
       toolName: 'remember_query_space',
-      operation: 'query space',
-      space: args.space,
+      operation: 'query spaces',
+      spaces: args.spaces,
       question: args.question,
     });
   }

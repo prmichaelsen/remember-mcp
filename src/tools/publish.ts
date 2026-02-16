@@ -17,7 +17,7 @@ import { SUPPORTED_SPACES } from '../types/space-memory.js';
  */
 export const publishTool: Tool = {
   name: 'remember_publish',
-  description: 'Publish a memory to a shared space (like "The Void"). The memory will be COPIED (not moved) from your personal collection. Generates a confirmation token. Use remember_confirm to execute.',
+  description: 'Publish a memory to one or more shared spaces (like "The Void"). The memory will be COPIED (not moved) from your personal collection. Generates a confirmation token. Use remember_confirm to execute.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -25,11 +25,15 @@ export const publishTool: Tool = {
         type: 'string',
         description: 'ID of the memory from your personal collection to publish',
       },
-      target: {
-        type: 'string',
-        description: 'Target space to publish to (snake_case ID)',
-        enum: SUPPORTED_SPACES,
-        default: 'the_void',
+      spaces: {
+        type: 'array',
+        items: {
+          type: 'string',
+          enum: SUPPORTED_SPACES,
+        },
+        description: 'Spaces to publish to (e.g., ["the_void", "dogs"]). Can publish to multiple spaces at once.',
+        minItems: 1,
+        default: ['the_void'],
       },
       additional_tags: {
         type: 'array',
@@ -38,13 +42,13 @@ export const publishTool: Tool = {
         default: [],
       },
     },
-    required: ['memory_id', 'target'],
+    required: ['memory_id', 'spaces'],
   },
 };
 
 interface PublishArgs {
   memory_id: string;
-  target: string;
+  spaces: string[];
   additional_tags?: string[];
 }
 
@@ -59,22 +63,39 @@ export async function handlePublish(
     console.log('[remember_publish] Starting publish request:', {
       userId,
       memoryId: args.memory_id,
-      target: args.target,
+      spaces: args.spaces,
+      spaceCount: args.spaces.length,
       additionalTags: args.additional_tags?.length || 0,
     });
     
-    // Validate space ID
-    if (!isValidSpaceId(args.target)) {
-      console.log('[remember_publish] Invalid space ID:', args.target);
+    // Validate all space IDs
+    const invalidSpaces = args.spaces.filter(s => !isValidSpaceId(s));
+    if (invalidSpaces.length > 0) {
+      console.log('[remember_publish] Invalid space IDs:', invalidSpaces);
       return JSON.stringify(
         {
           success: false,
-          error: 'Invalid space ID',
-          message: `Space "${args.target}" is not supported. Supported spaces: ${SUPPORTED_SPACES.join(', ')}`,
+          error: 'Invalid space IDs',
+          message: `Invalid spaces: ${invalidSpaces.join(', ')}. Supported spaces: ${SUPPORTED_SPACES.join(', ')}`,
           context: {
-            provided_space: args.target,
+            invalid_spaces: invalidSpaces,
+            provided_spaces: args.spaces,
             supported_spaces: SUPPORTED_SPACES,
           },
+        },
+        null,
+        2
+      );
+    }
+    
+    // Validate not empty
+    if (args.spaces.length === 0) {
+      console.log('[remember_publish] Empty spaces array');
+      return JSON.stringify(
+        {
+          success: false,
+          error: 'Empty spaces array',
+          message: 'Must specify at least one space to publish to',
         },
         null,
         2
@@ -147,20 +168,21 @@ export async function handlePublish(
       );
     }
 
-    // Create payload with only memory_id (content fetched during confirmation)
+    // Create payload with memory_id and spaces array
     const payload = {
       memory_id: args.memory_id,
+      spaces: args.spaces,
       additional_tags: args.additional_tags || [],
     };
 
     console.log('[remember_publish] Generating confirmation token');
     
     // Generate confirmation token
-    const { requestId, token } = await confirmationTokenService.createRequest(
+    const { requestId, token} = await confirmationTokenService.createRequest(
       userId,
       'publish_memory',
       payload,
-      args.target
+      undefined  // No single target_collection anymore
     );
     
     console.log('[remember_publish] Token generated:', {
@@ -179,12 +201,12 @@ export async function handlePublish(
       2
     );
   } catch (error) {
-    handleToolError(error, {
+    return handleToolError(error, {
       toolName: 'remember_publish',
       userId,
       operation: 'publish memory',
       memory_id: args.memory_id,
-      target: args.target,
+      spaces: args.spaces,
     });
   }
 }

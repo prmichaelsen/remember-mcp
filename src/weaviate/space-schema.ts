@@ -10,11 +10,17 @@ import { config } from '../config.js';
 import { SUPPORTED_SPACES, type SpaceId } from '../types/space-memory.js';
 
 /**
+ * Unified public collection name for all public spaces
+ */
+export const PUBLIC_COLLECTION_NAME = 'Memory_public';
+
+/**
  * Get collection name for a space
- * 
+ *
+ * @deprecated Use PUBLIC_COLLECTION_NAME instead. Will be removed in v3.0.0.
  * @param spaceId - Space identifier (snake_case)
  * @returns Collection name in format Memory_{space_id}
- * 
+ *
  * @example
  * getSpaceCollectionName('the_void') // Returns 'Memory_the_void'
  */
@@ -72,7 +78,10 @@ async function createSpaceCollection(
   client: WeaviateClient,
   spaceId: string
 ): Promise<void> {
-  const collectionName = getSpaceCollectionName(spaceId);
+  // Handle 'public' as special case for unified collection
+  const collectionName = spaceId === 'public'
+    ? PUBLIC_COLLECTION_NAME
+    : getSpaceCollectionName(spaceId);
 
   console.log(`[Weaviate] Creating space collection ${collectionName}...`);
 
@@ -97,9 +106,14 @@ async function createSpaceCollection(
 
       // Space identity
       {
+        name: 'spaces',
+        dataType: 'text[]' as any,
+        description: 'Spaces this memory is published to (e.g., ["the_void", "dogs"])',
+      },
+      {
         name: 'space_id',
         dataType: 'text' as any,
-        description: 'Space identifier (e.g., "the_void")',
+        description: 'DEPRECATED: Use spaces array instead. Will be removed in v3.0.0.',
       },
       {
         name: 'author_id',
@@ -244,12 +258,37 @@ async function createSpaceCollection(
 }
 
 /**
+ * Ensure the unified public collection exists, creating it if needed
+ *
+ * @param client - Weaviate client
+ * @returns Collection reference to Memory_public
+ *
+ * @example
+ * const collection = await ensurePublicCollection(client);
+ */
+export async function ensurePublicCollection(
+  client: WeaviateClient
+): Promise<Collection<any>> {
+  const collectionName = PUBLIC_COLLECTION_NAME;
+
+  // Check if collection exists
+  const exists = await client.collections.exists(collectionName);
+  
+  if (!exists) {
+    await createSpaceCollection(client, 'public');
+  }
+
+  return client.collections.get(collectionName);
+}
+
+/**
  * Ensure a space collection exists, creating it if needed
- * 
+ *
+ * @deprecated Use ensurePublicCollection() instead. Will be removed in v3.0.0.
  * @param client - Weaviate client
  * @param spaceId - Space identifier
  * @returns Collection reference
- * 
+ *
  * @example
  * const collection = await ensureSpaceCollection(client, 'the_void');
  */
