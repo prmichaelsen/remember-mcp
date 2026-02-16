@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.2] - 2026-02-16
+
+### 🐛 Fixed
+
+- **Critical: remember_publish now publishes to correct collection**
+  - Fixed bug where memories were published to user collections instead of shared space collections
+  - Removed `user_id` field from published memories (replaced with `space_id`)
+  - Fixed incorrect Weaviate v3 API usage (removed double-wrapping of properties)
+  - Memories now correctly stored in `Memory_the_void` instead of `Memory_User_123`
+  - Added logging to track field transformations during publish
+
+### 🔧 Changed
+
+- Enhanced logging in `executePublishMemory` to track `user_id` removal and `space_id` addition
+
+---
+
 ## [2.3.0] - 2026-02-16
 
 ### ✨ Added

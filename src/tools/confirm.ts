@@ -167,9 +167,12 @@ async function executePublishMemory(
       ? request.payload.additional_tags
       : [];
 
+    // Create published memory - remove user_id and add space-specific fields
+    const { user_id, ...memoryWithoutUserId } = originalMemory.properties;
+    
     const publishedMemory = {
-      ...originalMemory.properties,
-      // Override specific fields
+      ...memoryWithoutUserId,
+      // Override specific fields for space memory
       space_id: request.target_collection || 'the_void',
       author_id: userId, // Always attributed
       published_at: new Date().toISOString(),
@@ -188,11 +191,12 @@ async function executePublishMemory(
       spaceId: request.target_collection || 'the_void',
       memoryId: request.payload.memory_id,
       hasProperties: !!publishedMemory,
+      removedUserId: true,
+      addedSpaceId: publishedMemory.space_id,
     });
     
-    const result = await targetCollection.data.insert({
-      properties: publishedMemory as any,
-    });
+    // Insert directly - publishedMemory is already the properties object
+    const result = await targetCollection.data.insert(publishedMemory as any);
     
     console.log('[executePublishMemory] Insert result:', {
       success: !!result,
