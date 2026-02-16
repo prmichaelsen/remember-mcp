@@ -7,7 +7,7 @@
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { confirmationTokenService, type ConfirmationRequest } from '../services/confirmation-token.service.js';
-import { getWeaviateClient, getMemoryCollectionName } from '../weaviate/client.js';
+import { getWeaviateClient, getMemoryCollectionName, fetchMemoryWithAllProperties } from '../weaviate/client.js';
 import { ensurePublicCollection } from '../weaviate/space-schema.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { logger } from '../utils/logger.js';
@@ -151,7 +151,8 @@ async function executePublishMemory(
       memoryId: request.payload.memory_id,
     });
 
-    const originalMemory = await userCollection.query.fetchObjectById(
+    const originalMemory = await fetchMemoryWithAllProperties(
+      userCollection,
       request.payload.memory_id
     );
     
@@ -159,6 +160,10 @@ async function executePublishMemory(
       function: 'executePublishMemory',
       found: !!originalMemory,
       memoryId: request.payload.memory_id,
+      hasProperties: !!originalMemory?.properties,
+      propertyCount: originalMemory?.properties ? Object.keys(originalMemory.properties).length : 0,
+      hasTitle: !!originalMemory?.properties?.title,
+      hasContent: !!originalMemory?.properties?.content,
     });
 
     if (!originalMemory) {

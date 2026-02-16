@@ -2,10 +2,10 @@
 
 project:
   name: remember-mcp
-  version: 2.5.1
+  version: 2.6.3
   started: 2026-02-11
   status: in_progress
-  current_milestone: M11
+  current_milestone: M12
   last_updated: 2026-02-16
 
 milestones:
@@ -162,7 +162,26 @@ milestones:
       ✅ No memory duplication across spaces
       ✅ All tests passing with multi-space support
       ✅ Documentation updated with multi-space examples
-    
+     
+  - id: M12
+    name: Comment System (Phase 1)
+    status: in_progress
+    progress: 60%
+    started: 2026-02-16
+    completed: null
+    estimated_weeks: 1
+    tasks_completed: 3
+    tasks_total: 5
+    notes: |
+      ✅ Task 55: Added 3 comment fields to schema (parent_id, thread_root_id, moderation_flags)
+      ✅ Task 56: Updated remember_search_space with include_comments parameter
+      ✅ Task 57: Updated remember_query_space with include_comments parameter
+      📋 Task 58: Add Comment Unit Tests (pending)
+      📋 Task 59: Update Documentation for Comments (pending)
+      ✅ Zero new tools required - reuses existing infrastructure
+      ✅ Backward compatible - comments excluded by default
+      ✅ Released v2.6.0 with comment system foundation
+     
   - id: M7
     name: Trust & Permissions
     status: not_started
@@ -406,11 +425,97 @@ tasks:
         ✅ Context inclusion toggle
         ✅ Integrated into server.ts and server-factory.ts
 
+  milestone_12:
+    - id: task-55
+      name: Add Comment Fields to Weaviate Schema
+      status: completed
+      file: agent/tasks/task-55-add-comment-fields-to-schema.md
+      estimated_hours: 2
+      completed_date: 2026-02-16
+      notes: |
+        ✅ Added 3 fields to Memory schema: parent_id, thread_root_id, moderation_flags
+        ✅ Added same fields to Memory_public collection
+        ✅ Enables infinite comment nesting
+        ✅ Per-space moderation support
+        ✅ Released in v2.6.0
+      
+    - id: task-56
+      name: Update remember_search_space for Comments
+      status: completed
+      file: agent/tasks/task-56-update-search-space-for-comments.md
+      estimated_hours: 2
+      completed_date: 2026-02-16
+      notes: |
+        ✅ Added include_comments parameter (default: false)
+        ✅ Comments excluded from search by default
+        ✅ Opt-in via include_comments: true
+        ✅ Backward compatible
+        ✅ Released in v2.6.0
+      
+    - id: task-57
+      name: Update remember_query_space for Comments
+      status: completed
+      file: agent/tasks/task-57-update-query-space-for-comments.md
+      estimated_hours: 1
+      completed_date: 2026-02-16
+      notes: |
+        ✅ Added include_comments parameter (default: false)
+        ✅ Same filtering logic as search_space
+        ✅ Backward compatible
+        ✅ Released in v2.6.0
+      
+    - id: task-58
+      name: Add Comment Unit Tests
+      status: not_started
+      file: agent/tasks/task-58-add-comment-unit-tests.md
+      estimated_hours: 3
+      notes: |
+        📋 Pending: Schema tests, filtering tests, edge cases
+        📋 Test infinite nesting support
+        📋 Test moderation flags
+      
+    - id: task-59
+      name: Update Documentation for Comments
+      status: not_started
+      file: agent/tasks/task-59-update-documentation-for-comments.md
+      estimated_hours: 2
+      notes: |
+        📋 Pending: README updates, CHANGELOG entry, examples
+        📋 Document comment creation workflow
+        📋 Add threading examples
+      
+    - id: task-60
+      name: Standardize Structured Logging
+      status: completed
+      file: agent/tasks/task-60-standardize-structured-logging.md
+      estimated_hours: 3
+      completed_date: 2026-02-16
+      notes: |
+        ✅ Replaced 54 console.log/error/warn calls with structured logger
+        ✅ Updated 8 files: confirmation-token.service, publish, confirm, deny, weaviate client/schema/space-schema, firestore init, config
+        ✅ All logs include context objects (service, module, tool names)
+        ✅ Fixed circular dependency in config.ts with dynamic import
+        ✅ Released in v2.6.1
+      
+    - id: task-61
+      name: Enhance Confirmation Tool Safety Guidelines
+      status: completed
+      file: agent/tasks/task-61-enhance-confirmation-tool-descriptions.md
+      estimated_hours: 1
+      completed_date: 2026-02-16
+      notes: |
+        ✅ Enhanced remember_confirm tool description with 5 critical safety requirements
+        ✅ Enhanced remember_deny tool description with same safety guidelines
+        ✅ Added JSDoc comments explaining proper workflow
+        ✅ Prevents agents from bypassing user consent
+        ✅ Visual indicators (⚠️) for critical requirements
+        ✅ Released in v2.6.2
+
 documentation:
   design_documents: 23
-  milestone_documents: 10
+  milestone_documents: 11
   pattern_documents: 5
-  task_documents: 33
+  task_documents: 61
 
 progress:
   planning: 100%
@@ -418,6 +523,33 @@ progress:
   overall: 50%
 
 recent_work:
+  - date: 2026-02-16
+    description: Comment System, Structured Logging, and Safety Guidelines (v2.6.0-v2.6.2)
+    items:
+      - 🎉 M12 STARTED: Comment System (Phase 1) - 60% complete (3/5 tasks)
+      - ✅ Task 55: Added 3 comment fields to Weaviate schema
+      - ✅ parent_id, thread_root_id, moderation_flags fields added
+      - ✅ Enables infinite comment nesting with no depth limit
+      - ✅ Per-space moderation flags support
+      - ✅ Task 56: Updated remember_search_space with include_comments parameter
+      - ✅ Comments excluded by default for clean discovery
+      - ✅ Opt-in via include_comments: true
+      - ✅ Task 57: Updated remember_query_space with include_comments parameter
+      - ✅ Same filtering logic as search_space
+      - ✅ Released v2.6.0 with comment system foundation
+      - ✅ Task 60: Standardized structured logging across 8 files
+      - ✅ Replaced 54 console.log/error/warn calls with logger.info/error/warn/debug
+      - ✅ All logs include context objects (service, module, tool names)
+      - ✅ Fixed circular dependency in config.ts with dynamic import
+      - ✅ Released v2.6.1 with structured logging
+      - ✅ Task 61: Enhanced confirmation tool safety guidelines
+      - ✅ Added 5 critical safety requirements to remember_confirm and remember_deny
+      - ✅ Prevents agents from chaining confirmations without user consent
+      - ✅ Visual indicators (⚠️) and JSDoc comments added
+      - ✅ Released v2.6.2 with safety enhancements
+      - 📋 Next: Complete M12 with Tasks 58-59 (tests + documentation)
+      - 📋 6 commits ready to push to origin
+      
   - date: 2026-02-16
     description: ACP Initialization Complete - Multi-Space Architecture Verified (v2.5.1)
     items:
@@ -743,18 +875,21 @@ recent_work:
       - ✅ Build successful
 
 next_steps:
-  - Deploy v2.5.1 to Cloud Run and verify multi-space functionality
-  - Test multi-space publishing workflow end-to-end
-  - Test multi-space search across multiple spaces
-  - Verify Firestore request creation with enhanced error handling
-  - Check Cloud Run logs for diagnostic output from ConfirmationTokenService
-  - Consider implementing comment system (v2.6.0) - 3 schema fields only!
+  - Complete Task 58: Add Comment Unit Tests (3 hours)
+  - Complete Task 59: Update Documentation for Comments (2 hours)
+  - Push 6 commits to origin (v2.6.0, v2.6.1, v2.6.2)
+  - Deploy v2.6.2 to Cloud Run
+  - Test comment system end-to-end (create, search, thread fetching)
+  - Test structured logging in Cloud Run logs
+  - Verify confirmation tool safety guidelines in production
+  - Complete M12: Comment System (Phase 1)
   - Start M5: Template System (15 default templates + auto-suggestion)
   - Optional: Create integration tests (Task 6)
   - Optional: Add development documentation (Task 7)
   - Consider M6: Auth & Multi-Tenancy
 
 notes:
+  - 🚀 Milestone 12 (Comment System Phase 1) IN PROGRESS - 60% complete!
   - 🎉 Milestone 11 (Unified Public Collection) COMPLETED!
   - 🎉 Milestone 10 (Shared Spaces & Confirmation Flow) COMPLETED!
   - 🎉 Milestone 4 (User Preferences) COMPLETED!
@@ -769,6 +904,10 @@ notes:
   - ✅ M4: 2/2 preference tools complete (100% progress)
   - ✅ M10: 10/10 shared space tools complete (100% progress)
   - ✅ M11: 9/9 multi-space architecture tasks complete (100% progress)
+  - 🚀 M12: 3/5 comment system tasks complete (60% progress)
+  - ✅ Comment system foundation implemented (v2.6.0)
+  - ✅ Structured logging standardized (v2.6.1)
+  - ✅ Confirmation tool safety enhanced (v2.6.2)
   - ✅ Complete memory CRUD operations (create, read, update, delete)
   - ✅ Complete relationship CRUD operations (create, read, update, delete)
   - ✅ Advanced search capabilities (hybrid, similarity, RAG queries)
@@ -833,8 +972,10 @@ build_status:
   - ✅ Source maps generated
   - ✅ Type definitions generated (.d.ts files)
   - ✅ Package exports configured for both entry points
-  - ✅ Version 2.0.1 published (patch release - error logging)
-  - ✅ 30 TypeScript source files (added error-handler.ts)
+  - ✅ Version 2.6.2 published (patch release - safety guidelines)
+  - ✅ Version 2.6.1 published (patch release - structured logging)
+  - ✅ Version 2.6.0 published (minor release - comment system)
+  - ✅ 30 TypeScript source files
   - ✅ All 12 tools implemented
   - ✅ Weaviate v3 filter API implemented
   - ✅ Or/And operator validation implemented
@@ -857,6 +998,12 @@ tools_status:
   preference_tools:
     - ✅ remember_set_preference (src/tools/set-preference.ts)
     - ✅ remember_get_preferences (src/tools/get-preferences.ts)
+  space_tools:
+    - ✅ remember_publish (src/tools/publish.ts) - Multi-space support
+    - ✅ remember_confirm (src/tools/confirm.ts) - Enhanced safety guidelines
+    - ✅ remember_deny (src/tools/deny.ts) - Enhanced safety guidelines
+    - ✅ remember_search_space (src/tools/search-space.ts) - Comment filtering
+    - ✅ remember_query_space (src/tools/query-space.ts) - Comment filtering
 
 implementation_notes:
   - All 12 core tools implemented and integrated
@@ -899,3 +1046,6 @@ task_20_completion:
   releases:
     - v1.0.0: Major release with breaking change (async createServer)
     - v1.0.1: Patch release with Or operator bug fix
+    - v2.6.0: Minor release with comment system foundation
+    - v2.6.1: Patch release with structured logging
+    - v2.6.2: Patch release with confirmation tool safety guidelines

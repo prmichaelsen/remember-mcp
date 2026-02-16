@@ -140,6 +140,53 @@ export function getAuditCollectionName(userId: string): string {
 }
 
 /**
+ * List of all memory properties to fetch
+ * Centralized to ensure consistency across all tools
+ */
+export const ALL_MEMORY_PROPERTIES = [
+  'user_id',
+  'doc_type',
+  'type',
+  'title',
+  'content',
+  'tags',
+  'weight',
+  'base_weight',
+  'trust_level',
+  'context',
+  'location',
+  'relationships',
+  'created_at',
+  'updated_at',
+  'version',
+  'attribution',
+  'source_url',
+  'author',
+  'parent_id',
+  'thread_root_id',
+  'moderation_flags',
+] as const;
+
+/**
+ * Fetch a memory object by ID with all properties
+ *
+ * This utility ensures all memory properties are fetched consistently
+ * across all tools, preventing bugs where properties are missing.
+ *
+ * @param collection - Weaviate collection
+ * @param memoryId - Memory ID to fetch
+ * @returns Memory object with all properties
+ */
+export async function fetchMemoryWithAllProperties(
+  collection: any,
+  memoryId: string
+) {
+  return await collection.query.fetchObjectById(memoryId, {
+    returnProperties: ALL_MEMORY_PROPERTIES,
+  });
+}
+
+/**
  * Check if collection exists
  */
 export async function collectionExists(collectionName: string): Promise<boolean> {

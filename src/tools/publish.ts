@@ -7,7 +7,7 @@
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { confirmationTokenService } from '../services/confirmation-token.service.js';
-import { getWeaviateClient, getMemoryCollectionName } from '../weaviate/client.js';
+import { getWeaviateClient, getMemoryCollectionName, fetchMemoryWithAllProperties } from '../weaviate/client.js';
 import { isValidSpaceId } from '../weaviate/space-schema.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { SUPPORTED_SPACES } from '../types/space-memory.js';
@@ -122,12 +122,16 @@ export async function handlePublish(
     
     const userCollection = weaviateClient.collections.get(collectionName);
 
-    const memory = await userCollection.query.fetchObjectById(args.memory_id);
+    const memory = await fetchMemoryWithAllProperties(userCollection, args.memory_id);
     
     logger.debug('Memory fetch result', {
       tool: 'remember_publish',
       found: !!memory,
       memoryId: args.memory_id,
+      hasProperties: !!memory?.properties,
+      propertyCount: memory?.properties ? Object.keys(memory.properties).length : 0,
+      hasTitle: !!memory?.properties?.title,
+      hasContent: !!memory?.properties?.content,
     });
 
     if (!memory) {

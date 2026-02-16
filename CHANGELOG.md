@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.3] - 2026-02-16
+
+### 🐛 Fixed
+
+- **CRITICAL: Fixed Empty Published Memories Bug**
+  - Published memories were empty shells with no content, title, or properties
+  - Root cause: `fetchObjectById()` calls missing `returnProperties` parameter
+  - Fixed in `remember_publish` and `remember_confirm` (executePublishMemory)
+  - All published memories now include complete property data
+
+### ✨ Added
+
+- **New Utility Function**: `fetchMemoryWithAllProperties()`
+  - Centralized helper in `src/weaviate/client.ts`
+  - Ensures all memory properties are fetched consistently
+  - Prevents future bugs from missing properties
+  - Includes `ALL_MEMORY_PROPERTIES` constant (20+ properties)
+
+### 🔧 Improved
+
+- Enhanced debug logging in publish flow
+  - Added property count verification
+  - Added hasTitle and hasContent checks
+  - Better diagnostics for troubleshooting
+
+### 🎯 Impact
+
+- **Fixes**: All published memories since v2.4.0 were empty
+- **Search**: Published memories now searchable (have content)
+- **Discovery**: Space functionality now works as designed
+- **Note**: Existing empty memories need to be re-published
+
+---
+
 ## [2.6.2] - 2026-02-16
 
 ### 🔒 Security
