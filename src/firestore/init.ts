@@ -1,5 +1,6 @@
 import { initializeApp } from '@prmichaelsen/firebase-admin-sdk-v8';
 import { config } from '../config.js';
+import { logger } from '../utils/logger.js';
 
 let initialized = false;
 
@@ -23,11 +24,20 @@ export function initFirestore(): void {
     });
 
     initialized = true;
-    console.log('[Firestore] Initialized successfully');
+    logger.info('Firestore initialized successfully', {
+      module: 'firestore-init',
+    });
   } catch (error) {
-    console.error('[Firestore] Initialization failed:', error);
-    console.error('[Firestore] Make sure FIREBASE_ADMIN_SERVICE_ACCOUNT_KEY is valid JSON');
-    console.error('[Firestore] Check for proper escaping in .env file');
+    logger.error('Firestore initialization failed', {
+      module: 'firestore-init',
+      error: error instanceof Error ? error.message : String(error),
+    });
+    logger.error('Make sure FIREBASE_ADMIN_SERVICE_ACCOUNT_KEY is valid JSON', {
+      module: 'firestore-init',
+    });
+    logger.error('Check for proper escaping in .env file', {
+      module: 'firestore-init',
+    });
     throw error;
   }
 }
@@ -52,10 +62,15 @@ export async function testFirestoreConnection(): Promise<boolean> {
     const { getDocument } = await import('@prmichaelsen/firebase-admin-sdk-v8');
     await getDocument('_health_check', 'test');
     
-    console.log('[Firestore] Connection successful');
+    logger.info('Firestore connection test successful', {
+      module: 'firestore-init',
+    });
     return true;
   } catch (error) {
-    console.error('[Firestore] Connection test failed:', error);
+    logger.error('Firestore connection test failed', {
+      module: 'firestore-init',
+      error: error instanceof Error ? error.message : String(error),
+    });
     return false;
   }
 }

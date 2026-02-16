@@ -1,6 +1,6 @@
 /**
  * remember_publish tool
- * 
+ *
  * Generates a confirmation token for publishing a memory to a shared space.
  * This is the first phase of the two-phase publish workflow.
  */
@@ -11,6 +11,7 @@ import { getWeaviateClient, getMemoryCollectionName } from '../weaviate/client.j
 import { isValidSpaceId } from '../weaviate/space-schema.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { SUPPORTED_SPACES } from '../types/space-memory.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Tool definition for remember_publish
@@ -60,7 +61,8 @@ export async function handlePublish(
   userId: string
 ): Promise<string> {
   try {
-    console.log('[remember_publish] Starting publish request:', {
+    logger.info('Starting publish request', {
+      tool: 'remember_publish',
       userId,
       memoryId: args.memory_id,
       spaces: args.spaces,
@@ -71,7 +73,11 @@ export async function handlePublish(
     // Validate all space IDs
     const invalidSpaces = args.spaces.filter(s => !isValidSpaceId(s));
     if (invalidSpaces.length > 0) {
-      console.log('[remember_publish] Invalid space IDs:', invalidSpaces);
+      logger.warn('Invalid space IDs provided', {
+        tool: 'remember_publish',
+        invalidSpaces,
+        providedSpaces: args.spaces,
+      });
       return JSON.stringify(
         {
           success: false,
@@ -90,7 +96,10 @@ export async function handlePublish(
     
     // Validate not empty
     if (args.spaces.length === 0) {
-      console.log('[remember_publish] Empty spaces array');
+      logger.warn('Empty spaces array provided', {
+        tool: 'remember_publish',
+        userId,
+      });
       return JSON.stringify(
         {
           success: false,
@@ -105,19 +114,28 @@ export async function handlePublish(
     // Verify memory exists and user owns it
     const weaviateClient = getWeaviateClient();
     const collectionName = getMemoryCollectionName(userId);
-    console.log('[remember_publish] Fetching memory from collection:', collectionName);
+    logger.debug('Fetching memory from collection', {
+      tool: 'remember_publish',
+      collectionName,
+      memoryId: args.memory_id,
+    });
     
     const userCollection = weaviateClient.collections.get(collectionName);
 
     const memory = await userCollection.query.fetchObjectById(args.memory_id);
     
-    console.log('[remember_publish] Memory fetch result:', {
+    logger.debug('Memory fetch result', {
+      tool: 'remember_publish',
       found: !!memory,
       memoryId: args.memory_id,
     });
 
     if (!memory) {
-      console.log('[remember_publish] Memory not found');
+      logger.info('Memory not found', {
+        tool: 'remember_publish',
+        memoryId: args.memory_id,
+        collectionName,
+      });
       return JSON.stringify(
         {
           success: false,
@@ -175,7 +193,12 @@ export async function handlePublish(
       additional_tags: args.additional_tags || [],
     };
 
-    console.log('[remember_publish] Generating confirmation token');
+    logger.info('Generating confirmation token', {
+      tool: 'remember_publish',
+      userId,
+      memoryId: args.memory_id,
+      spaces: args.spaces,
+    });
     
     // Generate confirmation token
     const { requestId, token} = await confirmationTokenService.createRequest(
@@ -185,10 +208,12 @@ export async function handlePublish(
       undefined  // No single target_collection anymore
     );
     
-    console.log('[remember_publish] Token generated:', {
+    logger.info('Confirmation token generated', {
+      tool: 'remember_publish',
       requestId,
       token,
       action: 'publish_memory',
+      spaces: args.spaces,
     });
 
     // Return minimal response - agent already knows memory details

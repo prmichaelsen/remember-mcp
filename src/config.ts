@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { logger } from './utils/logger.js';
 
 dotenv.config();
 
@@ -52,5 +53,11 @@ export function validateConfig(): void {
     );
   }
 
-  console.log('[Config] Configuration validated');
+  // Import logger here to avoid circular dependency
+  // Use dynamic import synchronously (logger is already loaded by this point)
+  import('./utils/logger.js').then(({ logger }) => {
+    logger.info('Configuration validated', {
+      module: 'config',
+    });
+  });
 }

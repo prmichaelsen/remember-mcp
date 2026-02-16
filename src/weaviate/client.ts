@@ -1,5 +1,6 @@
 import weaviate, { WeaviateClient } from 'weaviate-client';
 import { config } from '../config.js';
+import { logger } from '../utils/logger.js';
 
 let client: WeaviateClient | null = null;
 
@@ -25,7 +26,10 @@ export async function initWeaviateClient(): Promise<WeaviateClient> {
   // Use appropriate connection method
   if (!isLocal) {
     // Use connectToWeaviateCloud() for ALL remote instances (cloud or self-hosted)
-    console.log('[Weaviate] Connecting to remote Weaviate:', weaviateUrl);
+    logger.info('Connecting to remote Weaviate', {
+      module: 'weaviate-client',
+      url: weaviateUrl,
+    });
     client = await weaviate.connectToWeaviateCloud(weaviateUrl, {
       authCredentials: config.weaviate.apiKey
         ? new weaviate.ApiKey(config.weaviate.apiKey)
@@ -36,7 +40,10 @@ export async function initWeaviateClient(): Promise<WeaviateClient> {
     });
   } else {
     // connectToLocal() for localhost only
-    console.log('[Weaviate] Connecting to local Weaviate:', weaviateUrl);
+    logger.info('Connecting to local Weaviate', {
+      module: 'weaviate-client',
+      url: weaviateUrl,
+    });
     const localConfig: any = {
       host: weaviateUrl.replace(/^https?:\/\//, '').split(':')[0],
       port: weaviateUrl.includes(':')
@@ -56,7 +63,10 @@ export async function initWeaviateClient(): Promise<WeaviateClient> {
     client = await weaviate.connectToLocal(localConfig);
   }
 
-  console.log('[Weaviate] Client initialized successfully');
+  logger.info('Weaviate client initialized successfully', {
+    module: 'weaviate-client',
+    isLocal,
+  });
   return client;
 }
 
@@ -77,10 +87,16 @@ export async function testWeaviateConnection(): Promise<boolean> {
   try {
     const weaviateClient = getWeaviateClient();
     const isReady = await weaviateClient.isReady();
-    console.log('[Weaviate] Connection successful, ready:', isReady);
+    logger.info('Weaviate connection test successful', {
+      module: 'weaviate-client',
+      isReady,
+    });
     return isReady;
   } catch (error) {
-    console.error('[Weaviate] Connection failed:', error);
+    logger.error('Weaviate connection test failed', {
+      module: 'weaviate-client',
+      error: error instanceof Error ? error.message : String(error),
+    });
     return false;
   }
 }
@@ -132,7 +148,11 @@ export async function collectionExists(collectionName: string): Promise<boolean>
     const exists = await weaviateClient.collections.exists(collectionName);
     return exists;
   } catch (error) {
-    console.error(`[Weaviate] Error checking collection ${collectionName}:`, error);
+    logger.error('Error checking collection existence', {
+      module: 'weaviate-client',
+      collectionName,
+      error: error instanceof Error ? error.message : String(error),
+    });
     return false;
   }
 }
@@ -144,6 +164,8 @@ export async function closeWeaviateClient(): Promise<void> {
   if (client) {
     // Weaviate client doesn't have explicit close method
     client = null;
-    console.log('[Weaviate] Client closed');
+    logger.info('Weaviate client closed', {
+      module: 'weaviate-client',
+    });
   }
 }

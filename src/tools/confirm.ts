@@ -1,6 +1,6 @@
 /**
  * remember_confirm tool
- * 
+ *
  * Generic confirmation tool that executes any pending action.
  * This is the second phase of the confirmation workflow.
  */
@@ -10,6 +10,7 @@ import { confirmationTokenService, type ConfirmationRequest } from '../services/
 import { getWeaviateClient, getMemoryCollectionName } from '../weaviate/client.js';
 import { ensurePublicCollection } from '../weaviate/space-schema.js';
 import { handleToolError } from '../utils/error-handler.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Tool definition for remember_confirm
@@ -41,7 +42,8 @@ export async function handleConfirm(
   userId: string
 ): Promise<string> {
   try {
-    console.log('[remember_confirm] Starting confirmation:', {
+    logger.info('Starting confirmation', {
+      tool: 'remember_confirm',
       userId,
       token: args.token,
     });
@@ -49,13 +51,17 @@ export async function handleConfirm(
     // Validate and confirm token
     const request = await confirmationTokenService.confirmRequest(userId, args.token);
     
-    console.log('[remember_confirm] Token validation result:', {
+    logger.debug('Token validation result', {
+      tool: 'remember_confirm',
       requestFound: !!request,
       action: request?.action,
     });
 
     if (!request) {
-      console.log('[remember_confirm] Token invalid or expired');
+      logger.info('Token invalid or expired', {
+        tool: 'remember_confirm',
+        userId,
+      });
       return JSON.stringify(
         {
           success: false,
@@ -67,7 +73,11 @@ export async function handleConfirm(
       );
     }
 
-    console.log('[remember_confirm] Executing action:', request.action);
+    logger.info('Executing confirmed action', {
+      tool: 'remember_confirm',
+      action: request.action,
+      userId,
+    });
 
     // GENERIC: Execute action based on type
     // This is where the generic pattern delegates to action-specific executors
@@ -99,7 +109,8 @@ async function executePublishMemory(
   userId: string
 ): Promise<string> {
   try {
-    console.log('[executePublishMemory] Starting execution:', {
+    logger.info('Executing publish memory action', {
+      function: 'executePublishMemory',
       userId,
       memoryId: request.payload.memory_id,
       spaces: request.payload.spaces,
@@ -112,19 +123,27 @@ async function executePublishMemory(
       getMemoryCollectionName(userId)
     );
     
-    console.log('[executePublishMemory] Fetching original memory from:', getMemoryCollectionName(userId));
+    logger.debug('Fetching original memory', {
+      function: 'executePublishMemory',
+      collectionName: getMemoryCollectionName(userId),
+      memoryId: request.payload.memory_id,
+    });
 
     const originalMemory = await userCollection.query.fetchObjectById(
       request.payload.memory_id
     );
     
-    console.log('[executePublishMemory] Original memory fetch result:', {
+    logger.debug('Original memory fetch result', {
+      function: 'executePublishMemory',
       found: !!originalMemory,
       memoryId: request.payload.memory_id,
     });
 
     if (!originalMemory) {
-      console.log('[executePublishMemory] Memory not found');
+      logger.info('Original memory not found', {
+        function: 'executePublishMemory',
+        memoryId: request.payload.memory_id,
+      });
       return JSON.stringify(
         {
           success: false,
@@ -138,7 +157,12 @@ async function executePublishMemory(
 
     // Verify ownership again
     if (originalMemory.properties.user_id !== userId) {
-      console.log('[executePublishMemory] Permission denied - wrong owner');
+      logger.warn('Permission denied - wrong owner', {
+        function: 'executePublishMemory',
+        memoryId: request.payload.memory_id,
+        memoryOwner: originalMemory.properties.user_id,
+        requestingUser: userId,
+      });
       return JSON.stringify(
         {
           success: false,
@@ -150,12 +174,17 @@ async function executePublishMemory(
       );
     }
     
-    console.log('[executePublishMemory] Ensuring public collection');
+    logger.debug('Ensuring public collection exists', {
+      function: 'executePublishMemory',
+    });
 
     // Get unified public collection
     const publicCollection = await ensurePublicCollection(weaviateClient);
     
-    console.log('[executePublishMemory] Public collection ready');
+    logger.debug('Public collection ready', {
+      function: 'executePublishMemory',
+      collectionName: 'Memory_public',
+    });
 
     // Create published memory (copy with modifications)
     const originalTags = Array.isArray(originalMemory.properties.tags)
@@ -183,7 +212,8 @@ async function executePublishMemory(
       version: 1,
     };
 
-    console.log('[executePublishMemory] Inserting into Memory_public:', {
+    logger.info('Inserting memory into Memory_public', {
+      function: 'executePublishMemory',
       spaces: request.payload.spaces,
       spaceCount: request.payload.spaces?.length || 0,
       memoryId: request.payload.memory_id,
@@ -194,9 +224,10 @@ async function executePublishMemory(
     // Insert directly into unified public collection
     const result = await publicCollection.data.insert(publishedMemory as any);
     
-    console.log('[executePublishMemory] Insert result:', {
-      success: !!result,
+    logger.info('Memory published successfully', {
+      function: 'executePublishMemory',
       spaceMemoryId: result,
+      spaces: request.payload.spaces,
     });
 
     // Return minimal response with spaces array

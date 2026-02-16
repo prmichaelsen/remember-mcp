@@ -1,6 +1,6 @@
 /**
  * Weaviate space collection schema and utilities
- * 
+ *
  * Manages shared space collections where users can publish memories
  * for discovery by other users.
  */
@@ -8,6 +8,7 @@
 import weaviate, { type WeaviateClient, type Collection } from 'weaviate-client';
 import { config } from '../config.js';
 import { SUPPORTED_SPACES, type SpaceId } from '../types/space-memory.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Unified public collection name for all public spaces
@@ -83,7 +84,11 @@ async function createSpaceCollection(
     ? PUBLIC_COLLECTION_NAME
     : getSpaceCollectionName(spaceId);
 
-  console.log(`[Weaviate] Creating space collection ${collectionName}...`);
+  logger.info('Creating space collection', {
+    module: 'weaviate-space-schema',
+    collectionName,
+    spaceId,
+  });
 
   // Create collection with schema (same as Memory schema but for spaces)
   await client.collections.create({
@@ -271,7 +276,10 @@ async function createSpaceCollection(
     ],
   });
 
-  console.log(`[Weaviate] Space collection ${collectionName} created successfully`);
+  logger.info('Space collection created successfully', {
+    module: 'weaviate-space-schema',
+    collectionName,
+  });
 }
 
 /**

@@ -1,18 +1,19 @@
 /**
  * Confirmation Token Service
- * 
+ *
  * Manages confirmation tokens for sensitive operations like publishing memories.
  * Tokens are one-time use with 5-minute expiry.
  */
 
 import { randomUUID } from 'crypto';
-import { 
-  getDocument, 
-  addDocument, 
+import {
+  getDocument,
+  addDocument,
   updateDocument,
   queryDocuments,
-  type QueryOptions 
+  type QueryOptions
 } from '../firestore/init.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Confirmation request stored in Firestore
@@ -69,21 +70,22 @@ export class ConfirmationTokenService {
 
       // Add document to Firestore (auto-generates ID)
       const collectionPath = `users/${userId}/requests`;
-      console.log('[ConfirmationTokenService] Creating request:', {
+      logger.info('Creating confirmation request', {
+        service: 'ConfirmationTokenService',
         userId,
         action,
         targetCollection,
         collectionPath,
-        requestData: {
-          token,
-          action,
-          payloadKeys: Object.keys(payload),
-        },
+        payloadKeys: Object.keys(payload),
       });
       
-      console.log('[ConfirmationTokenService] Calling addDocument...');
+      logger.debug('Calling Firestore addDocument', {
+        service: 'ConfirmationTokenService',
+        collectionPath,
+      });
       const docRef = await addDocument(collectionPath, request);
-      console.log('[ConfirmationTokenService] addDocument returned:', {
+      logger.debug('Firestore addDocument returned', {
+        service: 'ConfirmationTokenService',
         hasDocRef: !!docRef,
         hasId: !!docRef?.id,
         docRefId: docRef?.id,
@@ -92,7 +94,8 @@ export class ConfirmationTokenService {
       // Validate docRef
       if (!docRef) {
         const error = new Error('Firestore addDocument returned null/undefined');
-        console.error('[ConfirmationTokenService] CRITICAL: addDocument returned null', {
+        logger.error('CRITICAL: addDocument returned null', {
+          service: 'ConfirmationTokenService',
           userId,
           collectionPath,
         });
@@ -101,7 +104,8 @@ export class ConfirmationTokenService {
       
       if (!docRef.id) {
         const error = new Error('Firestore addDocument returned docRef without ID');
-        console.error('[ConfirmationTokenService] CRITICAL: docRef has no ID', {
+        logger.error('CRITICAL: docRef has no ID', {
+          service: 'ConfirmationTokenService',
           userId,
           collectionPath,
           docRef,
@@ -109,7 +113,8 @@ export class ConfirmationTokenService {
         throw error;
       }
       
-      console.log('[ConfirmationTokenService] Request created successfully:', {
+      logger.info('Confirmation request created successfully', {
+        service: 'ConfirmationTokenService',
         requestId: docRef.id,
         token,
         expiresAt: request.expires_at,
@@ -117,7 +122,8 @@ export class ConfirmationTokenService {
 
       return { requestId: docRef.id, token };
     } catch (error) {
-      console.error('[ConfirmationTokenService] FAILED to create request:', {
+      logger.error('Failed to create confirmation request', {
+        service: 'ConfirmationTokenService',
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         userId,
@@ -143,7 +149,8 @@ export class ConfirmationTokenService {
   ): Promise<(ConfirmationRequest & { request_id: string }) | null> {
     const collectionPath = `users/${userId}/requests`;
     
-    console.log('[ConfirmationTokenService] Validating token:', {
+    logger.debug('Validating confirmation token', {
+      service: 'ConfirmationTokenService',
       userId,
       token,
       collectionPath,
@@ -160,20 +167,25 @@ export class ConfirmationTokenService {
 
     const results = await queryDocuments(collectionPath, queryOptions);
     
-    console.log('[ConfirmationTokenService] Query results:', {
+    logger.debug('Token query results', {
+      service: 'ConfirmationTokenService',
       resultsFound: results.length,
       hasResults: results.length > 0,
     });
 
     if (results.length === 0) {
-      console.log('[ConfirmationTokenService] Token not found or not pending');
+      logger.info('Token not found or not pending', {
+        service: 'ConfirmationTokenService',
+        userId,
+      });
       return null;
     }
 
     const doc = results[0];
     const request = doc.data as ConfirmationRequest;
     
-    console.log('[ConfirmationTokenService] Request found:', {
+    logger.info('Confirmation request found', {
+      service: 'ConfirmationTokenService',
       requestId: doc.id,
       action: request.action,
       status: request.status,
@@ -183,7 +195,11 @@ export class ConfirmationTokenService {
     // Check expiry
     const expiresAt = new Date(request.expires_at);
     if (expiresAt.getTime() < Date.now()) {
-      console.log('[ConfirmationTokenService] Token expired');
+      logger.info('Token expired', {
+        service: 'ConfirmationTokenService',
+        requestId: doc.id,
+        expiresAt: request.expires_at,
+      });
       await this.updateStatus(userId, doc.id, 'expired');
       return null;
     }
@@ -298,7 +314,10 @@ export class ConfirmationTokenService {
     // Note: firebase-admin-sdk-v8 doesn't support collectionGroup queries
     // This would need to be implemented differently or rely on Firestore TTL
     // For now, return 0 and rely on Firestore TTL policy
-    console.warn('[ConfirmationTokenService] cleanupExpired not implemented - rely on Firestore TTL');
+    logger.warn('cleanupExpired not implemented - relying on Firestore TTL', {
+      service: 'ConfirmationTokenService',
+      note: 'Configure Firestore TTL policy on requests collection group',
+    });
     return 0;
   }
 }

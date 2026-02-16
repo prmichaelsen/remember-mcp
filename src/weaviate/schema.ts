@@ -6,6 +6,7 @@
 import weaviate, { WeaviateClient } from 'weaviate-client';
 import { getWeaviateClient, sanitizeUserId } from './client.js';
 import { config } from '../config.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Create Memory collection schema for a user
@@ -25,11 +26,17 @@ export async function createMemoryCollection(userId: string): Promise<void> {
   // Check if collection already exists
   const exists = await client.collections.exists(collectionName);
   if (exists) {
-    console.log(`[Weaviate] Collection ${collectionName} already exists`);
+    logger.debug('Collection already exists', {
+      module: 'weaviate-schema',
+      collectionName,
+    });
     return;
   }
 
-  console.log(`[Weaviate] Creating collection ${collectionName}...`);
+  logger.info('Creating memory collection', {
+    module: 'weaviate-schema',
+    collectionName,
+  });
 
   // Create collection with schema
   await client.collections.create({
@@ -263,7 +270,10 @@ export async function createMemoryCollection(userId: string): Promise<void> {
     ],
   });
 
-  console.log(`[Weaviate] Collection ${collectionName} created successfully`);
+  logger.info('Memory collection created successfully', {
+    module: 'weaviate-schema',
+    collectionName,
+  });
 }
 
 /**
@@ -300,6 +310,9 @@ export async function deleteMemoryCollection(userId: string): Promise<void> {
   
   if (exists) {
     await client.collections.delete(collectionName);
-    console.log(`[Weaviate] Collection ${collectionName} deleted`);
+    logger.info('Memory collection deleted', {
+      module: 'weaviate-schema',
+      collectionName,
+    });
   }
 }

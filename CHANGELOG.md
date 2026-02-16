@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.1] - 2026-02-16
+
+### 🔧 Improved
+
+- **Standardized Structured Logging**: Replaced all direct console calls with structured logger
+  - Replaced 54 console.log/error/warn calls across 8 files
+  - All logs now use structured JSON format with proper severity levels
+  - Logs respect LOG_LEVEL environment variable for filtering
+  - Better Cloud Run log aggregation and filtering
+  - Consistent context objects with relevant identifiers
+
+### 📝 Changed
+
+- Updated files with structured logging:
+  - `src/services/confirmation-token.service.ts` - 11 console calls replaced
+  - `src/tools/publish.ts` - 7 console calls replaced
+  - `src/tools/confirm.ts` - 11 console calls replaced
+  - `src/weaviate/client.ts` - 7 console calls replaced
+  - `src/weaviate/schema.ts` - 4 console calls replaced
+  - `src/weaviate/space-schema.ts` - 2 console calls replaced
+  - `src/firestore/init.ts` - 6 console calls replaced
+  - `src/config.ts` - 1 console call replaced
+
+### 🎯 Benefits
+
+- Log level filtering now works correctly (debug/info/warn/error)
+- Structured JSON logs for cloud environments
+- Consistent formatting across all services
+- Better integration with Cloud Logging filters
+- Easier to search and filter logs in production
+
+---
+
 ## [2.6.0] - 2026-02-16
 
 ### ✨ Added
