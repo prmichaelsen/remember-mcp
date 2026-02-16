@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.6] - 2026-02-16
+
+### 🔧 Improved
+
+- **Comprehensive Schema Property Alignment**
+  - Updated `ALL_MEMORY_PROPERTIES` to match Weaviate schema exactly
+  - Removed non-existent properties: `context`, `location`, `attribution`, `source_url`, `author`
+  - Added all actual schema properties including flattened location/context fields
+  - Added missing properties: `summary`, `computed_weight`, locale fields, access tracking fields
+  - Now includes all 50+ actual schema properties
+  - Organized with comments for clarity
+
+### 📝 Changed
+
+- Expanded `ALL_MEMORY_PROPERTIES` from 22 to 50+ properties
+- Properties now match schema definition exactly
+- Added proper documentation comments
+
+### 🎯 Impact
+
+- **Complete Data**: All memory properties now fetched correctly
+- **No Mismatches**: Zero schema validation errors
+- **Future-Proof**: New schema properties can be added to constant
+- **Better Documentation**: Clear organization and comments
+
+---
+
 ## [2.6.5] - 2026-02-16
 
 ### 🐛 Fixed

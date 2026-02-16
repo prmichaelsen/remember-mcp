@@ -143,26 +143,67 @@ export function getAuditCollectionName(userId: string): string {
  * List of all memory properties to fetch
  * Centralized to ensure consistency across all tools
  */
+/**
+ * List of all memory properties to fetch
+ * Matches the actual Weaviate schema properties exactly
+ */
 export const ALL_MEMORY_PROPERTIES = [
+  // Core identity
   'user_id',
   'doc_type',
-  'type',
-  'title',
+  
+  // Memory fields
   'content',
-  'tags',
+  'title',
+  'summary',
+  'type',
+  
+  // Scoring fields
   'weight',
   'base_weight',
-  'trust',  // ✅ Fixed: was 'trust_level', schema has 'trust'
+  'trust',
   'confidence',
-  'context',
-  'location',
+  'computed_weight',
+  
+  // Location fields (flattened)
+  'location_gps_lat',
+  'location_gps_lng',
+  'location_address',
+  'location_city',
+  'location_country',
+  'location_source',
+  
+  // Locale fields
+  'locale_language',
+  'locale_timezone',
+  
+  // Context fields (flattened)
+  'context_conversation_id',
+  'context_summary',
+  'context_timestamp',
+  
+  // Relationships
   'relationships',
+  
+  // Access tracking
+  'access_count',
+  'last_accessed_at',
+  
+  // Metadata
+  'tags',
+  'references',
   'created_at',
   'updated_at',
   'version',
-  'attribution',
-  'source_url',
-  'author',
+  'template_id',
+  
+  // Relationship-specific fields
+  'memory_ids',
+  'relationship_type',
+  'observation',
+  'strength',
+  
+  // Comment/threading fields
   'parent_id',
   'thread_root_id',
   'moderation_flags',
