@@ -243,6 +243,23 @@ export async function createMemoryCollection(userId: string): Promise<void> {
         dataType: 'number' as any,
         description: 'Calculated effective weight',
       },
+
+      // Comment/threading fields (for threaded discussions in shared spaces)
+      {
+        name: 'parent_id',
+        dataType: 'text' as any,
+        description: 'ID of parent memory or comment (for threading)',
+      },
+      {
+        name: 'thread_root_id',
+        dataType: 'text' as any,
+        description: 'Root memory ID for fetching entire thread',
+      },
+      {
+        name: 'moderation_flags',
+        dataType: 'text[]' as any,
+        description: 'Per-space moderation flags (format: "{space_id}:{flag_type}")',
+      },
     ],
   });
 

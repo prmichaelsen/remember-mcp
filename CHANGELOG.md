@@ -5,6 +5,68 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2026-02-16
+
+### ✨ Added
+
+- **Comment System (Phase 1)**: Threaded discussions in shared spaces
+  - Added 3 schema fields: `parent_id`, `thread_root_id`, `moderation_flags`
+  - Comments support infinite nesting (no depth limit)
+  - Per-space moderation flags (format: `"{space_id}:{flag_type}"`)
+  - Zero new tools required - reuses existing `remember_create_memory`
+
+- **Comment Filtering**: Clean discovery experience
+  - Added `include_comments` parameter to `remember_search_space` (default: false)
+  - Added `include_comments` parameter to `remember_query_space` (default: false)
+  - Comments excluded from search by default for cleaner results
+  - Opt-in via `include_comments: true` to include discussions
+
+### 🔧 Changed
+
+- **Search behavior**: `remember_search_space` now excludes comments by default
+- **Query behavior**: `remember_query_space` now excludes comments by default
+- Tool descriptions updated to mention comment filtering
+
+### 📚 Documentation
+
+- Created Milestone 12: Comment System (Phase 1)
+- Created Tasks 55-59 for comment implementation
+- Updated design document with comment system architecture
+
+### 🎯 Usage
+
+```typescript
+// Create a comment
+remember_create_memory({
+  type: "comment",
+  content: "Great post!",
+  parent_id: "memory123",
+  thread_root_id: "memory123",
+  spaces: ["the_void"]
+})
+
+// Search without comments (default)
+remember_search_space({
+  spaces: ["the_void"],
+  query: "hiking"
+})
+
+// Search with comments (opt-in)
+remember_search_space({
+  spaces: ["the_void"],
+  query: "hiking",
+  include_comments: true
+})
+```
+
+### ⚠️ Notes
+
+- Backward compatible - no breaking changes
+- Comments are opt-in for search/query
+- Future phases will add voting, moderation tools, and notifications
+
+---
+
 ## [2.4.1] - 2026-02-16
 
 ### 🐛 Fixed

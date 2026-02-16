@@ -18,7 +18,7 @@ import type { SearchFilters } from '../types/memory.js';
  */
 export const searchSpaceTool: Tool = {
   name: 'remember_search_space',
-  description: 'Search one or more shared spaces to discover thoughts, ideas, and memories. Works like remember_search_memory but searches shared spaces instead of personal memories. Can search multiple spaces in a single query.',
+  description: 'Search one or more shared spaces to discover thoughts, ideas, and memories. By default, excludes comments to keep discovery clean. Set include_comments: true to include threaded discussions. Can search multiple spaces in a single query.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -65,6 +65,11 @@ export const searchSpaceTool: Tool = {
         type: 'string',
         description: 'Filter memories created before this date (ISO 8601)',
       },
+      include_comments: {
+        type: 'boolean',
+        description: 'Include comments in search results (default: false)',
+        default: false,
+      },
       limit: {
         type: 'number',
         default: 10,
@@ -89,6 +94,7 @@ interface SearchSpaceArgs {
   max_weight?: number;
   date_from?: string;
   date_to?: string;
+  include_comments?: boolean;
   limit?: number;
   offset?: number;
 }
@@ -148,6 +154,13 @@ export async function handleSearchSpace(
     // Apply content type filter
     if (args.content_type) {
       filterList.push(publicCollection.filter.byProperty('type').equal(args.content_type));
+    }
+
+    // Exclude comments by default (unless explicitly included)
+    if (!args.include_comments && !args.content_type) {
+      // Only exclude comments if not filtering by content_type
+      // (if content_type is set, user has explicit control)
+      filterList.push(publicCollection.filter.byProperty('type').notEqual('comment'));
     }
 
     // Apply tags filter

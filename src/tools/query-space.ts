@@ -17,7 +17,7 @@ import { handleToolError } from '../utils/error-handler.js';
  */
 export const querySpaceTool: Tool = {
   name: 'remember_query_space',
-  description: 'Ask natural language questions about memories in shared spaces. Works like remember_query_memory but queries shared spaces.',
+  description: 'Ask natural language questions about memories in shared spaces. By default, excludes comments to focus on original content. Set include_comments: true to include discussions in answers.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -25,11 +25,15 @@ export const querySpaceTool: Tool = {
         type: 'string',
         description: 'Natural language question',
       },
-      space: {
-        type: 'string',
-        description: 'Which space to query',
-        enum: SUPPORTED_SPACES,
-        default: 'the_void',
+      spaces: {
+        type: 'array',
+        items: {
+          type: 'string',
+          enum: SUPPORTED_SPACES,
+        },
+        description: 'Spaces to query (e.g., ["the_void", "dogs"])',
+        minItems: 1,
+        default: ['the_void'],
       },
       content_type: {
         type: 'string',
@@ -53,6 +57,11 @@ export const querySpaceTool: Tool = {
       date_to: {
         type: 'string',
         description: 'Filter memories created before this date (ISO 8601)',
+      },
+      include_comments: {
+        type: 'boolean',
+        description: 'Include comments in query results (default: false)',
+        default: false,
       },
       limit: {
         type: 'number',
@@ -78,6 +87,7 @@ interface QuerySpaceArgs {
   min_weight?: number;
   date_from?: string;
   date_to?: string;
+  include_comments?: boolean;
   limit?: number;
   format?: 'detailed' | 'compact';
 }
@@ -132,6 +142,13 @@ export async function handleQuerySpace(
     // Apply content type filter
     if (args.content_type) {
       filterList.push(publicCollection.filter.byProperty('type').equal(args.content_type));
+    }
+
+    // Exclude comments by default (unless explicitly included)
+    if (!args.include_comments && !args.content_type) {
+      // Only exclude comments if not filtering by content_type
+      // (if content_type is set, user has explicit control)
+      filterList.push(publicCollection.filter.byProperty('type').notEqual('comment'));
     }
 
     // Apply tags filter
