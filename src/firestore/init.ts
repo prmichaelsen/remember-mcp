@@ -1,4 +1,4 @@
-import { initializeApp } from '@prmichaelsen/firebase-admin-sdk-v8';
+import * as admin from 'firebase-admin';
 import { config } from '../config.js';
 
 let initialized = false;
@@ -17,8 +17,8 @@ export function initFirestore(): void {
   try {
     const serviceAccount = JSON.parse(config.firebase.serviceAccount);
     
-    initializeApp({
-      serviceAccount,
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
       projectId: config.firebase.projectId,
     });
 
@@ -30,6 +30,16 @@ export function initFirestore(): void {
     console.error('[Firestore] Check for proper escaping in .env file');
     throw error;
   }
+}
+
+/**
+ * Get Firestore instance
+ */
+export function getFirestore(): admin.firestore.Firestore {
+  if (!initialized) {
+    initFirestore();
+  }
+  return admin.firestore();
 }
 
 /**
@@ -49,8 +59,8 @@ export async function testFirestoreConnection(): Promise<boolean> {
     }
 
     // Try a simple operation to test connection
-    const { getDocument } = await import('@prmichaelsen/firebase-admin-sdk-v8');
-    await getDocument('_health_check', 'test');
+    const db = getFirestore();
+    await db.collection('_health_check').doc('test').get();
     
     console.log('[Firestore] Connection successful');
     return true;
@@ -60,16 +70,6 @@ export async function testFirestoreConnection(): Promise<boolean> {
   }
 }
 
-// Re-export firebase-admin-sdk-v8 functions for convenience
-export {
-  getDocument,
-  setDocument,
-  addDocument,
-  updateDocument,
-  deleteDocument,
-  queryDocuments,
-  batchWrite,
-  FieldValue,
-  verifyIdToken,
-  type QueryOptions,
-} from '@prmichaelsen/firebase-admin-sdk-v8';
+// Re-export commonly used types
+export { FieldValue } from 'firebase-admin/firestore';
+export type { Firestore, DocumentData, QueryDocumentSnapshot } from 'firebase-admin/firestore';

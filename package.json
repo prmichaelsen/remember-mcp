@@ -47,10 +47,11 @@
   "author": "Patrick Michaelsen",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.990.0",
     "@modelcontextprotocol/sdk": "^1.0.4",
-    "@prmichaelsen/firebase-admin-sdk-v8": "^2.2.0",
     "@prmichaelsen/mcp-auth": "^7.0.4",
     "dotenv": "^16.4.5",
+    "firebase-admin": "^13.6.1",
     "weaviate-client": "^3.2.0"
   },
   "devDependencies": {

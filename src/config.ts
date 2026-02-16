@@ -2,6 +2,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+export type LLMProvider = 'bedrock' | 'openai' | 'anthropic' | 'cohere' | 'custom';
+
 export const config = {
   // Weaviate
   weaviate: {
@@ -12,6 +14,31 @@ export const config = {
   // OpenAI (for embeddings)
   openai: {
     apiKey: process.env.OPENAI_EMBEDDINGS_API_KEY || process.env.OPENAI_APIKEY || '',
+  },
+
+  // LLM Provider Configuration
+  llm: {
+    provider: (process.env.LLM_PROVIDER || 'bedrock') as LLMProvider,
+    model: process.env.LLM_MODEL || 'anthropic.claude-sonnet-4-5-20250929-v1:0',
+    
+    // Bedrock configuration
+    bedrock: {
+      region: process.env.AWS_REGION || 'us-east-1',
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+      sessionToken: process.env.AWS_SESSION_TOKEN || '',
+    },
+    
+    // OpenAI configuration (for future use)
+    openai: {
+      apiKey: process.env.OPENAI_API_KEY || '',
+      orgId: process.env.OPENAI_ORG_ID || '',
+    },
+    
+    // Anthropic configuration (for future use)
+    anthropic: {
+      apiKey: process.env.ANTHROPIC_API_KEY || '',
+    },
   },
 
   // Firebase (using firebase-admin-sdk-v8)

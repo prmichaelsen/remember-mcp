@@ -3,7 +3,7 @@
  * Handles all Firestore operations for user preferences
  */
 
-import { getDocument, setDocument } from '../firestore/init.js';
+import { getFirestore } from '../firestore/init.js';
 import { getUserPreferencesPath } from '../firestore/paths.js';
 import { logger } from '../utils/logger.js';
 import {
@@ -18,13 +18,14 @@ export class PreferencesDatabaseService {
    */
   static async getPreferences(userId: string): Promise<UserPreferences> {
     try {
+      const db = getFirestore();
       const pathParts = getUserPreferencesPath(userId).split('/');
       const docId = pathParts.pop()!;
       const collectionPath = pathParts.join('/');
 
-      const doc = await getDocument(collectionPath, docId);
+      const doc = await db.doc(`${collectionPath}/${docId}`).get();
 
-      if (!doc) {
+      if (!doc.exists) {
         // Return defaults with user_id
         const now = new Date().toISOString();
         return {
@@ -35,7 +36,7 @@ export class PreferencesDatabaseService {
         };
       }
 
-      return doc as UserPreferences;
+      return doc.data() as UserPreferences;
     } catch (error) {
       logger.error('Failed to get preferences:', error);
       throw new Error(`Failed to get preferences: ${error instanceof Error ? error.message : String(error)}`);
@@ -51,14 +52,16 @@ export class PreferencesDatabaseService {
     updates: Partial<Omit<UserPreferences, 'user_id' | 'created_at'>>
   ): Promise<UserPreferences> {
     try {
+      const db = getFirestore();
       const pathParts = getUserPreferencesPath(userId).split('/');
       const docId = pathParts.pop()!;
       const collectionPath = pathParts.join('/');
+      const docRef = db.doc(`${collectionPath}/${docId}`);
 
       const now = new Date().toISOString();
-      const doc = await getDocument(collectionPath, docId);
+      const doc = await docRef.get();
 
-      if (!doc) {
+      if (!doc.exists) {
         // Create with defaults + updates
         const newPrefs: UserPreferences = {
           user_id: userId,
@@ -68,7 +71,7 @@ export class PreferencesDatabaseService {
           updated_at: now,
         };
 
-        await setDocument(collectionPath, docId, newPrefs);
+        await docRef.set(newPrefs);
         logger.info('Preferences created with defaults', { userId });
         return newPrefs;
       }
@@ -79,12 +82,12 @@ export class PreferencesDatabaseService {
         updated_at: now,
       };
 
-      await setDocument(collectionPath, docId, updateData, { merge: true });
+      await docRef.set(updateData, { merge: true });
       logger.info('Preferences updated', { userId });
 
       // Return updated preferences
-      const updatedDoc = await getDocument(collectionPath, docId);
-      return updatedDoc as UserPreferences;
+      const updatedDoc = await docRef.get();
+      return updatedDoc.data() as UserPreferences;
     } catch (error) {
       logger.error('Failed to update preferences:', error);
       throw new Error(`Failed to update preferences: ${error instanceof Error ? error.message : String(error)}`);
@@ -96,6 +99,7 @@ export class PreferencesDatabaseService {
    */
   static async createPreferences(userId: string): Promise<UserPreferences> {
     try {
+      const db = getFirestore();
       const pathParts = getUserPreferencesPath(userId).split('/');
       const docId = pathParts.pop()!;
       const collectionPath = pathParts.join('/');
@@ -108,7 +112,7 @@ export class PreferencesDatabaseService {
         updated_at: now,
       };
 
-      await setDocument(collectionPath, docId, preferences);
+      await db.doc(`${collectionPath}/${docId}`).set(preferences);
       logger.info('Preferences created', { userId });
 
       return preferences;
