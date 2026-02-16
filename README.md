@@ -63,8 +63,10 @@ Multi-tenant memory system MCP server with vector search, relationships, and tru
 
 ## Features
 
-- **12 MCP Tools**: Complete CRUD for memories, relationships, and preferences
+- **17 MCP Tools**: Complete CRUD for memories, relationships, preferences, and shared spaces
 - **Multi-Tenant**: Per-user isolation with secure data boundaries
+- **Shared Spaces**: Publish memories to shared discovery spaces like "The Void"
+- **Token-Based Confirmation**: Secure two-phase workflow for sensitive operations
 - **Vector Search**: Semantic + keyword hybrid search with Weaviate
 - **Knowledge Graph**: N-way relationships with bidirectional tracking
 - **RAG Queries**: Natural language queries with context-aware responses
@@ -146,9 +148,47 @@ await wrapped.start();
 
 ## Architecture
 
-- **Weaviate**: Vector storage for memories, relationships, templates
-- **Firestore**: Permissions, preferences, metadata
+- **Weaviate**: Vector storage for memories, relationships, and shared spaces
+  - Personal collections: `Memory_{user_id}`
+  - Shared collections: `Memory_the_void`, `Memory_public_space`
+- **Firestore**: Permissions, preferences, confirmation tokens
+  - User data: `users/{user_id}/preferences`, `users/{user_id}/requests`
 - **Firebase Auth**: User authentication
+
+## Shared Spaces
+
+Publish memories to shared discovery spaces where other users can find them.
+
+### The Void
+
+"The Void" is a shared space for discovering thoughts and ideas from other users.
+
+### Publishing Workflow
+
+1. **Request Publication**: Generate confirmation token
+```typescript
+remember_publish({ memory_id: "abc123", target: "the_void" })
+// Returns: { success: true, token: "xyz789" }
+```
+
+2. **User Confirms**: Execute the publication
+```typescript
+remember_confirm({ token: "xyz789" })
+// Returns: { success: true, space_memory_id: "new-id" }
+```
+
+3. **Discover**: Search shared spaces
+```typescript
+remember_search_space({ query: "interesting ideas", space: "the_void" })
+```
+
+### Space Tools (5 new)
+
+- `remember_publish` - Request to publish memory (generates token)
+- `remember_confirm` - Confirm any pending action
+- `remember_deny` - Cancel any pending action
+- `remember_search_space` - Search shared spaces
+- `remember_query_space` - Ask questions about shared memories
 
 ## Documentation
 

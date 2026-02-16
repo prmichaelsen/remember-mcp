@@ -43,22 +43,34 @@ echo ""
 
 echo "Updating ACP files..."
 
-# Update template files
-cp "$TEMP_DIR/agent/design/design.template.md" "agent/design/"
-cp "$TEMP_DIR/agent/design/requirements.template.md" "agent/design/"
-cp "$TEMP_DIR/agent/milestones/milestone-1-{title}.template.md" "agent/milestones/"
-cp "$TEMP_DIR/agent/tasks/task-1-{title}.template.md" "agent/tasks/"
-cp "$TEMP_DIR/agent/patterns/pattern.template.md" "agent/patterns/"
-cp "$TEMP_DIR/agent/patterns/bootstrap.template.md" "agent/patterns/"
+# Update template files (only .template.md files from these directories)
+find "$TEMP_DIR/agent/design" -maxdepth 1 -name "*.template.md" -exec cp {} "agent/design/" \;
+find "$TEMP_DIR/agent/milestones" -maxdepth 1 -name "*.template.md" -exec cp {} "agent/milestones/" \;
+find "$TEMP_DIR/agent/patterns" -maxdepth 1 -name "*.template.md" -exec cp {} "agent/patterns/" \;
+find "$TEMP_DIR/agent/tasks" -maxdepth 1 -name "*.template.md" -exec cp {} "agent/tasks/" \;
+
+# Update command template
+mkdir -p "agent/commands"
+cp "$TEMP_DIR/agent/commands/command.template.md" "agent/commands/"
+
+# Update all command files (flat structure with dot notation)
+# Copies files like acp.init.md, acp.status.md, deploy.production.md, etc.
+if [ -d "$TEMP_DIR/agent/commands" ]; then
+    find "$TEMP_DIR/agent/commands" -maxdepth 1 -name "*.*.md" -exec cp {} "agent/commands/" \;
+fi
+
+# Update progress template
 cp "$TEMP_DIR/agent/progress.template.yaml" "agent/"
 
 # Update AGENT.md
 cp "$TEMP_DIR/AGENT.md" "."
 
 # Update scripts
-cp "$TEMP_DIR/scripts/update.sh" "agent/scripts/"
-cp "$TEMP_DIR/scripts/check-for-updates.sh" "agent/scripts/"
-cp "$TEMP_DIR/scripts/uninstall.sh" "agent/scripts/"
+cp "$TEMP_DIR/agent/scripts/update.sh" "agent/scripts/"
+cp "$TEMP_DIR/agent/scripts/check-for-updates.sh" "agent/scripts/"
+cp "$TEMP_DIR/agent/scripts/uninstall.sh" "agent/scripts/"
+cp "$TEMP_DIR/agent/scripts/version.sh" "agent/scripts/"
+cp "$TEMP_DIR/agent/scripts/install.sh" "agent/scripts/"
 chmod +x agent/scripts/*.sh
 
 echo -e "${GREEN}✓${NC} All files updated"

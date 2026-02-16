@@ -32,6 +32,13 @@ import { deleteRelationshipTool, handleDeleteRelationship } from './tools/delete
 import { setPreferenceTool, handleSetPreference } from './tools/set-preference.js';
 import { getPreferencesTool, handleGetPreferences } from './tools/get-preferences.js';
 
+// Import space tools
+import { publishTool, handlePublish } from './tools/publish.js';
+import { confirmTool, handleConfirm } from './tools/confirm.js';
+import { denyTool, handleDeny } from './tools/deny.js';
+import { searchSpaceTool, handleSearchSpace } from './tools/search-space.js';
+import { querySpaceTool, handleQuerySpace } from './tools/query-space.js';
+
 export interface ServerOptions {
   name?: string;
   version?: string;
@@ -173,6 +180,12 @@ function registerHandlers(server: Server, userId: string, accessToken: string): 
         // Preference tools
         setPreferenceTool,
         getPreferencesTool,
+        // Space tools
+        publishTool,
+        confirmTool,
+        denyTool,
+        searchSpaceTool,
+        querySpaceTool,
       ],
     };
   });
@@ -231,6 +244,26 @@ function registerHandlers(server: Server, userId: string, accessToken: string): 
 
         case 'remember_get_preferences':
           result = await handleGetPreferences(args as any, userId);
+          break;
+
+        case 'remember_publish':
+          result = await handlePublish(args as any, userId);
+          break;
+
+        case 'remember_confirm':
+          result = await handleConfirm(args as any, userId);
+          break;
+
+        case 'remember_deny':
+          result = await handleDeny(args as any, userId);
+          break;
+
+        case 'remember_search_space':
+          result = await handleSearchSpace(args as any, userId);
+          break;
+
+        case 'remember_query_space':
+          result = await handleQuerySpace(args as any, userId);
           break;
 
         default:

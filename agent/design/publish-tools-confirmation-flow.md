@@ -30,8 +30,17 @@ A generic confirmation-based system for executing sensitive operations. Uses one
 - Any other sensitive operation requiring user confirmation
 
 **Supported Spaces**:
-- `void` - The Void (shared discovery space)
+- `the_void` - "The Void" (shared discovery space)
+  - Space ID: `the_void` (snake_case)
+  - Collection Name: `Memory_the_void`
+  - Display Name: "The Void" (can use any case/spaces)
 - Extensible to other spaces as needed
+
+**Naming Convention**:
+- Display names can have spaces and mixed case: "The Void", "Public Space"
+- Space IDs are snake_case (lowercase with underscores): `the_void`, `public_space`
+- Collection names follow pattern: `Memory_{snake_case_id}`
+- Conversion: "The Void" → lowercase → replace spaces → `the_void` → `Memory_the_void`
 
 ---
 
@@ -120,9 +129,9 @@ Publish a memory to a shared collection. Generates a confirmation token with all
       },
       target: {
         type: 'string',
-        description: 'Target space to publish to',
-        enum: ['void'],
-        default: 'void'
+        description: 'Target space to publish to (snake_case ID)',
+        enum: ['the_void'],
+        default: 'the_void'
       },
       additional_tags: {
         type: 'array',
@@ -369,9 +378,16 @@ interface SpaceMemory {
 
 ### Weaviate Collections
 
-- **Personal**: `Memory_User_123` (single user)
-- **Spaces**: `Memory_Void`, `Memory_Public` (shared)
+- **Personal**: `Memory_User_123` (single user, sanitized user_id)
+- **Spaces**: `Memory_the_void`, `Memory_public_space` (shared, snake_case space IDs)
 - **Consistent naming**: `Memory_{identifier}` pattern
+  - User collections: `Memory_{sanitized_user_id}` (e.g., `Memory_User_123`)
+  - Space collections: `Memory_{snake_case_space_id}` (e.g., `Memory_the_void`, `Memory_public_space`)
+
+**Display Names vs Collection IDs**:
+- Display Name: "The Void" → Space ID: `the_void` → Collection: `Memory_the_void`
+- Display Name: "Public Space" → Space ID: `public_space` → Collection: `Memory_public_space`
+- Conversion: Display name → lowercase → replace spaces with underscores → prepend `Memory_`
 
 ---
 
@@ -895,5 +911,12 @@ This pattern can be extended to ANY sensitive operation:
 
 ---
 
-**Status**: Design Specification  
-**Recommendation**: Implement token-based confirmation pattern for secure, user-controlled publications
+**Status**: Implemented (v2.3.0)
+**Recommendation**: Token-based confirmation pattern successfully implemented and production-ready
+
+**Implementation Notes**:
+- All 5 tools implemented and registered in both servers
+- Token service uses `users/{user_id}/requests` for consistency
+- Firestore TTL configured on collection group `requests`
+- 100% test coverage on token service and space schema
+- Snake_case naming convention: "The Void" → `the_void` → `Memory_the_void`

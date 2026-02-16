@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-02-16
+
+### ✨ Added
+
+- **Shared Spaces**: Publish memories to shared discovery spaces
+  - "The Void" - First shared space for discovering thoughts and ideas
+  - Space collections: `Memory_the_void` with snake_case naming
+  - Multi-user discovery with attribution tracking
+
+- **Token-Based Confirmation**: Secure two-phase workflow for sensitive operations
+  - One-time use tokens with 5-minute expiry
+  - Firestore storage: `users/{user_id}/requests`
+  - Generic pattern extensible to other confirmable actions
+
+- **5 New MCP Tools**:
+  - `remember_publish` - Request to publish memory to shared space (generates token)
+  - `remember_confirm` - Confirm and execute pending actions
+  - `remember_deny` - Cancel pending actions
+  - `remember_search_space` - Search shared spaces with hybrid search
+  - `remember_query_space` - Query shared spaces with natural language
+
+- **Confirmation Token Service**: Manages tokens with automatic expiry
+  - UUID v4 tokens
+  - Status tracking (pending, confirmed, denied, expired, retracted)
+  - Firestore TTL integration for automatic cleanup
+
+- **Space Memory Types**: SpaceMemory interface with attribution fields
+  - `space_id`, `author_id`, `ghost_id`, `published_at`, `discovery_count`
+  - Support for pseudonymous publishing (ghost profiles)
+
+### 🔧 Changed
+
+- Tool count increased from 12 to 17
+- Firestore structure: Added `users/{user_id}/requests` for confirmation tokens
+- Collection naming: snake_case for spaces ("The Void" → `the_void` → `Memory_the_void`)
+
+### 🔒 Security
+
+- One-time use tokens prevent replay attacks
+- User ownership verification before publishing
+- Fresh data fetch during confirmation (not from stored payload)
+- 5-minute token expiry prevents stale requests
+
+---
+
 ## [2.0.2] - 2026-02-14
 
 ### ✨ Added

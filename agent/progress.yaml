@@ -2,7 +2,7 @@
 
 project:
   name: remember-mcp
-  version: 2.2.1
+  version: 2.3.0
   started: 2026-02-11
   status: in_progress
   current_milestone: M5
@@ -122,6 +122,19 @@ milestones:
     status: not_started
     progress: 0%
     estimated_weeks: 1
+    
+  - id: M10
+    name: Shared Spaces & Confirmation Flow
+    status: not_started
+    progress: 0%
+    estimated_weeks: 2-3
+    tasks_completed: 0
+    tasks_total: 10
+    notes: |
+      Token-based confirmation pattern for secure publishing
+      5 new MCP tools for shared spaces
+      Space collections with snake_case naming
+      Firestore TTL for automatic token cleanup
     
   - id: M7
     name: Trust & Permissions
@@ -368,9 +381,9 @@ tasks:
 
 documentation:
   design_documents: 23
-  milestone_documents: 9
+  milestone_documents: 10
   pattern_documents: 5
-  task_documents: 23
+  task_documents: 33
 
 progress:
   planning: 100%
@@ -378,6 +391,27 @@ progress:
   overall: 50%
 
 recent_work:
+  - date: 2026-02-16
+    description: Created Milestone 10 and Tasks for Shared Spaces
+    items:
+      - ✅ Created M10: Shared Spaces & Confirmation Flow milestone
+      - ✅ Created Task 34: Confirmation Token Service
+      - ✅ Created Task 35: Space Memory Types and Schema
+      - ✅ Created Task 36: Implement remember_publish
+      - ✅ Created Task 37: Implement remember_confirm
+      - ✅ Created Task 38: Implement remember_deny
+      - ✅ Created Task 39: Implement remember_search_space
+      - ✅ Created Task 40: Implement remember_query_space
+      - ✅ Created Task 41: Configure Firestore TTL
+      - ✅ Created Task 42: Create Tests
+      - ✅ Created Task 43: Update Documentation
+      - ✅ Updated naming convention: snake_case for space IDs
+      - ✅ "The Void" → `the_void` → `Memory_the_void`
+      - ✅ Token-based confirmation pattern documented
+      - ✅ 5 new tools planned (publish, confirm, deny, search_space, query_space)
+      - 📋 Ready to begin M10 implementation
+      - 📋 10 tasks, estimated 30 hours total
+      
   - date: 2026-02-16
     description: ACP Initialization Complete - Firebase SDK Reverted
     items:
