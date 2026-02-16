@@ -5,20 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.3.2] - 2026-02-16
+## [2.3.3] - 2026-02-16
 
 ### 🐛 Fixed
 
-- **Critical: remember_publish now publishes to correct collection**
-  - Fixed bug where memories were published to user collections instead of shared space collections
-  - Removed `user_id` field from published memories (replaced with `space_id`)
+- **Critical: remember_publish Weaviate API usage**
   - Fixed incorrect Weaviate v3 API usage (removed double-wrapping of properties)
-  - Memories now correctly stored in `Memory_the_void` instead of `Memory_User_123`
-  - Added logging to track field transformations during publish
+  - Properties are now inserted directly without extra wrapper
+  - Collection routing is explicit via `ensureSpaceCollection()`, not via document fields
+  - Memories correctly stored in `Memory_the_void` collection
+  - Preserved `user_id` field for attribution tracking (alongside `author_id` and `space_id`)
 
 ### 🔧 Changed
 
-- Enhanced logging in `executePublishMemory` to track `user_id` removal and `space_id` addition
+- Enhanced logging in `executePublishMemory` to track field presence during publish
+- Added verification logging for `user_id`, `author_id`, and `space_id` fields
+
+---
+
+## [2.3.2] - 2026-02-16
+
+### ⚠️ Reverted
+
+- **Incorrect fix**: Removed `user_id` field (this was wrong - user_id needed for attribution)
+- This version should not be used - upgrade to 2.3.3
 
 ---
 

@@ -1,7 +1,7 @@
 # Agent Context Protocol (ACP)
 
 **Also Known As**: The Agent Directory Pattern
-**Version**: 1.2.2
+**Version**: 1.3.1
 **Created**: 2026-02-11
 **Status**: Production Pattern
 
@@ -875,7 +875,17 @@ Run ./agent/scripts/uninstall.sh to remove all ACP files (agent/ directory and A
    - Update percentages
    - Add recent work notes
 
-7. **NEVER handle secrets or sensitive data**
+7. **CRITICAL: Always update CHANGELOG.md for version changes**
+   - ❌ **DO NOT** commit version changes without updating CHANGELOG.md
+   - ❌ **DO NOT** forget to update version numbers in all project files
+   - ✅ **DO** use [`@acp.commit`](agent/commands/acp.commit.md) for version-aware commits
+   - ✅ **DO** detect version impact: major (breaking), minor (features), patch (fixes)
+   - ✅ **DO** update CHANGELOG.md with clear, user-focused descriptions
+   - ✅ **DO** update all version files (package.json, AGENT.md, etc.)
+   - ✅ **DO** use Conventional Commits format for commit messages
+   - **Rationale**: CHANGELOG.md is the primary communication tool for users. Every version change must be documented with clear descriptions of what changed, why it changed, and how it affects users. Forgetting to update CHANGELOG.md breaks the project's version history and makes it impossible for users to understand what changed between versions.
+
+8. **NEVER handle secrets or sensitive data**
    - ❌ **DO NOT** read `.env` files, `.env.local`, or any environment files
    - ❌ **DO NOT** read files containing API keys, tokens, passwords, or credentials
    - ❌ **DO NOT** include secrets in messages, documentation, or code examples
@@ -885,6 +895,14 @@ Run ./agent/scripts/uninstall.sh to remove all ACP files (agent/ directory and A
    - ✅ **DO** reference environment variable names without reading their values
    - ✅ **DO** create `.env.example` files with placeholder values only
    - **Rationale**: Secrets must never be exposed in chat logs, documentation, or version control. Agents should treat all credential files as off-limits to prevent accidental exposure.
+
+9. **CRITICAL: Respect user's intentional file edits**
+   - ❌ **DO NOT** assume missing content needs to be added back
+   - ❌ **DO NOT** revert changes without confirming with user
+   - ✅ **DO** read files before editing to see current state
+   - ✅ **DO** ask user if unexpected changes were intentional
+   - ✅ **DO** confirm before reverting user's manual edits
+   - **Rationale**: If you read a file and it is missing contents or has changed contents (i.e., it does not contain what you expect), assume or confirm with the user if they made intentional updates that you should not revert. Do not assume "The file is missing <xyz>, I need to add it back". The user may have edited files manually with intention.
 
 ---
 

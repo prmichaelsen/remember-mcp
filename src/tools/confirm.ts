@@ -167,14 +167,12 @@ async function executePublishMemory(
       ? request.payload.additional_tags
       : [];
 
-    // Create published memory - remove user_id and add space-specific fields
-    const { user_id, ...memoryWithoutUserId } = originalMemory.properties;
-    
+    // Create published memory with space-specific fields
     const publishedMemory = {
-      ...memoryWithoutUserId,
-      // Override specific fields for space memory
+      ...originalMemory.properties,
+      // Add space-specific fields
       space_id: request.target_collection || 'the_void',
-      author_id: userId, // Always attributed
+      author_id: userId, // Track original author
       published_at: new Date().toISOString(),
       discovery_count: 0,
       doc_type: 'space_memory',
@@ -190,9 +188,9 @@ async function executePublishMemory(
     console.log('[executePublishMemory] Inserting into space collection:', {
       spaceId: request.target_collection || 'the_void',
       memoryId: request.payload.memory_id,
-      hasProperties: !!publishedMemory,
-      removedUserId: true,
-      addedSpaceId: publishedMemory.space_id,
+      hasUserId: !!(publishedMemory as any).user_id,
+      hasAuthorId: !!publishedMemory.author_id,
+      hasSpaceId: !!publishedMemory.space_id,
     });
     
     // Insert directly - publishedMemory is already the properties object
