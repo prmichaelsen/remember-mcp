@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.2] - 2026-02-16
+
+### 🔒 Security
+
+- **Enhanced Confirmation Tool Safety Guidelines**
+  - Added critical safety requirements to `remember_confirm` tool description
+  - Added critical safety requirements to `remember_deny` tool description
+  - Added JSDoc comments emphasizing proper confirmation workflow
+  - Prevents agents from bypassing user consent by chaining confirmations
+
+### 📝 Changed
+
+- Updated `remember_confirm` description with 5 critical safety requirements
+- Updated `remember_deny` description with 5 critical safety requirements
+- Added ⚠️ visual indicators for safety requirements
+- Added detailed JSDoc comments explaining proper workflow
+
+### 🎯 Safety Requirements
+
+Both confirmation tools now explicitly require:
+1. Token received in PREVIOUS tool response
+2. Details presented to user for review
+3. EXPLICIT user confirmation/denial in SEPARATE message
+4. NEVER chain with other tool calls
+5. ALWAYS treat as standalone, deliberate actions
+
+---
+
 ## [2.6.1] - 2026-02-16
 
 ### 🔧 Improved

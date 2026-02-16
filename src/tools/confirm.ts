@@ -14,10 +14,32 @@ import { logger } from '../utils/logger.js';
 
 /**
  * Tool definition for remember_confirm
+ *
+ * CRITICAL SAFETY: This tool must ONLY be called after explicit user confirmation
+ * in a separate message. Never chain with other tools or call immediately after
+ * receiving a token. The confirmation workflow requires:
+ *
+ * 1. Agent calls remember_publish (or other confirmable action)
+ * 2. Agent receives token in response
+ * 3. Agent presents details to user and asks for confirmation
+ * 4. User responds in SEPARATE message with explicit yes/no
+ * 5. Agent calls remember_confirm or remember_deny in NEW response
+ *
+ * Chaining confirmations bypasses user consent and violates security model.
  */
 export const confirmTool: Tool = {
   name: 'remember_confirm',
-  description: 'Confirm and execute a pending action using the token. Works for any action that requires confirmation (publish, delete, etc.).',
+  description: `Confirm and execute a pending action using the token. Works for any action that requires confirmation (publish, delete, etc.).
+
+⚠️ CRITICAL SAFETY REQUIREMENTS:
+Before executing this tool, you MUST:
+1. Have received the confirmation token in a PREVIOUS tool response
+2. Have presented the token details to the user for review
+3. Have received EXPLICIT user confirmation in a SEPARATE user message
+4. NEVER chain this tool with other tool calls in the same response
+5. ALWAYS treat confirmations as standalone, deliberate actions
+
+Violating these requirements bypasses user consent and is a security violation.`,
   inputSchema: {
     type: 'object',
     properties: {
