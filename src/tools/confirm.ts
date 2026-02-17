@@ -227,22 +227,24 @@ async function executePublishMemory(
       ? request.payload.additional_tags
       : [];
 
-    // Create published memory with space-specific fields
+    // Validate payload has required fields
+    if (!request.payload.spaces || !Array.isArray(request.payload.spaces) || request.payload.spaces.length === 0) {
+      throw new Error('Payload missing required field: spaces');
+    }
+    
+    // Create published memory - preserve ALL original properties
     const publishedMemory = {
       ...originalMemory.properties,
-      // Add space-specific fields
-      spaces: request.payload.spaces || ['the_void'],  // ✅ Array of spaces!
+      // Add space-specific fields (don't overwrite existing properties)
+      spaces: request.payload.spaces,  // Required field (validated above)
       author_id: userId, // Track original author
       published_at: new Date().toISOString(),
       discovery_count: 0,
-      doc_type: 'space_memory',
       attribution: 'user' as const,
-      // Merge additional tags
+      // Merge additional tags with original tags
       tags: [...originalTags, ...additionalTags],
-      // Update timestamps
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      version: 1,
+      // Keep doc_type as 'memory' (don't change to 'space_memory')
+      // Keep original created_at, updated_at, version (don't overwrite)
     };
 
     logger.info('Inserting memory into Memory_public', {
