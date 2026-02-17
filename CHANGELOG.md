@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.3] - 2026-02-17
+
+### Fixed
+
+- **CRITICAL: Fixed `remember_update_memory` "Memory not found" error**
+  - Changed `handleUpdateMemory()` to use `fetchMemoryWithAllProperties()` wrapper
+  - Previously used direct `collection.query.fetchObjectById()` call without fallback
+  - Direct call failed when querying memories with certain property configurations (e.g., `parent_id: ""`)
+  - Wrapper provides graceful fallback for schema evolution and property incompatibilities
+  - Matches pattern used in other working tools like `handlePublish()`
+
+### Root Cause
+
+- `handleUpdateMemory()` bypassed the `fetchMemoryWithAllProperties()` abstraction layer
+- Direct `fetchObjectById()` without property specification can fail on edge case property values
+- Error was caught and converted to misleading "Memory not found" message
+- Wrapper's try-catch with fallback handles these cases gracefully
+- This fix ensures consistent behavior across all memory operations
+
+### Technical Details
+
+- Modified: `src/tools/update-memory.ts` (lines 8, 140)
+- Added import: `fetchMemoryWithAllProperties` from `weaviate/client.js`
+- Replaced: `collection.query.fetchObjectById(id)` → `fetchMemoryWithAllProperties(collection, id)`
+- Verified working in local testing with memories containing `parent_id: ""`
+
+---
+
 ## [2.7.2] - 2026-02-17
 
 ### Fixed

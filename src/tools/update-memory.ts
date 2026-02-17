@@ -5,6 +5,7 @@
 
 import type { Memory, MemoryUpdate } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
+import { fetchMemoryWithAllProperties } from '../weaviate/client.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError, withErrorHandling } from '../utils/error-handler.js';
 import { isValidContentType } from '../constants/content-types.js';
@@ -133,9 +134,10 @@ export async function handleUpdateMemory(
     // Get existing memory - fetch ALL properties for replace operation
     // We need the full object to use replace() instead of update()
     // (Weaviate bug: update() only persists if vectorized fields change)
+    // Use fetchMemoryWithAllProperties() to handle schema evolution gracefully
     let existingMemory;
     try {
-      existingMemory = await collection.query.fetchObjectById(args.memory_id);
+      existingMemory = await fetchMemoryWithAllProperties(collection, args.memory_id);
     } catch (fetchError) {
       const fetchErrorMsg = fetchError instanceof Error ? fetchError.message : String(fetchError);
       logger.error('Failed to fetch memory for update:', {
