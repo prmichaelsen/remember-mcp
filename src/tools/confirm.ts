@@ -263,7 +263,10 @@ async function executePublishMemory(
     });
     
     // Insert directly into unified public collection
-    const result = await publicCollection.data.insert(publishedMemory as any);
+    // CRITICAL: Weaviate insert API expects {properties: {...}}, not the properties directly!
+    const result = await publicCollection.data.insert({
+      properties: publishedMemory,
+    });
     
     logger.info('Memory published successfully', {
       function: 'executePublishMemory',

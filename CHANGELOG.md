@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.2] - 2026-02-17
+
+### Fixed
+
+- **CRITICAL: Fixed Insert API Call Format**: Wrap properties in `{properties: ...}` object
+  - Changed `publicCollection.data.insert(publishedMemory)` to `publicCollection.data.insert({properties: publishedMemory})`
+  - Weaviate insert API expects `{properties: {...}}` format, not properties directly
+  - This is why ALL inserts were creating documents with zero properties
+  - The properties were being ignored because they weren't in the expected format
+
+### Root Cause
+
+- Weaviate client `insert()` API signature: `insert({properties: {...}, vectors?: ..., id?: ...})`
+- We were passing properties directly: `insert(properties)`
+- Weaviate accepted the call but ignored the properties (wrong format)
+- Created documents with UUID but zero properties
+- This explains ALL the empty document issues across all schema approaches
+
+---
+
 ## [2.7.1] - 2026-02-17
 
 ### Fixed
