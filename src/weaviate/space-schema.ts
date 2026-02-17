@@ -384,16 +384,14 @@ export async function ensurePublicCollection(
 ): Promise<Collection<any>> {
   const collectionName = PUBLIC_COLLECTION_NAME;
 
-  // DON'T manually create the collection!
-  // Let Weaviate auto-generate the schema from the first insert.
-  // This ensures the schema matches user memory collections exactly,
-  // including nested objects (context, location) that were auto-generated.
-  //
-  // When we spread {...originalMemory.properties}, the nested objects
-  // will be preserved and Weaviate will auto-create matching schema.
-  //
-  // NOTE: Collection will be created automatically on first insert.
-  // Weaviate's auto-schema feature handles this transparently.
+  // Check if collection exists
+  const exists = await client.collections.exists(collectionName);
+  
+  if (!exists) {
+    // Create with proper vectorizer configuration
+    // Use 'public' as spaceId to trigger PUBLIC_COLLECTION_NAME
+    await createSpaceCollection(client, 'public');
+  }
 
   return client.collections.get(collectionName);
 }

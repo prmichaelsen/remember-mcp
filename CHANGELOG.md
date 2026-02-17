@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.7] - 2026-02-17
+
+### Fixed
+
+- **CRITICAL: Fixed Memory_public vectorizer missing**
+  - `ensurePublicCollection()` now properly creates collection with vectorizer
+  - Previously relied on auto-schema which doesn't include vectorizers
+  - Now calls `createSpaceCollection(client, 'public')` to create with full schema
+  - Fixes "vectorizer not configured" errors when searching The Void
+
+### Root Cause
+
+- Commit bcde314 changed to auto-schema approach for schema compatibility
+- Auto-schema creates collections without vectorizers (vectorizer: "none")
+- This broke semantic search in Memory_public (The Void)
+- Manual creation with vectorizer config is required
+
+### Technical Details
+
+- Modified: `src/weaviate/space-schema.ts` (lines 382-398)
+- Changed `ensurePublicCollection()` to check if collection exists
+- If not exists, calls `createSpaceCollection(client, 'public')`
+- Creates collection with vectorizer: `text2VecOpenAI`, model: `text-embedding-3-small`
+- Vectorizes: `content`, `title`, `summary`, `observation`
+
+---
+
 ## [2.7.6] - 2026-02-17
 
 ### Changed
