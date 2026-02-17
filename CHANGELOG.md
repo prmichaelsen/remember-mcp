@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.9] - 2026-02-17
+
+### Fixed
+
+- **`remember_update_memory` Query Issue**: Fixed "Memory not found" error for existing memories
+  - Reduced property query from 6 properties to only 3 essential properties (`user_id`, `doc_type`, `version`)
+  - Removed queries for optional properties (`type`, `weight`, `base_weight`) that may not exist on all records
+  - Weaviate gRPC fails when querying properties that exist in schema but not on specific records
+  - Only fetch properties actually needed for validation (ownership, doc type, version)
+  - Fixes issue where memories with missing optional properties were reported as "not found"
+
+---
+
 ## [2.6.8] - 2026-02-17
 
 ### 🐛 Fixed

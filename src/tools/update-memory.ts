@@ -131,10 +131,12 @@ export async function handleUpdateMemory(
     const collection = getMemoryCollection(userId);
 
     // Get existing memory to verify ownership and get current version
+    // Only fetch minimal properties needed for validation - don't query optional properties
+    // that may not exist on all records (causes Weaviate gRPC errors)
     let existingMemory;
     try {
       existingMemory = await collection.query.fetchObjectById(args.memory_id, {
-        returnProperties: ['user_id', 'doc_type', 'version', 'type', 'weight', 'base_weight'],
+        returnProperties: ['user_id', 'doc_type', 'version'],
       });
     } catch (fetchError) {
       const fetchErrorMsg = fetchError instanceof Error ? fetchError.message : String(fetchError);
