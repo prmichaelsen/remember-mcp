@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.11] - 2026-02-17
+
+### Changed
+
+- **Enhanced Logging for `executePublishMemory()`**: Added detailed property logging
+  - Logs all property keys fetched from original memory
+  - Logs property keys being inserted into public collection
+  - Logs content length, title, and other key fields
+  - Changed fetch result log from debug to info level
+  - Helps diagnose if memory content is being fetched and copied correctly
+
+---
+
 ## [2.6.10] - 2026-02-17
 
 ### Fixed

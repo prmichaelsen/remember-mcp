@@ -156,14 +156,20 @@ async function executePublishMemory(
       request.payload.memory_id
     );
     
-    logger.debug('Original memory fetch result', {
+    logger.info('Original memory fetch result', {
       function: 'executePublishMemory',
       found: !!originalMemory,
       memoryId: request.payload.memory_id,
       hasProperties: !!originalMemory?.properties,
       propertyCount: originalMemory?.properties ? Object.keys(originalMemory.properties).length : 0,
+      propertyKeys: originalMemory?.properties ? Object.keys(originalMemory.properties) : [],
       hasTitle: !!originalMemory?.properties?.title,
       hasContent: !!originalMemory?.properties?.content,
+      hasUserId: !!originalMemory?.properties?.user_id,
+      hasTags: !!originalMemory?.properties?.tags,
+      hasWeight: !!originalMemory?.properties?.weight,
+      contentLength: originalMemory?.properties?.content?.length || 0,
+      titleValue: originalMemory?.properties?.title || 'NO_TITLE',
     });
 
     if (!originalMemory) {
@@ -246,6 +252,12 @@ async function executePublishMemory(
       memoryId: request.payload.memory_id,
       hasUserId: !!(publishedMemory as any).user_id,
       hasAuthorId: !!publishedMemory.author_id,
+      publishedMemoryKeys: Object.keys(publishedMemory),
+      publishedMemoryKeyCount: Object.keys(publishedMemory).length,
+      hasContent: !!publishedMemory.content,
+      hasTitle: !!publishedMemory.title,
+      contentLength: publishedMemory.content?.length || 0,
+      titleValue: publishedMemory.title || 'NO_TITLE',
     });
     
     // Insert directly into unified public collection
