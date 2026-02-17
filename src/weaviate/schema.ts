@@ -45,8 +45,9 @@ export async function createMemoryCollection(userId: string): Promise<void> {
     // Vectorizer configuration
     vectorizers: weaviate.configure.vectorizer.text2VecOpenAI({
       model: 'text-embedding-3-small',
-      // Vectorize both memory content and relationship observations
-      sourceProperties: ['content', 'observation'],
+      // Vectorize content, title, summary, and observation for semantic search
+      // Note: title and summary are optional fields
+      sourceProperties: ['content', 'title', 'summary', 'observation'],
     }),
 
     properties: [

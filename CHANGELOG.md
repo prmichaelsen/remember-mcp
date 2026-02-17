@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.4] - 2026-02-17
+
+### Changed
+
+- **Enhanced Vectorization**: Added `title` and `summary` to vectorized source properties
+  - User memory schema: Now vectorizes `content`, `title`, `summary`, and `observation`
+  - Space memory schema: Now vectorizes `content`, `title`, `summary`, and `observation`
+  - Improves semantic search by including titles and summaries in vector embeddings
+  - Note: `title` and `summary` are optional fields, handled gracefully by vectorizer
+
+### Technical Details
+
+- Modified: `src/weaviate/schema.ts` (line 49)
+- Modified: `src/weaviate/space-schema.ts` (line 101)
+- Changed `sourceProperties` from `['content', 'observation']` to `['content', 'title', 'summary', 'observation']`
+- Applies to all new collections created after this version
+- Existing collections retain their original vectorizer configuration
+
+---
+
 ## [2.7.3] - 2026-02-17
 
 ### Fixed
