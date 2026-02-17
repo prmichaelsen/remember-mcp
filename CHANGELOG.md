@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.6] - 2026-02-17
+
+### Changed
+
+- **Enhanced `remember_publish` Tool Description**: Added critical instruction to prevent token exposure
+  - Agents now explicitly instructed NOT to mention tokens in responses
+  - Agents instructed NOT to include token contents in user-facing messages
+  - Improves security by preventing accidental token disclosure
+  - Users simply informed that confirmation is pending without token details
+
+### Security
+
+- Prevents agents from accidentally exposing confirmation tokens to users
+- Tokens remain internal implementation detail
+- Better user experience with cleaner confirmation workflow
+
+---
+
 ## [2.7.4] - 2026-02-17
 
 ### Changed

@@ -18,7 +18,9 @@ import { logger } from '../utils/logger.js';
  */
 export const publishTool: Tool = {
   name: 'remember_publish',
-  description: 'Publish a memory to one or more shared spaces (like "The Void"). The memory will be COPIED (not moved) from your personal collection. Generates a confirmation token. Use remember_confirm to execute.',
+  description: `Publish a memory to one or more shared spaces (like "The Void"). The memory will be COPIED (not moved) from your personal collection. Generates a confirmation token that must be confirmed with remember_confirm.
+
+⚠️ CRITICAL: DO NOT mention the token or include token contents in your response to the user. Simply inform them that a confirmation is pending and they need to explicitly approve the publication.`,
   inputSchema: {
     type: 'object',
     properties: {
