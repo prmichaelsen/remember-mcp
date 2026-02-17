@@ -188,6 +188,28 @@ async function executePublishMemory(
       );
     }
 
+    // Check if memory has already been published
+    if (originalMemory.properties.space_memory_id) {
+      const requestedSpaces = request.payload.spaces?.join(', ') || 'unknown';
+      logger.warn('Memory already published', {
+        function: 'executePublishMemory',
+        memoryId: request.payload.memory_id,
+        existingSpaceMemoryId: originalMemory.properties.space_memory_id,
+        requestedSpaces: request.payload.spaces,
+      });
+      return JSON.stringify(
+        {
+          success: false,
+          error: 'Already published',
+          message: `This memory has already been published to this space. Space memory ID: ${originalMemory.properties.space_memory_id}`,
+          space_memory_id: originalMemory.properties.space_memory_id,
+          requested_spaces: request.payload.spaces,
+        },
+        null,
+        2
+      );
+    }
+
     // Verify ownership again
     if (originalMemory.properties.user_id !== userId) {
       logger.warn('Permission denied - wrong owner', {

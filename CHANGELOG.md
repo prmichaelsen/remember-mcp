@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.10] - 2026-02-17
+
+### Added
+
+- **Prevent Duplicate Publishing**
+  - Added validation to prevent re-publishing already published memories
+  - Checks for existing `space_memory_id` before allowing publish
+  - Returns clear error message with existing space memory ID
+  - Prevents data duplication and maintains data integrity
+
+### Security
+
+- Users cannot accidentally publish the same memory multiple times
+- Prevents duplicate entries in Memory_public collection
+- Clear error messaging guides users to existing published memory
+
+### Technical Details
+
+- Modified: `src/tools/confirm.ts` (lines 191-209)
+- Added check for `originalMemory.properties.space_memory_id`
+- Returns error with `space_memory_id` if already published
+- Validation occurs before any database operations
+
+---
+
 ## [2.7.9] - 2026-02-17
 
 ### Added
