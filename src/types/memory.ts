@@ -40,6 +40,7 @@ export type ContentType =
   | 'recipe'
   | 'idea'
   | 'quote'
+  | 'poetry'
   // Personal
   | 'journal'
   | 'memory'
@@ -190,6 +191,11 @@ export interface Memory {
   // Computed Weight (for search ranking)
   base_weight: number; // User-specified
   computed_weight?: number; // Calculated with access multipliers
+
+  // Comment/Threading Fields (for threaded discussions in shared spaces)
+  parent_id?: string | null; // ID of parent memory or comment (null for top-level)
+  thread_root_id?: string | null; // Root memory ID for fetching entire thread (null for top-level)
+  moderation_flags?: string[]; // Per-space moderation flags (format: "{space_id}:{flag_type}")
 }
 
 /**

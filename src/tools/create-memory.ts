@@ -80,6 +80,20 @@ export const createMemoryTool = {
         description: 'Skip automatic template suggestion',
         default: false,
       },
+      parent_id: {
+        type: 'string',
+        description: 'ID of parent memory or comment (for threading). Leave null for top-level memories.',
+      },
+      thread_root_id: {
+        type: 'string',
+        description: 'Root memory ID for thread. Leave null for top-level memories.',
+      },
+      moderation_flags: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Per-space moderation flags (format: "{space_id}:{flag_type}"). Usually empty.',
+        default: [],
+      },
     },
     required: ['content'],
   },
@@ -99,6 +113,10 @@ export interface CreateMemoryArgs {
   template_id?: string;
   skip_template_suggestion?: boolean;
   structured_content?: Record<string, any>;
+  // Comment/threading fields
+  parent_id?: string | null;
+  thread_root_id?: string | null;
+  moderation_flags?: string[];
 }
 
 /**
@@ -186,6 +204,11 @@ export async function handleCreateMemory(
       // Computed weight
       base_weight: args.weight ?? 0.5,
       computed_weight: args.weight ?? 0.5,
+
+      // Comment/threading fields (initialize to defaults)
+      parent_id: args.parent_id ?? null,
+      thread_root_id: args.thread_root_id ?? null,
+      moderation_flags: args.moderation_flags ?? [],
     };
 
     // Insert into Weaviate v3 API

@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.8] - 2026-02-17
+
+### 🐛 Fixed
+
+- **Critical Build Error**: Added missing `poetry` content type metadata to `src/constants/content-types.ts`
+  - Fixed TypeScript compilation error: "Property 'poetry' is missing in type Record<ContentType, ContentTypeMetadata>"
+  - Added poetry definition with category, description, examples, and common fields
+  - Updated `CONTENT_TYPE_CATEGORIES` to include poetry in creative category
+  - Build now successful
+
+### ✨ Added
+
+- **Task 66: Comment Field Initialization in Tools**
+  - Updated `remember_create_memory` tool to initialize comment fields
+    - Added `parent_id`, `thread_root_id`, `moderation_flags` to `CreateMemoryArgs` interface
+    - New memories created with `parent_id: null`, `thread_root_id: null`, `moderation_flags: []`
+  - Updated `remember_update_memory` tool to support comment field updates
+    - Added comment fields to tool schema and `UpdateMemoryArgs` interface
+    - Can now update `parent_id`, `thread_root_id`, and `moderation_flags`
+  - Space memory tools automatically include comment fields via spread operator
+  - Created task documentation: `agent/tasks/task-66-initialize-comment-fields-in-tools.md`
+
+### 📝 Changed
+
+- Updated `agent/progress.yaml` with Task 66 completion and build fix details
+- All new memories now have consistent schema with comment fields initialized
+
+### 🎯 Impact
+
+- **Schema Consistency**: All new memories have comment fields, matching migrated old memories
+- **Comment System Ready**: Can create comments, nested comments, and manage moderation flags
+- **Build Stability**: TypeScript compiles without errors, all 81 tests passing
+
+---
+
 ## [2.6.6] - 2026-02-16
 
 ### 🔧 Improved

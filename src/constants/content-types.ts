@@ -42,6 +42,7 @@ export const CONTENT_TYPES: readonly ContentType[] = [
   'recipe',
   'idea',
   'quote',
+  'poetry',
   // Personal
   'journal',
   'memory',
@@ -277,6 +278,13 @@ export const CONTENT_TYPE_METADATA: Record<ContentType, ContentTypeMetadata> = {
     examples: ['Quotes', 'Excerpts', 'Highlights', 'Citations'],
     common_fields: ['author', 'source'],
   },
+  poetry: {
+    name: 'poetry',
+    category: 'creative',
+    description: 'Poems and poetic content',
+    examples: ['Poems', 'Verses', 'Haiku', 'Sonnets', 'Free verse'],
+    common_fields: ['author', 'form', 'theme'],
+  },
 
   // Personal
   journal: {
@@ -379,7 +387,7 @@ export const CONTENT_TYPE_CATEGORIES = {
   communication: ['email', 'conversation', 'meeting', 'person'],
   content: ['article', 'webpage', 'social', 'presentation', 'spreadsheet', 'pdf'],
   media: ['image', 'video', 'audio', 'transcript'],
-  creative: ['song', 'screenplay', 'recipe', 'idea', 'quote'],
+  creative: ['song', 'screenplay', 'recipe', 'idea', 'quote', 'poetry'],
   personal: ['journal', 'memory', 'event'],
   organizational: ['bookmark', 'form', 'location'],
   business: ['invoice', 'contract'],

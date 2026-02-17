@@ -70,6 +70,19 @@ export const updateMemoryTool = {
         type: 'object',
         description: 'Updated structured content',
       },
+      parent_id: {
+        type: 'string',
+        description: 'Update parent ID (for threading)',
+      },
+      thread_root_id: {
+        type: 'string',
+        description: 'Update thread root ID',
+      },
+      moderation_flags: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Update moderation flags',
+      },
     },
     required: ['memory_id'],
   },
@@ -88,6 +101,10 @@ export interface UpdateMemoryArgs {
   tags?: string[];
   references?: string[];
   structured_content?: Record<string, any>;
+  // Comment/threading fields
+  parent_id?: string | null;
+  thread_root_id?: string | null;
+  moderation_flags?: string[];
 }
 
 /**
@@ -202,6 +219,22 @@ export async function handleUpdateMemory(
     if (args.structured_content !== undefined) {
       updates.structured_content = args.structured_content;
       updatedFields.push('structured_content');
+    }
+
+    // Update comment/threading fields
+    if (args.parent_id !== undefined) {
+      updates.parent_id = args.parent_id;
+      updatedFields.push('parent_id');
+    }
+
+    if (args.thread_root_id !== undefined) {
+      updates.thread_root_id = args.thread_root_id;
+      updatedFields.push('thread_root_id');
+    }
+
+    if (args.moderation_flags !== undefined) {
+      updates.moderation_flags = args.moderation_flags;
+      updatedFields.push('moderation_flags');
     }
 
     // Check if any fields were provided
