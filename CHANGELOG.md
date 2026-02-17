@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.12] - 2026-02-17
+
+### Fixed
+
+- **CRITICAL: Memory_public Schema Mismatch**: Fixed property names to match user memory schema
+  - Changed `location_gps_latitude` → `location_gps_lat`
+  - Changed `location_gps_longitude` → `location_gps_lng`
+  - Changed `location_address_formatted` → `location_address`
+  - Changed `location_address_city` → `location_city`
+  - Changed `location_address_country` → `location_country`
+  - Added missing `location_source` field
+  - Changed `context_platform` → `context_summary` and `context_timestamp`
+  - Added missing `locale_language` and `locale_timezone` fields
+  - Changed `related_memory_ids` → `relationships`
+  - Added missing fields: `references`, `template_id`, `access_count`, `last_accessed_at`
+  - Added relationship fields: `memory_ids`, `relationship_type`, `observation`, `strength`
+  - Added computed fields: `base_weight`, `computed_weight`
+  - Added `user_id` field for backwards compatibility
+  - Schema now matches user memory schema exactly, allowing spread operator to work
+  - Fixes issue where Weaviate rejected all properties due to name mismatches
+  - Published memories now store all content correctly
+
+---
+
 ## [2.6.11] - 2026-02-17
 
 ### Changed

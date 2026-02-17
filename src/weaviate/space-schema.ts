@@ -187,55 +187,142 @@ async function createSpaceCollection(
         description: 'System confidence in accuracy (0-1)',
       },
 
-      // Location fields (flattened)
+      // Location fields (flattened) - MUST match user memory schema exactly
       {
-        name: 'location_gps_latitude',
+        name: 'location_gps_lat',
         dataType: 'number' as any,
         description: 'GPS latitude',
       },
       {
-        name: 'location_gps_longitude',
+        name: 'location_gps_lng',
         dataType: 'number' as any,
         description: 'GPS longitude',
       },
       {
-        name: 'location_address_formatted',
+        name: 'location_address',
         dataType: 'text' as any,
         description: 'Formatted address',
       },
       {
-        name: 'location_address_city',
+        name: 'location_city',
         dataType: 'text' as any,
-        description: 'City',
+        description: 'City name',
       },
       {
-        name: 'location_address_country',
+        name: 'location_country',
         dataType: 'text' as any,
-        description: 'Country',
+        description: 'Country name',
+      },
+      {
+        name: 'location_source',
+        dataType: 'text' as any,
+        description: 'Location source (gps, ip, manual, etc.)',
       },
 
-      // Context fields (flattened)
+      // Context fields (flattened) - MUST match user memory schema exactly
       {
         name: 'context_conversation_id',
         dataType: 'text' as any,
         description: 'Conversation ID',
       },
       {
-        name: 'context_platform',
+        name: 'context_summary',
         dataType: 'text' as any,
-        description: 'Platform where created',
+        description: 'Brief context summary',
+      },
+      {
+        name: 'context_timestamp',
+        dataType: 'date' as any,
+        description: 'Context timestamp',
       },
 
-      // Tags and relationships
+      // Locale fields - MUST match user memory schema exactly
+      {
+        name: 'locale_language',
+        dataType: 'text' as any,
+        description: 'Language code (e.g., en, es, fr)',
+      },
+      {
+        name: 'locale_timezone',
+        dataType: 'text' as any,
+        description: 'Timezone (e.g., America/Los_Angeles)',
+      },
+
+      // Relationships - MUST match user memory schema exactly
+      {
+        name: 'relationships',
+        dataType: 'text[]' as any,
+        description: 'Array of relationship IDs',
+      },
+
+      // Access tracking - MUST match user memory schema exactly
+      {
+        name: 'access_count',
+        dataType: 'number' as any,
+        description: 'Total times accessed',
+      },
+      {
+        name: 'last_accessed_at',
+        dataType: 'date' as any,
+        description: 'Most recent access timestamp',
+      },
+
+      // Metadata - MUST match user memory schema exactly
       {
         name: 'tags',
         dataType: 'text[]' as any,
-        description: 'Tags for categorization',
+        description: 'Tags for organization',
       },
       {
-        name: 'related_memory_ids',
+        name: 'references',
         dataType: 'text[]' as any,
-        description: 'IDs of related memories',
+        description: 'Source URLs',
+      },
+      {
+        name: 'template_id',
+        dataType: 'text' as any,
+        description: 'Template ID if using template',
+      },
+
+      // Relationship-specific fields (for relationships in public space)
+      {
+        name: 'memory_ids',
+        dataType: 'text[]' as any,
+        description: 'Connected memory IDs (for relationships)',
+      },
+      {
+        name: 'relationship_type',
+        dataType: 'text' as any,
+        description: 'Relationship type (for relationships)',
+      },
+      {
+        name: 'observation',
+        dataType: 'text' as any,
+        description: 'Relationship observation (vectorized)',
+      },
+      {
+        name: 'strength',
+        dataType: 'number' as any,
+        description: 'Relationship strength (0-1)',
+      },
+
+      // Computed fields - MUST match user memory schema exactly
+      {
+        name: 'base_weight',
+        dataType: 'number' as any,
+        description: 'User-specified weight',
+      },
+      {
+        name: 'computed_weight',
+        dataType: 'number' as any,
+        description: 'Calculated effective weight',
+      },
+
+      // User ID field (for backwards compatibility with spread operator)
+      {
+        name: 'user_id',
+        dataType: 'text' as any,
+        description: 'User ID (copied from original memory, same as author_id)',
       },
 
       // Timestamps
