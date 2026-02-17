@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.9] - 2026-02-17
+
+### Added
+
+- **Bidirectional Linking for Published Memories**
+  - Original memories now store `space_memory_id` after publishing
+  - Enables correlation between source memory and published space memory
+  - Added automatic update of original memory after successful publish
+  - Non-critical update - publish still succeeds if update fails
+  - Improves traceability and enables future features (unpublish, sync)
+
+### Technical Details
+
+- Modified: `src/tools/confirm.ts` (lines 277-296)
+- Added `userCollection.data.update()` call after publish
+- Updates original memory with `space_memory_id` field
+- Includes error handling with warning log (non-blocking)
+- Maintains backward compatibility
+
+---
+
 ## [2.7.8] - 2026-02-17
 
 ### Fixed

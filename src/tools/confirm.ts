@@ -274,6 +274,30 @@ async function executePublishMemory(
       spaces: request.payload.spaces,
     });
 
+    // Update original memory with space_memory_id for bidirectional linking
+    try {
+      await userCollection.data.update({
+        id: request.payload.memory_id,
+        properties: {
+          space_memory_id: result,
+        },
+      });
+      
+      logger.info('Updated original memory with space_memory_id', {
+        function: 'executePublishMemory',
+        memoryId: request.payload.memory_id,
+        spaceMemoryId: result,
+      });
+    } catch (updateError) {
+      logger.warn('Failed to update original memory with space_memory_id', {
+        function: 'executePublishMemory',
+        memoryId: request.payload.memory_id,
+        spaceMemoryId: result,
+        error: updateError instanceof Error ? updateError.message : String(updateError),
+      });
+      // Don't fail the publish if this update fails - it's not critical
+    }
+
     // Return minimal response with spaces array
     return JSON.stringify(
       {
