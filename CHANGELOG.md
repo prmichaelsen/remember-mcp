@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2026-02-17
+
+### Fixed
+
+- **CRITICAL: `remember_update_memory` Now Uses `replace()` Instead of `update()`**
+  - Switched from `collection.data.update()` to `collection.data.replace()`
+  - Fixes Weaviate bug where `update()` only persists if vectorized fields change
+  - Now fetches full object and merges updates before replacing
+  - Updates to non-vectorized fields (title, type, weight, tags, etc.) now persist correctly
+  - Resolves issue where updates returned success but changes weren't saved
+  - **Breaking Change**: This is a minor version bump due to behavior change (more reliable updates)
+
+### Changed
+
+- Fetch strategy: Now fetches all properties (not just 3) since we need full object for replace
+- Update strategy: Merge updates with existing properties, then replace entire object
+- Logging: Changed "Calling Weaviate update" to "Calling Weaviate replace"
+
+### Root Cause
+
+- Weaviate has a known bug where `update()` only persists changes if at least one vectorized field is modified
+- Our schema only vectorizes `content` and `observation`
+- Updates to `title`, `type`, `weight`, `tags`, etc. were silently ignored
+- `replace()` doesn't have this limitation and always persists changes
+
+---
+
 ## [2.6.13] - 2026-02-17
 
 ### Changed

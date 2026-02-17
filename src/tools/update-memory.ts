@@ -130,14 +130,12 @@ export async function handleUpdateMemory(
 
     const collection = getMemoryCollection(userId);
 
-    // Get existing memory to verify ownership and get current version
-    // Only fetch minimal properties needed for validation - don't query optional properties
-    // that may not exist on all records (causes Weaviate gRPC errors)
+    // Get existing memory - fetch ALL properties for replace operation
+    // We need the full object to use replace() instead of update()
+    // (Weaviate bug: update() only persists if vectorized fields change)
     let existingMemory;
     try {
-      existingMemory = await collection.query.fetchObjectById(args.memory_id, {
-        returnProperties: ['user_id', 'doc_type', 'version'],
-      });
+      existingMemory = await collection.query.fetchObjectById(args.memory_id);
     } catch (fetchError) {
       const fetchErrorMsg = fetchError instanceof Error ? fetchError.message : String(fetchError);
       logger.error('Failed to fetch memory for update:', {
@@ -149,7 +147,7 @@ export async function handleUpdateMemory(
       throw new Error(`Failed to fetch memory ${args.memory_id}: ${fetchErrorMsg}`);
     }
 
-    if (!existingMemory) {
+    if (!existingMemory || !existingMemory.properties) {
       throw new Error(`Memory not found: ${args.memory_id}. It may have been deleted or never existed.`);
     }
 
@@ -249,29 +247,37 @@ export async function handleUpdateMemory(
     updates.updated_at = now;
     updates.version = (existingMemory.properties.version as number) + 1;
 
-    // Perform update in Weaviate
-    logger.info('Calling Weaviate update', {
+    // Merge updates with existing properties
+    // Use replace() instead of update() due to Weaviate bug where update() only
+    // persists if vectorized fields (content/observation) are changed
+    const mergedProperties = {
+      ...existingMemory.properties,
+      ...updates,
+    };
+    
+    logger.info('Calling Weaviate replace', {
       userId,
       memoryId: args.memory_id,
       updateFields: Object.keys(updates),
       updateValues: updates,
       collectionName: `Memory_${userId}`,
+      totalProperties: Object.keys(mergedProperties).length,
     });
     
     try {
-      await collection.data.update({
+      await collection.data.replace({
         id: args.memory_id,
-        properties: updates,
+        properties: mergedProperties,
       });
       
-      logger.info('Weaviate update completed (no error thrown)', {
+      logger.info('Weaviate replace completed (no error thrown)', {
         userId,
         memoryId: args.memory_id,
         updatedFields: Object.keys(updates),
       });
     } catch (updateError) {
       const updateErrorMsg = updateError instanceof Error ? updateError.message : String(updateError);
-      logger.error('Failed to perform Weaviate update:', {
+      logger.error('Failed to perform Weaviate replace:', {
         error: updateErrorMsg,
         userId,
         memoryId: args.memory_id,
