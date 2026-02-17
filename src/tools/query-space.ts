@@ -143,8 +143,8 @@ export async function handleQuerySpace(
     // Filter by spaces array (memory must be in at least one requested space)
     filterList.push(publicCollection.filter.byProperty('spaces').containsAny(args.spaces));
 
-    // Filter by doc_type (space_memory)
-    filterList.push(publicCollection.filter.byProperty('doc_type').equal('space_memory'));
+    // Filter by doc_type (memory) - space_memory concept was removed
+    filterList.push(publicCollection.filter.byProperty('doc_type').equal('memory'));
 
     // Apply content type filter
     if (args.content_type) {

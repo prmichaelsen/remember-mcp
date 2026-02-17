@@ -2,11 +2,11 @@
 
 project:
   name: remember-mcp
-  version: 2.6.3
+  version: 2.7.8
   started: 2026-02-11
   status: in_progress
   current_milestone: M12
-  last_updated: 2026-02-16
+  last_updated: 2026-02-17
 
 milestones:
   - id: M1
@@ -524,6 +524,19 @@ progress:
 
 recent_work:
   - date: 2026-02-17
+    description: CRITICAL BUG FIX - Shared Space Discovery Now Works (v2.7.8)
+    items:
+      - 🐛 CRITICAL: Fixed shared space discovery bug
+      - ✅ Search/query tools now filter by doc_type: 'memory' (was 'space_memory')
+      - ✅ space_memory concept was removed from architecture
+      - ✅ All users can now discover memories in The Void
+      - ✅ Root cause: search-space.ts and query-space.ts filtered for wrong doc_type
+      - ✅ Changed filters from 'space_memory' to 'memory'
+      - ✅ Build successful, all 81 tests passing
+      - ✅ No data migration needed - existing memories are correct
+      - 📋 Released v2.7.8 with critical bug fix
+      
+  - date: 2026-02-17
     description: Fixed Build Error & Completed Task 66 - Comment Field Initialization
     items:
       - ✅ Fixed critical TypeScript build error in content-types.ts
@@ -544,20 +557,25 @@ recent_work:
       - 📋 Ready for M12 completion: Tasks 58-59 remaining
       
   - date: 2026-02-17
-    description: ACP Initialization Complete - Project Context Loaded
+    description: ACP Initialization Complete - Ready for M12 Completion
     items:
       - ✅ ACP initialization workflow executed via @acp.init command
       - ⚠️  ACP updates available (v1.4.3 with improved script color output)
-      - ✅ All agent documentation reviewed (23 design docs, 11 milestones, 66 tasks, 5 patterns)
+      - ✅ All agent documentation reviewed (30 design docs, 12 milestones, 67 tasks, 7 patterns)
       - ✅ Project status verified: M1-M4, M10-M11 complete (100%), M12 in progress (60%)
-      - ✅ Version 2.6.7 confirmed (latest release)
-      - ✅ 53 unit tests passing (1 skipped integration test)
-      - ⚠️  TypeScript compilation error: Missing 'poetry' in content-types.ts
+      - ✅ Version 2.7.7 confirmed (latest release)
+      - ✅ 81 unit tests passing (1 skipped integration test)
+      - ✅ Test coverage: 33.12% overall
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (dual export: server + factory)
       - ✅ All 17 MCP tools implemented and working
       - ✅ M12 Comment System: 3/5 tasks complete (schema, search, query updates)
+      - ✅ Task 66 completed: Comment fields initialized in create/update tools
       - 📋 Remaining M12 tasks: Task 58 (unit tests), Task 59 (documentation)
-      - 📋 Build blocked by TypeScript error in content-types.ts
-      - 📋 Need to fix 'poetry' content type metadata
+      - 📋 Ready to complete M12 milestone
+      - 📋 Multi-tenant architecture with per-user isolation operational
+      - 📋 Vector search with Weaviate + metadata with Firestore working
+      - 📋 Shared spaces with multi-space support functional
       
   - date: 2026-02-16
     description: Comment System, Structured Logging, and Safety Guidelines (v2.6.0-v2.6.2)

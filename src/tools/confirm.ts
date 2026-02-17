@@ -243,7 +243,7 @@ async function executePublishMemory(
       attribution: 'user' as const,
       // Merge additional tags with original tags
       tags: [...originalTags, ...additionalTags],
-      // Keep doc_type as 'memory' (don't change to 'space_memory')
+      // Keep doc_type as 'memory' (space_memory concept was removed)
       // Keep original created_at, updated_at, version (don't overwrite)
     };
 

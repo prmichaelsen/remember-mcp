@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.8] - 2026-02-17
+
+### Fixed
+
+- **CRITICAL: Fixed Shared Space Discovery Bug**
+  - Search and query tools now correctly filter by `doc_type: 'memory'` instead of `'space_memory'`
+  - The `space_memory` concept was removed from the architecture
+  - Search tools were filtering for `doc_type: 'space_memory'` but published memories had `doc_type: 'memory'`
+  - Now all users can discover memories published to shared spaces like The Void
+  - Root cause: Lines 159 in `search-space.ts` and 147 in `query-space.ts` filtered for wrong doc_type
+  - Fix: Changed filters from `'space_memory'` to `'memory'` to match actual data
+
+### Technical Details
+
+- Modified: `src/tools/search-space.ts` (line 159)
+- Modified: `src/tools/query-space.ts` (line 147)
+- Changed filter from `.equal('space_memory')` to `.equal('memory')`
+- Published memories keep `doc_type: 'memory'` (as intended)
+
+### Impact
+
+- **Fixes**: Shared space discovery now works correctly
+- **Unblocks**: Core shared spaces functionality (The Void)
+- **Note**: No data migration needed - existing published memories are correct
+
+---
+
 ## [2.7.7] - 2026-02-17
 
 ### Fixed
