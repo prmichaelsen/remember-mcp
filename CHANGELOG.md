@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Only fetch properties actually needed for validation (ownership, doc type, version)
   - Fixes issue where memories with missing optional properties were reported as "not found"
 
+### Added
+
+- **Task 67: Migrate Memory_public Schema**
+  - Created migration plan documentation for updating production `Memory_public` collection
+  - Addresses schema mismatch: only `moderation_flags` present, missing `parent_id` and `thread_root_id`
+  - Documents safe migration approach using `Memory_public_v2` with zero data loss
+
 ---
 
 ## [2.6.8] - 2026-02-17
