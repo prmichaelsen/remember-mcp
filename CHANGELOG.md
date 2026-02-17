@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.10] - 2026-02-17
+
+### Fixed
+
+- **CRITICAL: `fetchMemoryWithAllProperties()` Graceful Fallback**: Fixed memory content not being copied during publish
+  - Added try-catch wrapper around property fetch with fallback
+  - If fetching with ALL_MEMORY_PROPERTIES fails, falls back to fetching without property specification
+  - Weaviate returns all properties that actually exist on the record when no returnProperties specified
+  - Fixes issue where `remember_confirm` → `executePublishMemory()` only copied comment fields
+  - Published memories now include all content (title, content, tags, etc.)
+  - Prevents data loss during memory publication to shared spaces
+
+---
+
 ## [2.6.9] - 2026-02-17
 
 ### Fixed

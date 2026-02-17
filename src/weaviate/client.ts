@@ -215,17 +215,36 @@ export const ALL_MEMORY_PROPERTIES = [
  * This utility ensures all memory properties are fetched consistently
  * across all tools, preventing bugs where properties are missing.
  *
+ * NOTE: Some properties may not exist on all records (e.g., old records
+ * created before schema updates). This function handles that gracefully
+ * by falling back to fetching without property specification if the
+ * full property query fails.
+ *
  * @param collection - Weaviate collection
  * @param memoryId - Memory ID to fetch
- * @returns Memory object with all properties
+ * @returns Memory object with all properties that exist on the record
  */
 export async function fetchMemoryWithAllProperties(
   collection: any,
   memoryId: string
 ) {
-  return await collection.query.fetchObjectById(memoryId, {
-    returnProperties: ALL_MEMORY_PROPERTIES,
-  });
+  try {
+    // Try to fetch with all properties specified
+    return await collection.query.fetchObjectById(memoryId, {
+      returnProperties: ALL_MEMORY_PROPERTIES,
+    });
+  } catch (error) {
+    // If that fails (e.g., property doesn't exist on this record),
+    // fetch without specifying properties - Weaviate will return
+    // all properties that actually exist on the record
+    logger.warn('Failed to fetch with all properties, falling back to unspecified fetch', {
+      module: 'weaviate-client',
+      memoryId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    
+    return await collection.query.fetchObjectById(memoryId);
+  }
 }
 
 /**
