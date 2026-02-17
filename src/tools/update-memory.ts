@@ -250,10 +250,24 @@ export async function handleUpdateMemory(
     updates.version = (existingMemory.properties.version as number) + 1;
 
     // Perform update in Weaviate
+    logger.info('Calling Weaviate update', {
+      userId,
+      memoryId: args.memory_id,
+      updateFields: Object.keys(updates),
+      updateValues: updates,
+      collectionName: `Memory_${userId}`,
+    });
+    
     try {
       await collection.data.update({
         id: args.memory_id,
         properties: updates,
+      });
+      
+      logger.info('Weaviate update completed (no error thrown)', {
+        userId,
+        memoryId: args.memory_id,
+        updatedFields: Object.keys(updates),
       });
     } catch (updateError) {
       const updateErrorMsg = updateError instanceof Error ? updateError.message : String(updateError);

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.13] - 2026-02-17
+
+### Changed
+
+- **Enhanced Logging for `remember_update_memory`**: Added detailed Weaviate update logging
+  - Logs update fields and values before calling Weaviate
+  - Logs confirmation after Weaviate update completes
+  - Helps diagnose if updates are being called but not persisting
+  - Shows exact values being sent to Weaviate
+
+---
+
 ## [2.6.12] - 2026-02-17
 
 ### Fixed
