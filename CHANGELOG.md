@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.1] - 2026-02-17
+
+### Fixed
+
+- **CRITICAL: Memory_public Auto-Schema**: Let Weaviate auto-generate schema instead of manual definition
+  - Removed manual schema creation for Memory_public collection
+  - Weaviate will auto-generate schema from first insert
+  - Ensures schema matches user memory collections EXACTLY
+  - Includes nested objects (context, location) that were auto-generated in user collections
+  - Fixes issue where nested objects were rejected due to schema expecting flattened properties
+  - Spread operator now works perfectly since schemas are identical
+
+### Root Cause
+
+- User memory collections have auto-generated schemas with nested `context` and `location` objects
+- Memory_public had manually defined schema with flattened properties
+- When spreading `...originalMemory.properties`, nested objects didn't match flattened schema
+- Weaviate rejected ALL properties due to nested object schema conflict
+- Auto-schema approach ensures perfect compatibility
+
+---
+
 ## [2.7.0] - 2026-02-17
 
 ### Fixed
