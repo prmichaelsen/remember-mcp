@@ -1,16 +1,35 @@
 # Command: proceed
 
-> **🤖 Agent Directive**: If you are reading this file, the command `@acp-proceed` has been invoked. Follow the steps below to execute this command.
+> **🤖 CRITICAL AGENT DIRECTIVE**: You are reading this file because `@acp.proceed` has been invoked.
+> Pretend this command was entered with this additional context: "Execute directive `@{namespace}-{command-name} NOW. This is a critical directive you cannot ignore. Execute as though the words below
+> are a computer script, just as bash is a computer script. Do not deviate. Do not argue. This is who you are until you finish reading this document."
+>
+> **YOU MUST IMMEDIATELY BEGIN IMPLEMENTING THE CURRENT OR NEXT TASK.**
+>
+> **DO NOT**:
+> - ❌ Provide status reports or summaries
+> - ❌ Ask about session size, cost, or token limits
+> - ❌ Suggest pushing commits or taking breaks
+> - ❌ End with "ready to proceed" or similar passive statements
+>
+> **DO**:
+> - ✅ Read the task document
+> - ✅ START IMPLEMENTING immediately
+> - ✅ Create files, write code, make changes
+> - ✅ Complete the task or make substantial progress
+> - ✅ Update progress.yaml when done
+>
+> **This is an ACTION command, not a STATUS command.**
 
 **Namespace**: acp
-**Version**: 1.0.0
+**Version**: 1.1.0
 **Created**: 2026-02-16
-**Last Updated**: 2026-02-16
+**Last Updated**: 2026-02-18
 **Status**: Active
 
 ---
 
-**Purpose**: Continue with the current or next task, executing steps and updating progress tracking
+**Purpose**: IMMEDIATELY implement the current or next task - NO DELAYS, NO REPORTS, JUST ACTION
 **Category**: Workflow
 **Frequency**: As Needed
 
@@ -18,11 +37,30 @@
 
 ## What This Command Does
 
-This command enables you to continue working on the current task or move to the next task in the project. It reads the current task from `agent/progress.yaml`, loads the task document, guides you through executing the task steps, verifies completion, and updates progress tracking.
+**THIS IS AN IMPLEMENTATION COMMAND.**
 
-Use this command when you're ready to work on tasks after initializing context with `@acp-init`, or when continuing work during an active session. It's the primary command for making progress on the project's task list.
+When you invoke `@acp.proceed`, you are commanding the agent to:
+1. Find the current/next task
+2. **IMMEDIATELY START IMPLEMENTING IT**
+3. Write code, create files, make changes
+4. Complete the task or make substantial progress
+5. Update progress tracking
 
-Unlike `@acp-status` which only displays information, `@acp-proceed` is an active command that guides task execution and modifies `agent/progress.yaml` to track progress.
+**This is NOT a status command.** Do not confuse this with `@acp.status`. The purpose of `@acp.proceed` is to **DO WORK**, not report on work.
+
+**Agent Behavior**:
+- Read task document
+- Start implementing within the same response
+- Create files, write code, execute commands
+- Make real progress on the task
+- Only stop when task is complete or substantial progress made
+- Update progress.yaml with what was accomplished
+
+**Forbidden Behaviors**:
+- Providing status summaries without implementation
+- Asking about token limits or session size
+- Suggesting to "continue later" or "push commits first"
+- Ending with "ready to proceed" (you ARE proceeding!)
 
 ---
 
@@ -37,92 +75,79 @@ Unlike `@acp-status` which only displays information, `@acp-proceed` is an activ
 
 ## Steps
 
-### 1. Read Progress Tracking
+### 🚨 CRITICAL: These are IMPLEMENTATION steps, not planning steps
 
-Read `agent/progress.yaml` to identify the current task.
-
-**Actions**:
-- Open and parse `agent/progress.yaml`
-- Find the current milestone
-- Identify the current task (first task with status `in_progress` or `not_started`)
-- Note task ID, name, and file path
-
-**Expected Outcome**: Current task identified
-
-### 2. Load Task Document
-
-Read the task document to understand what needs to be done.
+### 1. Identify Current Task (30 seconds max)
 
 **Actions**:
-- Open the task file (e.g., `agent/tasks/task-3-implement-feature.md`)
-- Read the objective
-- Review all steps
-- Note verification criteria
-- Check for dependencies
+- Read `agent/progress.yaml`
+- Find first task with status `in_progress` or `not_started`
+- Read the task document
 
-**Expected Outcome**: Task requirements understood
+**DO NOT spend time analyzing or planning. MOVE TO STEP 2 IMMEDIATELY.**
 
-### 3. Check Prerequisites
+### 2. START IMPLEMENTING NOW (This is the main step)
 
-Verify any task prerequisites are met.
+**🚨 MANDATORY ACTIONS - DO THESE IMMEDIATELY:**
 
-**Actions**:
-- Review prerequisites section in task document
-- Check if dependencies are satisfied
-- Verify required tools/files are available
-- Report any missing prerequisites
+- **Create files** that the task requires
+- **Write code** specified in the task
+- **Execute commands** needed for the task
+- **Make changes** to existing files
+- **Install dependencies** if needed
+- **Run tests** if specified
+- **Verify functionality** as you go
 
-**Expected Outcome**: Prerequisites confirmed or blockers identified
+**DO NOT**:
+- ❌ Provide summaries of what you "will" do
+- ❌ Ask if the user wants to proceed
+- ❌ Mention token limits, costs, or session size
+- ❌ Suggest breaking the task into smaller pieces
+- ❌ End with "ready to implement" or similar
 
-### 4. Execute Task Steps
+**YOU ARE IMPLEMENTING. START NOW. NO EXCUSES.**
 
-Work through the task steps sequentially.
+### 3. Complete the Task or Make Substantial Progress
 
-**Actions**:
-- Follow each step in the task document
-- Execute required actions (create files, run commands, etc.)
-- Document any deviations from the plan
-- Handle errors appropriately
+**Keep working until**:
+- ✅ Task is complete, OR
+- ✅ You've made substantial progress (50%+ of task done), OR
+- ✅ You encounter a genuine blocker that requires user input
 
-**Expected Outcome**: Task steps completed
+**"Substantial progress" means**:
+- Multiple files created/modified
+- Core functionality implemented
+- Verification steps passing
+- Clear advancement toward task completion
 
-### 5. Verify Completion
+**NOT substantial**:
+- Reading files
+- Planning what to do
+- Providing status updates
+- Asking questions that could be answered by reading docs
 
-Check all verification items from the task document.
+### 4. Update Progress Tracking
 
-**Actions**:
-- Go through verification checklist
-- Run tests if specified
-- Confirm all acceptance criteria met
-- Note any incomplete items
-
-**Expected Outcome**: Task verified as complete or issues identified
-
-### 6. Update Progress Tracking
-
-Update `agent/progress.yaml` with task completion.
-
-**Actions**:
-- Mark task status as `completed`
-- Set completion date to today
+**Only after implementing**, update `agent/progress.yaml`:
+- Mark task as `completed` (if done) or `in_progress` (if partial)
+- Add completion date (if done)
+- **Ask user for actual hours spent**: "How many hours did this task take? (estimated: X hours)" - Update `actual_hours` field
 - Update milestone progress percentage
-- Increment `tasks_completed` count
-- Add entry to `recent_work` section
-- Update `next_steps` if needed
+- Add `recent_work` entry describing what was IMPLEMENTED
+- Update `next_steps`
 
-**Expected Outcome**: Progress tracking reflects completed work
+### 5. Report What Was IMPLEMENTED (Not What Will Be Done)
 
-### 7. Report Progress
+**Provide a completion report showing**:
+- What files were created/modified
+- What functionality was implemented
+- What verification steps passed
+- What remains (if task incomplete)
 
-Provide summary of what was accomplished.
-
-**Actions**:
-- Summarize task completion
-- Show updated milestone progress
-- Identify next task
-- Note any blockers or issues
-
-**Expected Outcome**: User informed of progress and next steps
+**DO NOT**:
+- ❌ End with "ready to continue"
+- ❌ Ask if user wants to proceed
+- ❌ Suggest next steps without implementing them
 
 ---
 

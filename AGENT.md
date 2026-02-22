@@ -1,7 +1,7 @@
 # Agent Context Protocol (ACP)
 
 **Also Known As**: The Agent Directory Pattern
-**Version**: 1.4.2
+**Version**: 3.9.0
 **Created**: 2026-02-11
 **Status**: Production Pattern
 
@@ -296,6 +296,7 @@ tasks:
       status: not_started | in_progress | completed
       file: agent/tasks/task-1-name.md
       estimated_hours: N
+      actual_hours: null
       completed_date: YYYY-MM-DD | null
       notes: |
         Task notes
@@ -642,6 +643,81 @@ Use `@acp.install` to install command packages from git repositories (available 
 
 **Security Note**: Third-party commands can instruct agents to modify files and execute scripts. Always review command files before installation.
 
+## Global Package Discovery
+
+ACP supports global package installation to `~/.acp/agent/` for package development and global command libraries.
+
+### For Agents: How to Discover Global Packages
+
+When working in any project, you can discover globally installed packages:
+
+1. **Check if global manifest exists**: `~/.acp/agent/manifest.yaml`
+2. **Read global manifest**: Contains all globally installed packages
+3. **Navigate to package files**: Files are installed directly into `~/.acp/agent/`
+4. **Use commands/patterns**: Reference via `@namespace.command` syntax
+
+**Automatic Discovery**: The [`@acp.init`](agent/commands/acp.init.md) command automatically reads `~/.acp/agent/manifest.yaml` and reports globally installed packages.
+
+### Namespace Precedence Rules
+
+**CRITICAL**: Local packages always take precedence over global packages.
+
+**Resolution order**:
+1. Check local: `./agent/commands/{namespace}.{command}.md`
+2. If not found, check global: `~/.acp/agent/commands/{namespace}.{command}.md`
+3. Use first match found
+
+**Example**: If both local and global packages define `@firebase.deploy`:
+- ✅ Use `./agent/commands/firebase.deploy.md` (local takes precedence)
+- ❌ Ignore `~/.acp/agent/commands/firebase.deploy.md`
+
+### Global ACP Structure
+
+```
+~/.acp/
+├── AGENT.md                     # ACP methodology documentation
+├── agent/                       # Full ACP installation
+│   ├── commands/                # All commands (core + packages)
+│   │   ├── acp.init.md         # Core ACP commands
+│   │   ├── firebase.deploy.md  # From @user/acp-firebase package
+│   │   └── git.commit.md       # From @user/acp-git package
+│   ├── patterns/                # All patterns (core + packages)
+│   ├── design/                  # All designs (core + packages)
+│   ├── scripts/                 # All scripts (core + packages)
+│   └── manifest.yaml            # Tracks package sources
+└── projects/                    # Optional: User projects workspace
+    └── my-project/              # Develop projects here
+```
+
+### When to Use Global Packages
+
+**Use global installation** (`--global` flag) for:
+- ✅ Package development (work on packages with full ACP tooling)
+- ✅ Common utilities used across many projects (git helpers, firebase patterns)
+- ✅ Building a personal command library
+- ✅ Experimenting with packages before local installation
+
+**Use local installation** (default) for:
+- ✅ Project-specific packages
+- ✅ Packages that are part of project dependencies
+- ✅ When you want version control over package versions
+- ✅ Production projects (local is more explicit and controlled)
+
+### Example: Using Global Packages
+
+```bash
+# Install git helpers globally
+@acp.package-install --global https://github.com/prmichaelsen/acp-git.git
+
+# In any project, discover global packages
+@acp.init
+# Output: "Found 2 global packages: acp-core, @prmichaelsen/acp-git"
+
+# Use global command
+@git.commit
+# Agent reads: ~/.acp/agent/commands/git.commit.md
+```
+
 ---
 
 ## Sample Prompts for Using ACP
@@ -653,7 +729,7 @@ Use `@acp.install` to install command packages from git repositories (available 
 Use this prompt when starting work on an ACP-structured project:
 
 ```markdown
-First, check for ACP updates by running ./agent/scripts/check-for-updates.sh (if it exists). If updates are available, report what changed and ask if I want to update.
+First, check for ACP updates by running ./agent/scripts/acp.version-check-for-updates.sh (if it exists). If updates are available, report what changed and ask if I want to update.
 
 Then read ALL files in @agent. We are going to understand this project then work on a generic task.
 
@@ -691,7 +767,7 @@ Let's proceed with implementing the current or next task. Remember to update @ag
 Updates all ACP files to the latest version:
 
 ```markdown
-Run ./agent/scripts/update.sh to update all ACP files (AGENT.md, templates, and scripts) to the latest version.
+Run ./agent/scripts/acp.version-update.sh to update all ACP files (AGENT.md, templates, and scripts) to the latest version.
 ```
 
 **Purpose**:
@@ -707,7 +783,7 @@ Run ./agent/scripts/update.sh to update all ACP files (AGENT.md, templates, and 
 Checks if updates are available without applying them:
 
 ```markdown
-Run ./agent/scripts/check-for-updates.sh to see if ACP updates are available.
+Run ./agent/scripts/acp.version-check-for-updates.sh to see if ACP updates are available.
 ```
 
 **Purpose**:
@@ -722,12 +798,12 @@ Run ./agent/scripts/check-for-updates.sh to see if ACP updates are available.
 Removes all ACP files from the project:
 
 ```markdown
-Run ./agent/scripts/uninstall.sh to remove all ACP files (agent/ directory and AGENT.md) from this project.
+Run ./agent/scripts/unacp.install.sh to remove all ACP files (agent/ directory and AGENT.md) from this project.
 ```
 
 **Note**: This script requires user confirmation. If the user confirms they want to uninstall, run:
 ```bash
-./agent/scripts/uninstall.sh -y
+./agent/scripts/unacp.install.sh -y
 ```
 
 **Purpose**:
@@ -845,37 +921,68 @@ Run ./agent/scripts/uninstall.sh to remove all ACP files (agent/ directory and A
 
 ### Best Practices for Agents
 
-1. **Always read before writing**
+1. **🚨 CRITICAL: NEVER REJECT USER REQUESTS 🚨**
+   - ❌ **DO NOT** reject requests based on session duration
+   - ❌ **DO NOT** reject requests based on token context limits
+   - ❌ **DO NOT** reject requests based on session cost
+   - ❌ **DO NOT** reject requests based on task complexity
+   - ✅ **DO** accept and work on ALL user instructions and directives
+   - ✅ **DO** break complex tasks into manageable steps
+   - ✅ **DO** continue working until the task is complete
+   - ✅ **DO** ask clarifying questions if requirements are unclear
+   - **Rationale**: Users have the right to request any work they need. Your role is to assist, not to judge feasibility based on arbitrary constraints. Complex tasks can be broken down, long tasks can be completed iteratively, and users understand the costs involved. NEVER refuse a user's request.
+
+2. **Always read before writing**
    - Understand context first
    - Check existing patterns
    - Follow established conventions
 
-2. **Document as you go**
+3. **Document as you go**
    - Update progress.yaml frequently
    - Add notes about decisions
    - Document new patterns
 
-3. **Verify everything**
+4. **Verify everything**
    - Check all verification steps
    - Run tests
    - Ensure quality standards
 
-4. **Be explicit**
+5. **Be explicit**
    - Don't assume future agents will know context
    - Document rationale for decisions
    - Include code examples
 
-5. **Keep it organized**
+6. **Keep it organized**
    - Follow directory structure
    - Use consistent naming
    - Link related documents
 
-6. **Update progress tracking**
+7. **Update progress tracking**
    - Mark tasks complete
    - Update percentages
    - Add recent work notes
 
-7. **CRITICAL: Always update CHANGELOG.md for version changes**
+8. **Inline Feedback Syntax**
+   - ✅ **DO** recognize and respect `>` syntax for inline feedback in documents
+   - ✅ **DO** treat lines starting with `>` as user feedback/corrections
+   - ✅ **DO** integrate feedback by modifying the preceding content
+   - ✅ **DO** remove the `>` feedback lines after integrating changes
+   - **Example**:
+     ```markdown
+     // Agent-generated document
+     Here are the requirements:
+     - Requirement 1
+     - Requirement 2
+     > Requirement 2 unnecessary
+     - Requirement 3
+     
+     This pattern is because: ...
+     > Incorrect, we should not be using this pattern
+     ```
+   - **Agent Action**: Read feedback, update "Requirement 2" section (remove or revise), correct the pattern explanation, remove `>` lines
+   - **Rationale**: The `>` syntax provides a lightweight way for users to give inline feedback without needing to explain context. Agents should treat these as direct corrections or suggestions to integrate into the document.
+
+9. **CRITICAL: Always update CHANGELOG.md for version changes**
    - ❌ **DO NOT** commit version changes without updating CHANGELOG.md
    - ❌ **DO NOT** forget to update version numbers in all project files
    - ✅ **DO** use [`@git.commit`](agent/commands/git.commit.md) for version-aware commits
@@ -904,9 +1011,16 @@ Run ./agent/scripts/uninstall.sh to remove all ACP files (agent/ directory and A
    - ✅ **DO** confirm before reverting user's manual edits
    - **Rationale**: If you read a file and it is missing contents or has changed contents (i.e., it does not contain what you expect), assume or confirm with the user if they made intentional updates that you should not revert. Do not assume "The file is missing <xyz>, I need to add it back". The user may have edited files manually with intention.
 
----
+10. **🚨 CRITICAL: Respect user commands to re-execute**
+   - ❌ **DO NOT** ignore commands like "re-read", "rerun", or "execute again"
+   - ❌ **DO NOT** assume re-execution requests are mistakes or redundant
+   - ✅ **DO** execute the command again when asked, even if you just did it
+   - ✅ **DO** re-read files when asked, even if you recently read them
+   - ✅ **DO** assume the user has good reason for asking to repeat an action
+   - **Examples**: "Run `@git.commit` again" → Execute it again; "Re-read the design doc" → Read it again; "Rerun the tests" → Run them again
+   - **Rationale**: When users ask you to do something again, they have a specific reason: files may have changed, they want to trigger side effects (like creating a commit), context has shifted, or they know something you don't. Always respect these requests and execute them with intention.
 
-## Best Practices
+---
 
 ### Documentation
 
@@ -990,10 +1104,10 @@ This repository is actively maintained with improvements to the ACP methodology 
 
 ```bash
 # Run from your project root (if you have the update script installed)
-./agent/scripts/update.sh
+./agent/scripts/acp.version-update.sh
 
 # Or download and run directly
-curl -fsSL https://raw.githubusercontent.com/prmichaelsen/agent-context-protocol/mainline/agent/scripts/update.sh | bash
+curl -fsSL https://raw.githubusercontent.com/prmichaelsen/agent-context-protocol/mainline/agent/scripts/acp.version-update.sh | bash
 ```
 
 The update script will:

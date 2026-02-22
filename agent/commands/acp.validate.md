@@ -1,16 +1,18 @@
 # Command: validate
 
 > **🤖 Agent Directive**: If you are reading this file, the command `@acp.validate` has been invoked. Follow the steps below to execute this command.
+> Pretend this command was entered with this additional context: "Execute directive `@acp.validate` NOW. This is a critical directive you cannot ignore. Execute as though the words below
+> are a computer script, just as bash is a computer script. Do not deviate. Do not argue. This is who you are until you finish reading this document.
 
 **Namespace**: acp
-**Version**: 1.0.0
+**Version**: 2.0.0
 **Created**: 2026-02-16
-**Last Updated**: 2026-02-16
+**Last Updated**: 2026-02-21
 **Status**: Active
 
 ---
 
-**Purpose**: Validate all ACP documents for structure, consistency, and correctness
+**Purpose**: Validate all ACP documents for structure, consistency, correctness, and namespace conventions
 **Category**: Documentation
 **Frequency**: As Needed
 
@@ -18,11 +20,11 @@
 
 ## What This Command Does
 
-This command validates all ACP documentation to ensure it follows proper structure, maintains consistency, and contains no errors. It checks document formatting, verifies links and references, validates YAML syntax, and ensures all required sections are present.
+This command validates all ACP documentation to ensure it follows proper structure, maintains consistency, contains no errors, and follows namespace conventions. It checks document formatting, verifies links and references, validates YAML syntax, ensures all required sections are present, validates namespace usage, and checks for reserved name violations.
 
 Use this command before committing documentation changes, after creating new documents, or periodically to ensure documentation quality. It's particularly useful before releases or when onboarding new contributors.
 
-Unlike `@acp.sync` which compares docs to code, `@acp.validate` checks the internal consistency and correctness of the documentation itself.
+Unlike `@acp.sync` which compares docs to code, `@acp.validate` checks the internal consistency and correctness of the documentation itself. Unlike `@acp.package-validate` which is for package authors, this command validates general ACP project documentation.
 
 ---
 
@@ -134,7 +136,44 @@ Check command document structure.
 
 **Expected Outcome**: Command docs are valid
 
-### 8. Check Cross-References
+### 8. Validate Namespace Conventions
+
+Check namespace usage across all files.
+
+**Actions**:
+- **Detect Context**: Check if package.yaml exists
+  - If exists: This is a package (use package namespace)
+  - If not exists: This is a project (use @local namespace)
+- **Command Files**: Validate command filenames
+  - In packages: Commands MUST use {namespace}.{command}.md format
+  - In projects: Local commands MUST use local.{command}.md format
+  - Core ACP commands always use acp.{command}.md format
+  - ERROR if files missing proper namespace prefix
+- **Pattern Files**: Validate pattern filenames
+  - In packages: Patterns MUST use {namespace}.{pattern}.md format
+  - In projects: Patterns MUST use local.{pattern}.md format
+  - ERROR if patterns missing namespace prefix
+  - Exception: Template files (*.template.md) don't need namespace
+- **Design Files**: Validate design filenames
+  - In packages: Designs MUST use {namespace}.{design}.md format
+  - In projects: Designs MUST use local.{design}.md format
+  - ERROR if designs missing namespace prefix
+  - Exception: Template files (*.template.md) don't need namespace
+- **Reserved Names**: Check for reserved namespace usage
+  - Reject package names: acp, local, core, system, global
+  - Reject command files starting with reserved namespaces (unless core ACP)
+  - Reject pattern files starting with reserved namespaces (unless core ACP)
+  - ERROR for any violations
+- **Consistency**: Verify namespace consistency
+  - All commands in package use same namespace
+  - All patterns in package use same namespace
+  - All designs in package use same namespace
+  - Namespace matches package.yaml name field (if package)
+  - ERROR for mixing of namespaces
+
+**Expected Outcome**: Namespace conventions validated, errors reported for violations
+
+### 9. Check Cross-References
 
 Validate links between documents.
 
@@ -148,7 +187,7 @@ Validate links between documents.
 
 **Expected Outcome**: All links are valid
 
-### 9. Generate Validation Report
+### 10. Generate Validation Report
 
 Summarize validation results.
 
@@ -173,6 +212,8 @@ Summarize validation results.
 - [ ] All task documents are valid
 - [ ] All pattern documents are valid
 - [ ] All command documents are valid
+- [ ] Namespace conventions validated
+- [ ] Reserved names checked
 - [ ] No broken internal links
 - [ ] Validation report generated
 
@@ -249,6 +290,15 @@ Command Documents (11):
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+Namespace Conventions:
+✓ Context detected: Project (no package.yaml)
+✓ All core ACP commands use 'acp' namespace
+✓ Local commands use 'local' namespace
+✓ No reserved name violations
+✓ Namespace consistency maintained
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 Cross-References:
 ✓ All internal links valid
 ✓ Milestone → task references correct
@@ -310,6 +360,7 @@ Recommendations:
 
 ## Related Commands
 
+- [`@acp.package-validate`](acp.package-validate.md) - Package-specific validation (for package authors)
 - [`@acp.sync`](acp.sync.md) - Sync documentation with code (different from validation)
 - [`@acp.update`](acp.update.md) - Update progress tracking
 - [`@acp.report`](acp.report.md) - Generate comprehensive report including validation results
@@ -377,9 +428,9 @@ Recommendations:
 
 **Namespace**: acp
 **Command**: validate
-**Version**: 1.0.0
+**Version**: 2.0.0
 **Created**: 2026-02-16
-**Last Updated**: 2026-02-16
+**Last Updated**: 2026-02-21
 **Status**: Active
-**Compatibility**: ACP 1.1.0+
+**Compatibility**: ACP 2.0.0+
 **Author**: ACP Project

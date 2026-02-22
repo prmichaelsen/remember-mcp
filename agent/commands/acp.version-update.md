@@ -29,7 +29,7 @@ Unlike `@acp-version-check-for-updates` which only checks, this command actually
 ## Prerequisites
 
 - [ ] ACP installed in project
-- [ ] `agent/scripts/update.sh` exists
+- [ ] `agent/scripts/acp.version-update.sh` exists
 - [ ] Internet connection available
 - [ ] Git repository initialized (recommended for easy rollback)
 - [ ] Changes committed (recommended)
@@ -43,7 +43,7 @@ Unlike `@acp-version-check-for-updates` which only checks, this command actually
 Check that update can proceed safely.
 
 **Actions**:
-- Verify `./agent/scripts/update.sh` exists
+- Verify `./agent/scripts/acp.version-update.sh` exists
 - Check internet connection
 - Recommend committing changes if git repo exists
 - Warn user that files will be updated
@@ -55,7 +55,7 @@ Check that update can proceed safely.
 Execute the update script.
 
 **Actions**:
-- Run `./agent/scripts/update.sh`
+- Run `./agent/scripts/acp.version-update.sh`
 - Script will:
   - Clone latest ACP repository
   - Update AGENT.md
@@ -216,7 +216,7 @@ Files updated: 15
 
 ### Issue 1: Script not found
 
-**Symptom**: Error "update.sh not found"
+**Symptom**: Error "acp.version-update.sh not found"
 
 **Cause**: Older ACP installation without update scripts
 
@@ -236,7 +236,7 @@ Files updated: 15
 
 **Cause**: Script not executable
 
-**Solution**: Run `chmod +x agent/scripts/update.sh` to make it executable
+**Solution**: Run `chmod +x agent/scripts/acp.version-update.sh` to make it executable
 
 ### Issue 4: Merge conflicts
 
@@ -253,7 +253,7 @@ Files updated: 15
 ### File Access
 - **Reads**: Current ACP files to determine what to update
 - **Writes**: AGENT.md, all template files, utility scripts
-- **Executes**: `./agent/scripts/update.sh`
+- **Executes**: `./agent/scripts/acp.version-update.sh`
 
 ### Network Access
 - **APIs**: GitHub API (via update script)

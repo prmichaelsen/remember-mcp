@@ -41,7 +41,7 @@ Unlike `@acp-status` which only reads progress.yaml, or `@acp-proceed` which foc
 Check if newer version of ACP is available.
 
 **Actions**:
-- Run `./agent/scripts/check-for-updates.sh` if it exists
+- Run `./agent/scripts/acp.version-check-for-updates.sh` if it exists
 - Report if updates are available
 - Show what changed via CHANGELOG
 - Ask if user wants to update (don't auto-update)
@@ -62,6 +62,40 @@ Load complete context from the agent/ directory.
 - Note any missing or incomplete documentation
 
 **Expected Outcome**: Complete documentation context loaded
+
+### 2.5. Discover Global Packages (Optional)
+
+Check for globally installed ACP packages.
+
+**Actions**:
+- Check if `~/.acp/manifest.yaml` exists
+- If exists, read global manifest
+- List globally installed packages with versions
+- Report available commands and patterns from global packages
+- Note that local packages take precedence over global packages
+
+**Expected Outcome**: Global packages discovered and reported (if any)
+
+**Example Output**:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌐 Global Packages Discovered...
+  ✓ Read ~/.acp/manifest.yaml
+  
+  Found 2 global packages:
+    • @prmichaelsen/acp-git (v1.0.0)
+      Location: ~/.acp/packages/@prmichaelsen/acp-git
+      2 commands: git.commit, git.init
+    
+    • @prmichaelsen/acp-firebase (v1.2.0)
+      Location: ~/.acp/packages/@prmichaelsen/acp-firebase
+      3 patterns, 2 commands
+  
+  ℹ️  Local packages take precedence over global packages
+```
+
+**Note**: This step is optional and graceful - if no global packages exist or manifest is not found, continue without error.
 
 ### 3. Identify Key Source Files
 
@@ -198,8 +232,8 @@ Provide comprehensive status report.
   ✓ Read AGENT.md (1,055 lines)
   ✓ Read README.md (200 lines)
   ✓ Read CHANGELOG.md (50 lines)
-  ✓ Read scripts/install.sh
-  ✓ Read scripts/update.sh
+  ✓ Read scripts/acp.install.sh
+  ✓ Read scripts/acp.version-update.sh
   ✓ Read agent/commands/command.template.md
   ✓ Read agent/commands/acp.status.md
   ✓ Read agent/commands/acp.proceed.md
@@ -313,7 +347,7 @@ Ready to proceed with task-2 completion.
 
 ### Issue 2: Update check script not found
 
-**Symptom**: Warning "check-for-updates.sh not found"
+**Symptom**: Warning "acp.version-check-for-updates.sh not found"
 
 **Cause**: Older ACP installation without update scripts
 
@@ -342,7 +376,7 @@ Ready to proceed with task-2 completion.
 ### File Access
 - **Reads**: All files in `agent/` directory, key source files throughout project, AGENT.md, README.md, CHANGELOG.md
 - **Writes**: `agent/progress.yaml` (updates status), design/task documents (if stale)
-- **Executes**: `./agent/scripts/check-for-updates.sh` (if exists)
+- **Executes**: `./agent/scripts/acp.version-check-for-updates.sh` (if exists)
 
 ### Network Access
 - **APIs**: None directly (update check script may access GitHub)

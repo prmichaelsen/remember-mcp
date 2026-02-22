@@ -65,6 +65,7 @@ mkdir -p "$TARGET_DIR/agent/patterns"
 mkdir -p "$TARGET_DIR/agent/tasks"
 mkdir -p "$TARGET_DIR/agent/commands"
 mkdir -p "$TARGET_DIR/agent/scripts"
+mkdir -p "$TARGET_DIR/agent/schemas"
 mkdir -p "$TARGET_DIR/agent/reports"
 
 # Create .gitkeep files
@@ -104,20 +105,92 @@ if [ -d "$TEMP_DIR/agent/commands" ]; then
 fi
 
 # Copy progress template
-cp "$TEMP_DIR/agent/progress.template.yaml" "$TARGET_DIR/agent/"
+if [ -f "$TEMP_DIR/agent/progress.template.yaml" ]; then
+    cp "$TEMP_DIR/agent/progress.template.yaml" "$TARGET_DIR/agent/"
+fi
+
+# Copy manifest template
+if [ -f "$TEMP_DIR/agent/manifest.template.yaml" ]; then
+    cp "$TEMP_DIR/agent/manifest.template.yaml" "$TARGET_DIR/agent/"
+fi
+
+# Copy package template
+if [ -f "$TEMP_DIR/agent/package.template.yaml" ]; then
+    cp "$TEMP_DIR/agent/package.template.yaml" "$TARGET_DIR/agent/"
+fi
+
+# Create initial manifest.yaml if it doesn't exist
+if [ ! -f "$TARGET_DIR/agent/manifest.yaml" ]; then
+    cat > "$TARGET_DIR/agent/manifest.yaml" << 'EOF'
+# ACP Package Manifest
+# Tracks installed packages and their versions
+
+packages: {}
+
+manifest_version: 1.0.0
+last_updated: null
+EOF
+fi
+
+# Copy schemas
+if [ -f "$TEMP_DIR/agent/schemas/package.schema.yaml" ]; then
+    cp "$TEMP_DIR/agent/schemas/package.schema.yaml" "$TARGET_DIR/agent/schemas/"
+fi
 
 # Copy AGENT.md
 cp "$TEMP_DIR/AGENT.md" "$TARGET_DIR/"
 
-# Copy scripts
-cp "$TEMP_DIR/agent/scripts/update.sh" "$TARGET_DIR/agent/scripts/"
-cp "$TEMP_DIR/agent/scripts/check-for-updates.sh" "$TARGET_DIR/agent/scripts/"
-cp "$TEMP_DIR/agent/scripts/uninstall.sh" "$TARGET_DIR/agent/scripts/"
-cp "$TEMP_DIR/agent/scripts/version.sh" "$TARGET_DIR/agent/scripts/"
-cp "$TEMP_DIR/agent/scripts/install.sh" "$TARGET_DIR/agent/scripts/"
-chmod +x "$TARGET_DIR/agent/scripts"/*.sh
+# Copy all scripts (*.sh files)
+# This ensures all current and future scripts are copied
+if [ -d "$TEMP_DIR/agent/scripts" ]; then
+    find "$TEMP_DIR/agent/scripts" -maxdepth 1 -name "*.sh" -exec cp {} "$TARGET_DIR/agent/scripts/" \;
+    chmod +x "$TARGET_DIR/agent/scripts"/*.sh
+fi
+
+# Clean up deprecated scripts (from versions < 2.0.0)
+. "$TARGET_DIR/agent/scripts/acp.common.sh"
+init_colors
+cleanup_deprecated_scripts
 
 echo "${GREEN}✓${NC} All files installed"
+echo ""
+
+# Create manifest.yaml to track core ACP installation
+echo "Creating manifest..."
+
+# Get ACP version from AGENT.md
+ACP_VERSION=$(grep "^\*\*Version\*\*:" "$TARGET_DIR/AGENT.md" | sed 's/.*: //' | head -1)
+INSTALL_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+# List installed core files
+CORE_COMMANDS=$(cd "$TARGET_DIR" && ls agent/commands/acp.*.md agent/commands/git.*.md 2>/dev/null | xargs -n1 basename)
+CORE_PATTERNS=$(cd "$TARGET_DIR" && ls agent/patterns/*.template.md 2>/dev/null | xargs -n1 basename)
+CORE_DESIGNS=$(cd "$TARGET_DIR" && ls agent/design/*.template.md 2>/dev/null | xargs -n1 basename)
+
+# Create manifest with acp-core package
+cat > "$TARGET_DIR/agent/manifest.yaml" << EOF
+# ACP Package Manifest
+# Tracks installed packages and their versions
+
+packages:
+  acp-core:
+    source: https://github.com/prmichaelsen/agent-context-protocol.git
+    package_version: ${ACP_VERSION}
+    installed_at: ${INSTALL_DATE}
+    updated_at: ${INSTALL_DATE}
+    files:
+      commands:
+$(echo "$CORE_COMMANDS" | sed 's/^/        - name: /')
+      patterns:
+$(echo "$CORE_PATTERNS" | sed 's/^/        - name: /')
+      designs:
+$(echo "$CORE_DESIGNS" | sed 's/^/        - name: /')
+
+manifest_version: 1.0.0
+last_updated: ${INSTALL_DATE}
+EOF
+
+echo "${GREEN}✓${NC} Created manifest.yaml (tracking acp-core v${ACP_VERSION})"
 echo ""
 echo "${GREEN}Installation complete!${NC}"
 echo ""
@@ -133,24 +206,7 @@ echo "   cp agent/progress.template.yaml agent/progress.yaml"
 echo ""
 echo "4. Read AGENT.md for complete documentation"
 echo ""
-echo "${BLUE}ACP Commands Available:${NC}"
-echo ""
-echo "  ${GREEN}@acp.init${NC}                    - Initialize agent context (start here!)"
-echo "  ${GREEN}@acp.proceed${NC}                 - Continue with next task"
-echo "  ${GREEN}@acp.status${NC}                  - Display project status"
-echo "  ${GREEN}@acp.update${NC}                  - Update progress tracking"
-echo "  ${GREEN}@acp.sync${NC}                    - Sync documentation with code"
-echo "  ${GREEN}@acp.validate${NC}                - Validate ACP documents"
-echo "  ${GREEN}@acp.report${NC}                  - Generate project report"
-echo "  ${GREEN}@acp.version-check${NC}           - Show current ACP version"
-echo "  ${GREEN}@acp.version-check-for-updates${NC} - Check for ACP updates"
-echo "  ${GREEN}@acp.version-update${NC}          - Update ACP to latest version"
-echo "  ${GREEN}@acp.package-install${NC}         - Install third-party command packages"
-echo ""
-echo "${BLUE}Git Commands Available:${NC}"
-echo ""
-echo "  ${GREEN}@git.init${NC}                    - Initialize git repository with smart .gitignore"
-echo "  ${GREEN}@git.commit${NC}                  - Intelligent version-aware git commit"
+display_available_commands
 echo ""
 echo "${BLUE}For AI agents:${NC}"
 echo "Type '${GREEN}@acp.init${NC}' to get started."

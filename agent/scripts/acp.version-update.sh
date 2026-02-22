@@ -86,19 +86,55 @@ fi
 # Update progress template
 cp "$TEMP_DIR/agent/progress.template.yaml" "agent/"
 
+# Update manifest template
+if [ -f "$TEMP_DIR/agent/manifest.template.yaml" ]; then
+    cp "$TEMP_DIR/agent/manifest.template.yaml" "agent/"
+fi
+
+# Update package template
+if [ -f "$TEMP_DIR/agent/package.template.yaml" ]; then
+    cp "$TEMP_DIR/agent/package.template.yaml" "agent/"
+fi
+
 # Update AGENT.md
 cp "$TEMP_DIR/AGENT.md" "."
 
-# Update scripts
-cp "$TEMP_DIR/agent/scripts/update.sh" "agent/scripts/"
-cp "$TEMP_DIR/agent/scripts/check-for-updates.sh" "agent/scripts/"
-cp "$TEMP_DIR/agent/scripts/uninstall.sh" "agent/scripts/"
-cp "$TEMP_DIR/agent/scripts/version.sh" "agent/scripts/"
-cp "$TEMP_DIR/agent/scripts/install.sh" "agent/scripts/"
-chmod +x agent/scripts/*.sh
+# Update all scripts (*.sh files)
+# This ensures all current and future scripts are copied
+if [ -d "$TEMP_DIR/agent/scripts" ]; then
+    find "$TEMP_DIR/agent/scripts" -maxdepth 1 -name "*.sh" -exec cp {} "agent/scripts/" \;
+    chmod +x agent/scripts/*.sh
+fi
+
+# Clean up deprecated scripts (from versions < 2.0.0)
+. "agent/scripts/acp.common.sh"
+init_colors
+cleanup_deprecated_scripts
 
 echo "${GREEN}✓${NC} All files updated"
 echo ""
+
+# Update acp-core version in manifest if it exists
+if [ -f "agent/manifest.yaml" ]; then
+    echo "Updating manifest..."
+    
+    # Get new ACP version
+    NEW_VERSION=$(grep "^\*\*Version\*\*:" "AGENT.md" | sed 's/.*: //' | head -1)
+    UPDATE_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    
+    # Update acp-core version and timestamps
+    sed -i "/^  acp-core:/,/^  [a-z]/ {
+        s/package_version: .*/package_version: ${NEW_VERSION}/
+        s/updated_at: .*/updated_at: ${UPDATE_DATE}/
+    }" agent/manifest.yaml
+    
+    # Update manifest timestamp
+    sed -i "s/^last_updated: .*/last_updated: ${UPDATE_DATE}/" agent/manifest.yaml
+    
+    echo "${GREEN}✓${NC} Updated acp-core to v${NEW_VERSION} in manifest.yaml"
+    echo ""
+fi
+
 echo "${GREEN}Update complete!${NC}"
 echo ""
 echo "${BLUE}What was updated:${NC}"
@@ -115,24 +151,7 @@ echo ""
 echo "For detailed changelog:"
 echo "  https://github.com/prmichaelsen/agent-context-protocol/blob/mainline/CHANGELOG.md"
 echo ""
-echo "${BLUE}ACP Commands Available:${NC}"
-echo ""
-echo "  ${GREEN}@acp.init${NC}                    - Initialize agent context (run after update!)"
-echo "  ${GREEN}@acp.proceed${NC}                 - Continue with next task"
-echo "  ${GREEN}@acp.status${NC}                  - Display project status"
-echo "  ${GREEN}@acp.update${NC}                  - Update progress tracking"
-echo "  ${GREEN}@acp.sync${NC}                    - Sync documentation with code"
-echo "  ${GREEN}@acp.validate${NC}                - Validate ACP documents"
-echo "  ${GREEN}@acp.report${NC}                  - Generate project report"
-echo "  ${GREEN}@acp.version-check${NC}           - Show current ACP version"
-echo "  ${GREEN}@acp.version-check-for-updates${NC} - Check for ACP updates"
-echo "  ${GREEN}@acp.version-update${NC}          - Update ACP to latest version"
-echo "  ${GREEN}@acp.package-install${NC}         - Install third-party command packages"
-echo ""
-echo "${BLUE}Git Commands Available:${NC}"
-echo ""
-echo "  ${GREEN}@git.init${NC}                    - Initialize git repository with smart .gitignore"
-echo "  ${GREEN}@git.commit${NC}                  - Intelligent version-aware git commit"
+display_available_commands
 echo ""
 echo "${BLUE}For AI agents:${NC}"
 echo "Type '${GREEN}@acp.init${NC}' to reload context with updated files."

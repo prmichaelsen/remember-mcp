@@ -29,7 +29,7 @@ Unlike `@acp-version-check-for-updates` which checks for newer versions, this co
 ## Prerequisites
 
 - [ ] ACP installed in project (AGENT.md exists)
-- [ ] `agent/scripts/version.sh` exists (or can extract from AGENT.md directly)
+- [ ] `agent/scripts/acp.version-check.sh` exists (or can extract from AGENT.md directly)
 
 ---
 
@@ -40,7 +40,7 @@ Unlike `@acp-version-check-for-updates` which checks for newer versions, this co
 Execute the version check script.
 
 **Actions**:
-- Run `./agent/scripts/version.sh`
+- Run `./agent/scripts/acp.version-check.sh`
 - Script extracts version from AGENT.md using grep
 - Displays version, created date, and status
 
@@ -78,8 +78,8 @@ Status: Production Pattern
 
 ✓ ACP is installed
 
-To check for updates: ./agent/scripts/check-for-updates.sh
-To update ACP: ./agent/scripts/update.sh
+To check for updates: ./agent/scripts/acp.version-check-for-updates.sh
+To update ACP: ./agent/scripts/acp.version-update.sh
 ```
 
 ### Status Update
@@ -135,7 +135,7 @@ No status changes - read-only operation
 
 ### Issue 2: Script not found
 
-**Symptom**: Error "version.sh not found"
+**Symptom**: Error "acp.version-check.sh not found"
 
 **Cause**: Older ACP installation without version script
 
@@ -156,7 +156,7 @@ No status changes - read-only operation
 ### File Access
 - **Reads**: `AGENT.md`
 - **Writes**: None (read-only command)
-- **Executes**: `./agent/scripts/version.sh` (simple grep script)
+- **Executes**: `./agent/scripts/acp.version-check.sh` (simple grep script)
 
 ### Network Access
 - **APIs**: None

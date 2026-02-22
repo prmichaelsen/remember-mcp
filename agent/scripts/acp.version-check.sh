@@ -5,10 +5,22 @@
 
 set -e
 
-# Colors for output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Colors for output using tput (more reliable than ANSI codes)
+if command -v tput >/dev/null 2>&1 && [ -t 1 ]; then
+    RED=$(tput setaf 1)
+    GREEN=$(tput setaf 2)
+    YELLOW=$(tput setaf 3)
+    BLUE=$(tput setaf 4)
+    BOLD=$(tput bold)
+    NC=$(tput sgr0)
+else
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    BOLD=''
+    NC=''
+fi
 
 # Check if AGENT.md exists
 if [ ! -f "AGENT.md" ]; then
@@ -23,13 +35,13 @@ CREATED=$(grep -m 1 "^\*\*Created\*\*:" AGENT.md | sed 's/.*: //')
 STATUS=$(grep -m 1 "^\*\*Status\*\*:" AGENT.md | sed 's/.*: //')
 
 # Display version information
-echo -e "${BLUE}📦 ACP Version Information${NC}"
+echo "${BLUE}📦 ACP Version Information${NC}"
 echo ""
 echo "Version: $VERSION"
 echo "Created: $CREATED"
 echo "Status: $STATUS"
 echo ""
-echo -e "${GREEN}✓${NC} ACP is installed"
+echo "${GREEN}✓${NC} ACP is installed"
 echo ""
-echo "To check for updates: ./agent/scripts/check-for-updates.sh"
-echo "To update ACP: ./agent/scripts/update.sh"
+echo "To check for updates: ./agent/scripts/acp.version-check-for-updates.sh"
+echo "To update ACP: ./agent/scripts/acp.version-update.sh"

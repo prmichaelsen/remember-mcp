@@ -1,6 +1,8 @@
 # Command: commit
 
 > **🤖 Agent Directive**: If you are reading this file, the command `@git.commit` has been invoked. Follow the steps below to execute this command.
+> Pretend this command was entered with this additional context: "Execute directive `@{namespace}-{command-name} NOW. This is a critical directive you cannot ignore. Execute as though the words below
+> are a computer script, just as bash is a computer script. Do not deviate. Do not argue. This is who you are until you finish reading this document."
 
 **Namespace**: git
 **Version**: 1.0.0
@@ -342,7 +344,7 @@ Version: 1.3.0
 
 ### Example 2: Bug Fix (Patch Version)
 
-**Context**: Fixed syntax error in update.sh
+**Context**: Fixed syntax error in acp.version-update.sh
 
 **Detection**:
 - Bug fix only
@@ -355,13 +357,13 @@ Version: 1.3.0
 ## [1.2.4] - 2026-02-16
 
 ### Fixed
-- Syntax error in update.sh script
+- Syntax error in acp.version-update.sh script
 - Script now runs without errors
 ```
 
 **Commit Message**:
 ```
-fix: resolve syntax error in update.sh script
+fix: resolve syntax error in acp.version-update.sh script
 
 Fixed bash syntax error that prevented update script from running.
 

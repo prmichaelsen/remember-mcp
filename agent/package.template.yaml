@@ -1,0 +1,36 @@
+# package.yaml Template
+# This file defines an ACP package for distribution
+
+name: package-name
+version: 1.0.0
+description: Package description (10-200 characters)
+author: Author Name
+license: MIT
+homepage: https://github.com/user/package-name
+repository: https://github.com/user/package-name.git
+
+# Release configuration
+release:
+  branch: main
+
+# Package contents
+# List files that will be installed when users install this package
+# Format: Each entry is an object with a 'name' field
+contents:
+  patterns:
+    - name: namespace.pattern-name.md
+  
+  commands:
+    - name: namespace.command-name.md
+  
+  designs:
+    - name: namespace.design-name.md
+
+# Compatibility requirements
+requires:
+  acp: ">=2.8.0"
+
+# Tags for package discovery
+tags:
+  - tag1
+  - tag2

@@ -2,16 +2,26 @@
 
 # Agent Context Protocol (ACP) Uninstall Script
 # This script removes all ACP files from a project
-# Usage: ./agent/scripts/uninstall.sh [-y]
+# Usage: ./agent/scripts/unacp.install.sh [-y]
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Colors for output using tput (more reliable than ANSI codes)
+if command -v tput >/dev/null 2>&1 && [ -t 1 ]; then
+    RED=$(tput setaf 1)
+    GREEN=$(tput setaf 2)
+    YELLOW=$(tput setaf 3)
+    BLUE=$(tput setaf 4)
+    BOLD=$(tput bold)
+    NC=$(tput sgr0)
+else
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    BOLD=''
+    NC=''
+fi
 
 # Check for -y flag
 AUTO_CONFIRM=false
@@ -19,24 +29,24 @@ if [ "$1" = "-y" ]; then
     AUTO_CONFIRM=true
 fi
 
-echo -e "${YELLOW}Agent Context Protocol (ACP) Uninstall${NC}"
+echo "${YELLOW}Agent Context Protocol (ACP) Uninstall${NC}"
 echo "======================================"
 echo ""
 
 # Check if agent directory exists
 if [ ! -d "agent" ] && [ ! -f "AGENT.md" ]; then
-    echo -e "${YELLOW}No ACP files found in current directory${NC}"
+    echo "${YELLOW}No ACP files found in current directory${NC}"
     exit 0
 fi
 
 # If not auto-confirmed, show instructions for agents
 if [ "$AUTO_CONFIRM" = false ]; then
-    echo -e "${BLUE}Note for AI Agents:${NC}"
+    echo "${BLUE}Note for AI Agents:${NC}"
     echo "This script requires user confirmation to prevent accidental deletion."
     echo "Please ask the user: 'Do you want to uninstall ACP from this project?'"
-    echo "If yes, rerun this script with: ./agent/scripts/uninstall.sh -y"
+    echo "If yes, rerun this script with: ./agent/scripts/unacp.install.sh -y"
     echo ""
-    echo -e "${RED}WARNING: This will permanently delete:${NC}"
+    echo "${RED}WARNING: This will permanently delete:${NC}"
     echo "  - agent/ directory (all contents)"
     echo "  - AGENT.md file"
     echo ""
@@ -58,17 +68,17 @@ echo "Removing ACP files..."
 # Remove agent directory
 if [ -d "agent" ]; then
     rm -rf agent
-    echo -e "${GREEN}✓${NC} Removed agent/ directory"
+    echo "${GREEN}✓${NC} Removed agent/ directory"
 fi
 
 # Remove AGENT.md
 if [ -f "AGENT.md" ]; then
     rm -f AGENT.md
-    echo -e "${GREEN}✓${NC} Removed AGENT.md"
+    echo "${GREEN}✓${NC} Removed AGENT.md"
 fi
 
 echo ""
-echo -e "${GREEN}Uninstall complete!${NC}"
+echo "${GREEN}Uninstall complete!${NC}"
 echo ""
 echo "All ACP files have been removed from this project."
 echo "Use 'git status' to see what was deleted."

@@ -29,7 +29,7 @@ Unlike `@acp-version-update` which applies updates immediately, this command onl
 ## Prerequisites
 
 - [ ] ACP installed in project
-- [ ] `agent/scripts/check-for-updates.sh` exists
+- [ ] `agent/scripts/acp.version-check-for-updates.sh` exists
 - [ ] Internet connection available
 - [ ] Git installed
 
@@ -42,7 +42,7 @@ Unlike `@acp-version-update` which applies updates immediately, this command onl
 Execute the check-for-updates script.
 
 **Actions**:
-- Check if `./agent/scripts/check-for-updates.sh` exists
+- Check if `./agent/scripts/acp.version-check-for-updates.sh` exists
 - If exists, run the script
 - If doesn't exist, report that update checking is unavailable
 - Capture script output
@@ -213,7 +213,7 @@ No status changes - read-only operation
 
 ### Issue 1: Script not found
 
-**Symptom**: Error "check-for-updates.sh not found"
+**Symptom**: Error "acp.version-check-for-updates.sh not found"
 
 **Cause**: Older ACP installation without update scripts
 
@@ -233,7 +233,7 @@ No status changes - read-only operation
 
 **Cause**: Script not executable
 
-**Solution**: Run `chmod +x agent/scripts/check-for-updates.sh` to make it executable
+**Solution**: Run `chmod +x agent/scripts/acp.version-check-for-updates.sh` to make it executable
 
 ---
 
@@ -242,7 +242,7 @@ No status changes - read-only operation
 ### File Access
 - **Reads**: `AGENT.md`, `CHANGELOG.md`
 - **Writes**: None (read-only command)
-- **Executes**: `./agent/scripts/check-for-updates.sh`
+- **Executes**: `./agent/scripts/acp.version-check-for-updates.sh`
 
 ### Network Access
 - **APIs**: GitHub API (via check-for-updates script)

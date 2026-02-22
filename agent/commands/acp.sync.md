@@ -3,9 +3,9 @@
 > **🤖 Agent Directive**: If you are reading this file, the command `@acp.sync` has been invoked. Follow the steps below to execute this command.
 
 **Namespace**: acp
-**Version**: 1.0.0
+**Version**: 1.1.0
 **Created**: 2026-02-16
-**Last Updated**: 2026-02-16
+**Last Updated**: 2026-02-18
 **Status**: Active
 
 ---
@@ -30,7 +30,8 @@ Unlike `@acp.update` which updates progress tracking, `@acp.sync` focuses on kee
 
 - [ ] ACP installed in project
 - [ ] Source code exists to compare against
-- [ ] Design documents exist in `agent/design/`
+- [ ] Documentation exists in `agent/` directory (design, tasks, patterns)
+- [ ] Scripts exist in `agent/scripts/` (if applicable)
 - [ ] You have understanding of what changed in code
 
 ---
@@ -50,48 +51,69 @@ Load all design documents to understand documented architecture.
 
 **Expected Outcome**: Documented architecture understood
 
-### 2. Read Source Code
+### 2. Read Task Documents
+
+Review task documents to understand documented implementation approach.
+
+**Actions**:
+- Read all files in `agent/tasks/`
+- Note documented implementation steps
+- Identify documented tools and dependencies
+- Check for code examples in task steps
+- List documented functions and approaches
+
+**Expected Outcome**: Documented implementation approach understood
+
+### 3. Read Source Code
 
 Review actual implementation in source files.
 
 **Actions**:
-- Identify main source directories (src/, lib/, etc.)
+- Identify main source directories (src/, lib/, cmd/, etc.)
 - Read key implementation files
 - Note actual features implemented
 - Understand actual architecture
-- Identify actual dependencies
+- Identify actual dependencies and tools used
 - Document actual file structures
+- Check which functions/utilities are actually implemented
+- **Compare implementation approach with task document examples**
 
 **Expected Outcome**: Actual implementation understood
 
-### 3. Compare Documentation vs Reality
+### 4. Compare Documentation vs Reality
 
 Identify discrepancies between docs and code.
 
 **Actions**:
 - Compare documented features with implemented features
+- **Compare documented tools (e.g., yq) with actual tools (e.g., acp.yaml-parser.sh)**
+- **Compare documented functions with actual implementations**
+- **Check if task code examples match actual code in scripts**
 - Check if documented patterns match actual patterns
 - Verify API contracts match implementation
 - Compare file structures
 - Note undocumented features in code
 - Identify documented features not yet implemented
+- **Flag task documents with outdated code examples**
 
-**Expected Outcome**: Documentation drift identified
+**Expected Outcome**: Documentation drift identified (including implementation details)
 
-### 4. Identify Stale Documentation
+### 5. Identify Stale Documentation
 
 Determine which documents need updates.
 
 **Actions**:
 - List design docs that are outdated
+- **List task docs with outdated code examples or tool references**
 - Note patterns that don't match code
 - Identify missing documentation for new features
 - Flag incorrect technical specifications
+- **Flag task documents referencing wrong tools (e.g., yq vs acp.yaml-parser.sh)**
 - Prioritize updates by importance
 
 **Expected Outcome**: Update priorities established
 
-### 5. Update Design Documents
+### 6. Update Design Documents
 
 Refresh design documents to match reality.
 
@@ -105,7 +127,21 @@ Refresh design documents to match reality.
 
 **Expected Outcome**: Design docs reflect reality
 
-### 6. Update Pattern Documents
+### 7. Update Task Documents
+
+Refresh task documents to match actual implementation.
+
+**Actions**:
+- **Update code examples in task steps to match actual code**
+- **Replace references to external tools with actual tools used**
+- **Update function names to match actual implementations**
+- **Add notes about completed vs remaining work**
+- **Update Common Issues sections**
+- Mark completed steps as done
+
+**Expected Outcome**: Task docs reflect actual implementation approach
+
+### 8. Update Pattern Documents
 
 Refresh patterns to match actual usage.
 
@@ -118,7 +154,7 @@ Refresh patterns to match actual usage.
 
 **Expected Outcome**: Patterns match actual usage
 
-### 7. Document New Features
+### 9. Document New Features
 
 Add documentation for undocumented features.
 
@@ -131,7 +167,7 @@ Add documentation for undocumented features.
 
 **Expected Outcome**: All features documented
 
-### 8. Update Progress Tracking
+### 10. Update Progress Tracking
 
 Update progress.yaml to reflect sync activity.
 
@@ -148,9 +184,13 @@ Update progress.yaml to reflect sync activity.
 ## Verification
 
 - [ ] All design documents reviewed
+- [ ] **All task documents reviewed for code examples**
 - [ ] Source code reviewed and compared
+- [ ] **Scripts reviewed for actual tool usage (acp.yaml-parser.sh vs yq, etc.)**
 - [ ] Documentation drift identified
+- [ ] **Task document code examples checked against actual scripts**
 - [ ] Stale documents updated
+- [ ] **Task documents updated to match actual implementation**
 - [ ] New features documented
 - [ ] Pattern documents current
 - [ ] Code examples work correctly
@@ -315,9 +355,9 @@ Summary:
 
 **Namespace**: acp
 **Command**: sync
-**Version**: 1.0.0
+**Version**: 1.1.0
 **Created**: 2026-02-16
-**Last Updated**: 2026-02-16
+**Last Updated**: 2026-02-18
 **Status**: Active
 **Compatibility**: ACP 1.1.0+
 **Author**: ACP Project
