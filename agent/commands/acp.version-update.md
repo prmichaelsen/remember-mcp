@@ -7,7 +7,6 @@
 **Created**: 2026-02-16
 **Last Updated**: 2026-02-16
 **Status**: Active
-**Scripts**: acp.version-update.sh, acp.common.sh
 
 ---
 

@@ -11,7 +11,6 @@
 **Created**: 2026-02-21
 **Last Updated**: 2026-02-21
 **Status**: Active
-**Scripts**: None
 
 ---
 

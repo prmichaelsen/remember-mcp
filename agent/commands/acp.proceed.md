@@ -26,7 +26,6 @@
 **Created**: 2026-02-16
 **Last Updated**: 2026-02-18
 **Status**: Active
-**Scripts**: None
 
 ---
 
