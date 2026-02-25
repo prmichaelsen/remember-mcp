@@ -2,11 +2,11 @@
 
 project:
   name: remember-mcp
-  version: 3.0.0
+  version: 3.0.1
   started: 2026-02-11
   status: in_progress
-  current_milestone: M13
-  last_updated: 2026-02-17
+  current_milestone: M12
+  last_updated: 2026-02-25
 
 milestones:
   - id: M1
@@ -566,6 +566,49 @@ progress:
   overall: 50%
 
 recent_work:
+  - date: 2026-02-25
+    description: CRITICAL BUG FIX - indexNullState Schema Configuration (v3.0.1)
+    items:
+      - 🐛 CRITICAL: Fixed "Nullstate must be indexed to be filterable" error
+      - ✅ Added indexNullState: true to inverted index configuration
+      - ✅ Fixed src/weaviate/schema.ts (Memory collections)
+      - ✅ Fixed src/weaviate/space-schema.ts (Memory_public collection)
+      - ✅ Used correct API: weaviate.configure.invertedIndex()
+      - ✅ Root cause: Task 70 added deleted_at field without null state indexing
+      - ✅ Impact: All memory searches were failing with gRPC error
+      - ✅ Solution: Collections must be recreated to apply fix
+      - ✅ All 93 tests passing
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+      - ✅ Created Task 76 documentation
+      - ⚠️  Users must delete and recreate collections to apply fix
+      - 📋 Ready for v3.0.1 patch release
+      
+  - date: 2026-02-25
+    description: ACP Initialization Complete - Project Context Loaded (v3.0.0)
+    items:
+      - ✅ Executed @acp.init command workflow
+      - ⚠️  ACP updates available (v4.1.1 with task subdirectory structure)
+      - ✅ Global packages discovered: acp-core v3.10.1 (28 commands, 2 patterns, 2 designs)
+      - ✅ All agent documentation reviewed (30 design docs, 13 milestones, 75 tasks, 7 patterns)
+      - ✅ Key source files reviewed (server.ts, progress.yaml, requirements.md, CHANGELOG.md)
+      - ✅ Project status verified - M1-M4, M10-M11, M13 complete (100%), M12 in progress (60%)
+      - ✅ Current version 3.0.0 (latest - soft delete system)
+      - ✅ All 93 unit tests passing (1 skipped integration test)
+      - ✅ Test coverage 33.12% overall
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (dual export: server + factory)
+      - ✅ All 17 MCP tools implemented and operational
+      - ✅ Multi-tenant architecture with per-user isolation working
+      - ✅ Vector search (Weaviate) + metadata (Firestore) operational
+      - ✅ Shared spaces with multi-space support functional
+      - ✅ Soft delete system with confirmation flow complete (v3.0.0)
+      - ✅ Comment system foundation implemented (v2.6.0)
+      - 📋 M12 Comment System: 3/5 tasks complete (schema, search, query updates)
+      - 📋 Remaining M12 tasks: Task 58 (unit tests), Task 59 (documentation)
+      - 📋 Ready to complete M12 milestone
+      - 📋 Git status: Clean working directory
+      
   - date: 2026-02-25
     description: M13 COMPLETED - Soft Delete System Released (v3.0.0)
     items:
@@ -1163,16 +1206,14 @@ recent_work:
 next_steps:
   - Complete Task 58: Add Comment Unit Tests (3 hours)
   - Complete Task 59: Update Documentation for Comments (2 hours)
-  - Push 6 commits to origin (v2.6.0, v2.6.1, v2.6.2)
-  - Deploy v2.6.2 to Cloud Run
-  - Test comment system end-to-end (create, search, thread fetching)
-  - Test structured logging in Cloud Run logs
-  - Verify confirmation tool safety guidelines in production
   - Complete M12: Comment System (Phase 1)
+  - Consider updating to ACP v4.1.1 (task subdirectory structure)
   - Start M5: Template System (15 default templates + auto-suggestion)
   - Optional: Create integration tests (Task 6)
   - Optional: Add development documentation (Task 7)
   - Consider M6: Auth & Multi-Tenancy
+  - Consider M7: Trust & Permissions
+  - Consider M8: Testing & Quality
 
 notes:
   - 🚀 Milestone 12 (Comment System Phase 1) IN PROGRESS - 60% complete!

@@ -102,6 +102,12 @@ async function createSpaceCollection(
       sourceProperties: ['content', 'title', 'summary', 'observation'],
     }),
 
+    // Inverted index configuration
+    // indexNullState: true is required for filtering on null values (e.g., deleted_at IS NULL)
+    invertedIndex: weaviate.configure.invertedIndex({
+      indexNullState: true,
+    }),
+
     properties: [
       // Discriminator
       {

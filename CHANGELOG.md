@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - 2026-02-25
+
+### Fixed
+
+**CRITICAL: Fixed Weaviate Schema Configuration Bug**
+- Added `indexNullState: true` to inverted index configuration in both schema files
+- Enables filtering on null values (required for `deleted_at IS NULL` queries)
+- Root cause: Soft delete system (v3.0.0) added `deleted_at` field but didn't configure null state indexing
+- Impact: All memory searches were failing with gRPC error "Nullstate must be indexed to be filterable"
+- Modified: [`src/weaviate/schema.ts`](src/weaviate/schema.ts) - Added `invertedIndex` config
+- Modified: [`src/weaviate/space-schema.ts`](src/weaviate/space-schema.ts) - Added `invertedIndex` config
+
+**Migration Required**:
+- ⚠️ Existing Weaviate collections must be recreated to apply this fix
+- Collections created before v3.0.1 will continue to fail on null filtering
+- Delete old collections and restart server to create new collections with correct config
+- Alternative: Export data, delete collections, restart, re-import data
+
+**For Users**:
+- If you encounter "Nullstate must be indexed" error, delete your collections and restart
+- New collections will be created automatically with correct configuration
+- Documents created before `deleted_at` field existed are handled correctly (missing field = null)
+
+---
+
 ## [3.0.0] - 2026-02-25
 
 ### ⚠️ BREAKING CHANGES
