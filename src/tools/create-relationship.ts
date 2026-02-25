@@ -117,7 +117,7 @@ export async function handleCreateRelationship(
       args.memory_ids.map(async (memoryId) => {
         try {
           const memory = await collection.query.fetchObjectById(memoryId, {
-            returnProperties: ['user_id', 'doc_type', 'relationships'],
+            returnProperties: ['user_id', 'doc_type', 'relationships', 'deleted_at'],
           });
           
           if (!memory) {
@@ -141,6 +141,19 @@ export async function handleCreateRelationship(
               docType: memory.properties.doc_type
             });
             return { memoryId, error: 'Cannot create relationship with non-memory document' };
+          }
+          
+          // Check if memory is deleted
+          if (memory.properties.deleted_at) {
+            const deletedAt = typeof memory.properties.deleted_at === 'string'
+              ? memory.properties.deleted_at
+              : new Date(memory.properties.deleted_at as any).toISOString();
+            logger.warn('Attempt to create relationship with deleted memory', {
+              userId,
+              memoryId,
+              deletedAt
+            });
+            return { memoryId, error: `Memory is deleted (deleted on ${deletedAt})` };
           }
           
           return {

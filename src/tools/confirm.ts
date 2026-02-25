@@ -7,7 +7,7 @@
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { confirmationTokenService, type ConfirmationRequest } from '../services/confirmation-token.service.js';
-import { getWeaviateClient, getMemoryCollectionName, fetchMemoryWithAllProperties } from '../weaviate/client.js';
+import { getWeaviateClient, getMemoryCollectionName, fetchMemoryWithAllProperties, sanitizeUserId } from '../weaviate/client.js';
 import { ensurePublicCollection } from '../weaviate/space-schema.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { logger } from '../utils/logger.js';
@@ -118,6 +118,11 @@ export async function handleConfirm(
     // This is where the generic pattern delegates to action-specific executors
     if (request.action === 'publish_memory') {
       return await executePublishMemory(request, userId);
+    }
+
+    // Handle delete_memory action
+    if (request.action === 'delete_memory') {
+      return await executeDeleteMemory(request, userId);
     }
 
     // Add other action types here as needed
@@ -378,5 +383,64 @@ async function executePublishMemory(
       operation: 'execute publish_memory',
       action: 'publish_memory',
     });
+  }
+}
+
+/**
+ * Execute delete memory action
+ */
+async function executeDeleteMemory(
+  request: ConfirmationRequest & { request_id: string },
+  userId: string
+): Promise<string> {
+  try {
+    logger.info('Executing delete memory action', {
+      function: 'executeDeleteMemory',
+      userId,
+      memoryId: request.payload.memory_id,
+      hasReason: !!request.payload.reason,
+    });
+
+    const { memory_id, reason } = request.payload;
+
+    // Soft delete the memory
+    const client = getWeaviateClient();
+    const collectionName = `Memory_${sanitizeUserId(userId)}`;
+    const collection = client.collections.get(collectionName);
+
+    await collection.data.update({
+      id: memory_id,
+      properties: {
+        deleted_at: new Date().toISOString(),
+        deleted_by: userId,
+        deletion_reason: reason || null,
+      },
+    });
+
+    logger.info('Memory soft-deleted successfully', {
+      function: 'executeDeleteMemory',
+      userId,
+      memoryId: memory_id,
+      deletedAt: new Date().toISOString(),
+    });
+
+    return JSON.stringify(
+      {
+        success: true,
+        memory_id,
+        message: 'Memory deleted successfully',
+      },
+      null,
+      2
+    );
+  } catch (error) {
+    logger.error('Failed to execute delete memory', {
+      function: 'executeDeleteMemory',
+      userId,
+      memoryId: request.payload.memory_id,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    throw error;
   }
 }

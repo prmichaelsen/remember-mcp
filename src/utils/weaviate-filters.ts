@@ -9,6 +9,11 @@ import { Filters } from 'weaviate-client';
 import type { SearchFilters } from '../types/memory.js';
 
 /**
+ * Deleted filter options
+ */
+export type DeletedFilter = 'exclude' | 'include' | 'only';
+
+/**
  * Build filters for searching both memories and relationships
  * Uses OR logic: (doc_type=memory AND memory_filters) OR (doc_type=relationship AND relationship_filters)
  *
@@ -165,7 +170,7 @@ export function buildRelationshipOnlyFilters(
  * @param filters - Array of filter objects
  * @returns Combined filter or undefined
  */
-function combineFiltersWithAnd(filters: any[]): any {
+export function combineFiltersWithAnd(filters: any[]): any {
   // Filter out any undefined/null values
   const validFilters = filters.filter(f => f !== undefined && f !== null);
   
@@ -206,4 +211,26 @@ function combineFiltersWithOr(filters: any[]): any {
  */
 export function hasFilters(filter: any): boolean {
   return filter !== undefined && filter !== null;
+}
+
+/**
+ * Build filter for deleted_at field based on deleted_filter parameter
+ *
+ * @param collection - Weaviate collection instance
+ * @param deletedFilter - Filter mode: 'exclude' (default), 'include', or 'only'
+ * @returns Filter for deleted_at field, or null if no filter needed
+ */
+export function buildDeletedFilter(
+  collection: any,
+  deletedFilter: DeletedFilter = 'exclude'
+): any | null {
+  if (deletedFilter === 'exclude') {
+    // Exclude deleted: deleted_at is null or missing
+    return collection.filter.byProperty('deleted_at').isNull(true);
+  } else if (deletedFilter === 'only') {
+    // Only deleted: deleted_at is not null
+    return collection.filter.byProperty('deleted_at').isNull(false);
+  }
+  // 'include': no filter (show all)
+  return null;
 }

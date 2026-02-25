@@ -163,6 +163,14 @@ export async function handleUpdateMemory(
       throw new Error('Cannot update relationships using this tool. Use remember_update_relationship instead.');
     }
 
+    // Check if memory is deleted
+    if (existingMemory.properties.deleted_at) {
+      const deletedAt = typeof existingMemory.properties.deleted_at === 'string'
+        ? existingMemory.properties.deleted_at
+        : new Date(existingMemory.properties.deleted_at as any).toISOString();
+      throw new Error(`Cannot update deleted memory: ${args.memory_id}. Memory was deleted on ${deletedAt}.`);
+    }
+
     // Build update object with only provided fields
     const updates: Record<string, any> = {};
     const updatedFields: string[] = [];

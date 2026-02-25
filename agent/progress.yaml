@@ -184,20 +184,24 @@ milestones:
       
   - id: M13
     name: Soft Delete System
-    status: not_started
-    progress: 0%
-    started: null
+    status: in_progress
+    progress: 67%
+    started: 2026-02-25
     completed: null
     estimated_weeks: 2-3
-    tasks_completed: 0
+    tasks_completed: 4
     tasks_total: 6
     notes: |
       📋 Highest priority milestone (per user feedback)
-      📋 Implements confirmation flow for deletion
+      ✅ Task 70: Added soft delete schema fields
+      ✅ Task 71: Implemented delete confirmation flow
+      ✅ Task 72: Added deleted_filter to all search tools
+      ✅ Task 73: Updated relationship handling for deleted memories
       📋 Soft delete with deleted_at, deleted_by, deletion_reason fields
       📋 Default filter excludes deleted memories
       📋 deleted_filter parameter: "exclude" | "include" | "only"
-      📋 Prevents relationships with deleted memories
+      ✅ Prevents relationships with deleted memories
+      ✅ Prevents updating deleted memories
       📋 Breaking change: v2.8.0 → v3.0.0
      
   - id: M7
@@ -560,6 +564,73 @@ progress:
   overall: 50%
 
 recent_work:
+  - date: 2026-02-25
+    description: Tasks 70-73 COMPLETED - Soft Delete Core + Validation (67% M13)
+    items:
+      - 🎉 Task 73 COMPLETED: Updated relationship handling for deleted memories
+      - ✅ Added deleted_at validation to remember_create_relationship
+      - ✅ Prevents creating relationships with deleted memories
+      - ✅ Error message includes deletion timestamp
+      - ✅ Added deleted_at validation to remember_update_memory
+      - ✅ Prevents updating deleted memories
+      - ✅ Clear error messages with deletion date
+      - ✅ All 93 tests passing (1 skipped integration test)
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+      - 📋 M13: 67% complete (4/6 tasks done)
+      - 📋 Remaining: Task 74 (unit tests), Task 75 (documentation)
+      
+  - date: 2026-02-25
+    description: Tasks 70-72 COMPLETED - Soft Delete Core Implementation (50% M13)
+    items:
+      - 🎉 Task 72 COMPLETED: Added deleted_filter to all search tools
+      - ✅ Added deleted_filter parameter to remember_search_memory
+      - ✅ Added deleted_filter parameter to remember_query_memory
+      - ✅ Added deleted_filter parameter to remember_find_similar
+      - ✅ Added deleted_filter parameter to remember_search_relationship
+      - ✅ Created buildDeletedFilter helper function
+      - ✅ Exported combineFiltersWithAnd for reuse
+      - ✅ Added DeletedFilter type to memory.ts
+      - ✅ Filter applied at Weaviate query level (not post-processing)
+      - ✅ Default behavior: exclude deleted memories
+      - ✅ Three modes: "exclude", "include", "only"
+      - ✅ All 93 tests passing (1 skipped integration test)
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+      - 📋 M13: 50% complete (3/6 tasks done)
+      
+  - date: 2026-02-25
+    description: Task 71 COMPLETED - Delete Confirmation Flow Implemented
+    items:
+      - ✅ Modified remember_delete_memory to create confirmation token
+      - ✅ Tool now returns preview with content, type, relationship count
+      - ✅ Preview shows which relationships will be orphaned
+      - ✅ Enhanced remember_confirm to handle delete_memory action
+      - ✅ Confirmation sets deleted_at, deleted_by, deletion_reason fields
+      - ✅ Added executeDeleteMemory function to confirm.ts
+      - ✅ Validates memory ownership before deletion
+      - ✅ Prevents deleting already-deleted memories
+      - ✅ Token expires after 5 minutes (reuses existing service)
+      - ✅ Fixed space-schema test (removed deprecated space_id check)
+      - ✅ All 93 tests passing (1 skipped integration test)
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+      - 📋 M13: 33% complete (2/6 tasks done)
+      
+  - date: 2026-02-25
+    description: Task 70 COMPLETED - Added Soft Delete Schema Fields
+    items:
+      - ✅ Added 3 fields to Memory schema (deleted_at, deleted_by, deletion_reason)
+      - ✅ Added same 3 fields to Memory_public schema
+      - ✅ Updated Memory interface in src/types/memory.ts
+      - ✅ Updated SpaceMemory interface in src/types/space-memory.ts
+      - ✅ Added fields to ALL_MEMORY_PROPERTIES constant
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (dual export: server + factory)
+      - ✅ No breaking changes to existing code
+      - ✅ Schema ready for soft delete implementation
+      - 📋 M13: 17% complete (1/6 tasks done)
+      
   - date: 2026-02-25
     description: ACP Initialization Complete - Full Project Context Loaded
     items:

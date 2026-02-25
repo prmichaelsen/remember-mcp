@@ -1,26 +1,32 @@
 /**
  * remember_delete_memory tool
- * Delete a memory from the user's collection
+ * Request to delete a memory (requires confirmation)
  */
 
-import { getMemoryCollection } from '../weaviate/schema.js';
+import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { Filters } from 'weaviate-client';
+import { getWeaviateClient, sanitizeUserId, fetchMemoryWithAllProperties } from '../weaviate/client.js';
+import { confirmationTokenService } from '../services/confirmation-token.service.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
 
 /**
  * Tool definition for remember_delete_memory
  */
-export const deleteMemoryTool = {
+export const deleteMemoryTool: Tool = {
   name: 'remember_delete_memory',
-  description: `Delete a memory from your collection.
+  description: `Request to delete a memory. Requires confirmation via remember_confirm.
   
-  Optionally delete connected relationships as well.
-  This action cannot be undone.
-  
-  Examples:
-  - "Delete that old camping note"
-  - "Remove the recipe I saved yesterday"
-  `,
+⚠️ **IMPORTANT**: This is a two-step process:
+1. Call remember_delete_memory to request deletion (returns token)
+2. User must confirm via remember_confirm with the token
+
+The memory will be soft-deleted (marked as deleted but not removed from database).
+
+Examples:
+- "Delete that old camping note"
+- "Remove the recipe I saved yesterday"
+`,
   inputSchema: {
     type: 'object',
     properties: {
@@ -28,10 +34,9 @@ export const deleteMemoryTool = {
         type: 'string',
         description: 'ID of the memory to delete',
       },
-      delete_relationships: {
-        type: 'boolean',
-        description: 'Also delete connected relationships. Default: false',
-        default: false,
+      reason: {
+        type: 'string',
+        description: 'Optional reason for deletion',
       },
     },
     required: ['memory_id'],
@@ -43,43 +48,39 @@ export const deleteMemoryTool = {
  */
 export interface DeleteMemoryArgs {
   memory_id: string;
-  delete_relationships?: boolean;
-}
-
-/**
- * Delete memory result
- */
-export interface DeleteMemoryResult {
-  memory_id: string;
-  deleted: boolean;
-  relationships_deleted?: number;
-  message: string;
+  reason?: string;
 }
 
 /**
  * Handle remember_delete_memory tool
+ * Creates confirmation token and returns preview
  */
 export async function handleDeleteMemory(
   args: DeleteMemoryArgs,
   userId: string
 ): Promise<string> {
   try {
-    logger.info('Deleting memory', { userId, memoryId: args.memory_id });
-
-    const collection = getMemoryCollection(userId);
-
-    // Get memory to verify ownership and get relationships
-    const memory = await collection.query.fetchObjectById(args.memory_id, {
-      returnProperties: ['user_id', 'doc_type', 'relationships'],
+    logger.info('Requesting memory deletion', { 
+      userId, 
+      memoryId: args.memory_id,
+      hasReason: !!args.reason,
     });
 
+    const { memory_id, reason } = args;
+    const client = getWeaviateClient();
+    const collectionName = `Memory_${sanitizeUserId(userId)}`;
+    const collection = client.collections.get(collectionName);
+
+    // Fetch memory to verify ownership and get preview
+    const memory = await fetchMemoryWithAllProperties(collection, memory_id);
+
     if (!memory) {
-      throw new Error(`Memory not found: ${args.memory_id}`);
+      throw new Error(`Memory not found: ${memory_id}`);
     }
 
     // Verify ownership
     if (memory.properties.user_id !== userId) {
-      throw new Error('Unauthorized: Cannot delete another user\'s memory');
+      throw new Error(`Cannot delete memory: not owned by user ${userId}`);
     }
 
     // Verify it's a memory (not a relationship)
@@ -87,46 +88,73 @@ export async function handleDeleteMemory(
       throw new Error('Cannot delete relationships using this tool. Use remember_delete_relationship instead.');
     }
 
-    let relationshipsDeleted = 0;
-
-    // Delete connected relationships if requested
-    if (args.delete_relationships && memory.properties.relationships) {
-      const relationshipIds = memory.properties.relationships as string[];
-      
-      for (const relId of relationshipIds) {
-        try {
-          await collection.data.deleteById(relId);
-          relationshipsDeleted++;
-        } catch (error) {
-          logger.warn(`Failed to delete relationship ${relId}:`, error);
-        }
-      }
+    // Check if already deleted
+    if (memory.properties.deleted_at) {
+      throw new Error(`Memory ${memory_id} is already deleted`);
     }
 
-    // Delete the memory
-    await collection.data.deleteById(args.memory_id);
-
-    logger.info('Memory deleted successfully', { 
-      userId, 
-      memoryId: args.memory_id,
-      relationshipsDeleted 
+    // Find relationships that will be orphaned
+    const relationshipsResult = await collection.query.fetchObjects({
+      filters: Filters.and(
+        collection.filter.byProperty('doc_type').equal('relationship'),
+        collection.filter.byProperty('memory_ids').containsAny([memory_id])
+      ),
+      limit: 100,
     });
 
-    const result: DeleteMemoryResult = {
-      memory_id: args.memory_id,
-      deleted: true,
-      relationships_deleted: relationshipsDeleted,
-      message: `Memory deleted successfully${relationshipsDeleted > 0 ? ` (${relationshipsDeleted} relationships also deleted)` : ''}`,
-    };
+    const orphanedRelationships = relationshipsResult.objects.map(r => r.uuid);
 
-    return JSON.stringify(result, null, 2);
+    logger.info('Found relationships to orphan', {
+      userId,
+      memoryId: memory_id,
+      relationshipCount: orphanedRelationships.length,
+    });
+
+    // Create confirmation token
+    const { requestId, token } = await confirmationTokenService.createRequest(
+      userId,
+      'delete_memory',
+      {
+        memory_id,
+        reason: reason || null,
+      }
+    );
+
+    // Calculate expiry time (5 minutes from now)
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    logger.info('Delete confirmation token created', {
+      userId,
+      memoryId: memory_id,
+      requestId,
+      token,
+      expiresAt: expiresAt.toISOString(),
+    });
+
+    // Return token and preview
+    return JSON.stringify(
+      {
+        success: true,
+        token,
+        expires_at: expiresAt.toISOString(),
+        preview: {
+          memory_id,
+          content: memory.properties.content?.substring(0, 200) + (memory.properties.content?.length > 200 ? '...' : ''),
+          type: memory.properties.type,
+          relationships_count: orphanedRelationships.length,
+          will_orphan: orphanedRelationships,
+        },
+        message: `Deletion requested. Use remember_confirm with token to complete deletion. Token expires in 5 minutes.`,
+      },
+      null,
+      2
+    );
   } catch (error) {
     handleToolError(error, {
       toolName: 'remember_delete_memory',
-      operation: 'delete memory',
       userId,
+      operation: 'request delete',
       memoryId: args.memory_id,
-      deleteRelationships: args.delete_relationships,
     });
   }
 }

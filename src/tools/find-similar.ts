@@ -3,10 +3,11 @@
  * Find similar memories using vector similarity search
  */
 
-import type { Memory } from '../types/memory.js';
+import type { Memory, DeletedFilter } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
+import { buildDeletedFilter } from '../utils/weaviate-filters.js';
 
 /**
  * Tool definition for remember_find_similar
@@ -54,6 +55,12 @@ export const findSimilarTool = {
         description: 'Include relationships in results. Default: false',
         default: false,
       },
+      deleted_filter: {
+        type: 'string',
+        enum: ['exclude', 'include', 'only'],
+        default: 'exclude',
+        description: 'Filter deleted memories: "exclude" (default, hide deleted), "include" (show all), "only" (show only deleted)',
+      },
     },
   },
 };
@@ -67,6 +74,7 @@ export interface FindSimilarArgs {
   limit?: number;
   min_similarity?: number;
   include_relationships?: boolean;
+  deleted_filter?: DeletedFilter;
 }
 
 /**
@@ -112,6 +120,9 @@ export async function handleFindSimilar(
     const limit = args.limit ?? 10;
     const minSimilarity = args.min_similarity ?? 0.7;
 
+    // Build deleted filter
+    const deletedFilter = buildDeletedFilter(collection, args.deleted_filter || 'exclude');
+
     let results: any;
 
     if (args.memory_id) {
@@ -136,21 +147,35 @@ export async function handleFindSimilar(
       }
 
       // Find similar using nearObject
-      results = await collection.query.nearObject(args.memory_id, {
+      const searchOptions: any = {
         limit: limit + 1, // +1 to exclude the source memory itself
         distance: 1 - minSimilarity, // Convert similarity to distance
         returnMetadata: ['distance'],
-      });
+      };
+
+      // Add deleted filter if present
+      if (deletedFilter) {
+        searchOptions.filters = deletedFilter;
+      }
+
+      results = await collection.query.nearObject(args.memory_id, searchOptions);
 
       // Filter out the source memory
       results.objects = results.objects.filter((obj: any) => obj.uuid !== args.memory_id);
     } else {
       // Find similar to text
-      results = await collection.query.nearText(args.text!, {
+      const searchOptions: any = {
         limit: limit,
         distance: 1 - minSimilarity,
         returnMetadata: ['distance'],
-      });
+      };
+
+      // Add deleted filter if present
+      if (deletedFilter) {
+        searchOptions.filters = deletedFilter;
+      }
+
+      results = await collection.query.nearText(args.text!, searchOptions);
     }
 
     // Filter to only memories (not relationships) unless requested

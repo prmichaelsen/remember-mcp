@@ -196,6 +196,11 @@ export interface Memory {
   parent_id?: string | null; // ID of parent memory or comment (null for top-level)
   thread_root_id?: string | null; // Root memory ID for fetching entire thread (null for top-level)
   moderation_flags?: string[]; // Per-space moderation flags (format: "{space_id}:{flag_type}")
+
+  // Soft Delete Fields
+  deleted_at?: Date | null; // Timestamp when memory was soft-deleted (null = not deleted)
+  deleted_by?: string; // User ID who deleted the memory
+  deletion_reason?: string; // Optional reason for deletion
 }
 
 /**
@@ -260,6 +265,11 @@ export interface SearchFilters {
 }
 
 /**
+ * Deleted filter type
+ */
+export type DeletedFilter = 'exclude' | 'include' | 'only';
+
+/**
  * Search options
  */
 export interface SearchOptions {
@@ -267,6 +277,7 @@ export interface SearchOptions {
   alpha?: number; // 0-1, balance between semantic (1.0) and keyword (0.0)
   filters?: SearchFilters;
   include_relationships?: boolean;
+  deleted_filter?: DeletedFilter;
   limit?: number;
   offset?: number;
 }

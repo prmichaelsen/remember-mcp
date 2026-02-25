@@ -268,6 +268,23 @@ export async function createMemoryCollection(userId: string): Promise<void> {
         dataType: 'text[]' as any,
         description: 'Per-space moderation flags (format: "{space_id}:{flag_type}")',
       },
+
+      // Soft delete fields
+      {
+        name: 'deleted_at',
+        dataType: 'date' as any,
+        description: 'Timestamp when memory was soft-deleted (null = not deleted)',
+      },
+      {
+        name: 'deleted_by',
+        dataType: 'text' as any,
+        description: 'User ID who deleted the memory',
+      },
+      {
+        name: 'deletion_reason',
+        dataType: 'text' as any,
+        description: 'Optional reason for deletion',
+      },
     ],
   });
 

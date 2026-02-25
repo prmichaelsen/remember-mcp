@@ -218,6 +218,11 @@ export const ALL_MEMORY_PROPERTIES = [
   'published_at',
   'discovery_count',
   'space_memory_id',
+  
+  // Soft delete fields
+  'deleted_at',
+  'deleted_by',
+  'deletion_reason',
 ] as const;
 
 /**

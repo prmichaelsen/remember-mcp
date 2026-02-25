@@ -122,13 +122,16 @@ describe('Space Schema Utilities', () => {
       
       // Check for space-specific properties
       const propertyNames = createCall.properties.map((p: any) => p.name);
-      expect(propertyNames).toContain('spaces'); // ✅ New array field
-      expect(propertyNames).toContain('space_id');
+      expect(propertyNames).toContain('spaces'); // ✅ Multi-space array field
       expect(propertyNames).toContain('author_id');
       expect(propertyNames).toContain('ghost_id');
       expect(propertyNames).toContain('published_at');
       expect(propertyNames).toContain('discovery_count');
       expect(propertyNames).toContain('attribution');
+      // Soft delete fields
+      expect(propertyNames).toContain('deleted_at');
+      expect(propertyNames).toContain('deleted_by');
+      expect(propertyNames).toContain('deletion_reason');
     });
   });
 

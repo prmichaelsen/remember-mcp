@@ -3,11 +3,11 @@
  * RAG (Retrieval-Augmented Generation) queries with natural language
  */
 
-import type { Memory, SearchFilters } from '../types/memory.js';
+import type { Memory, SearchFilters, DeletedFilter } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
-import { buildCombinedSearchFilters } from '../utils/weaviate-filters.js';
+import { buildCombinedSearchFilters, buildDeletedFilter, combineFiltersWithAnd } from '../utils/weaviate-filters.js';
 
 /**
  * Tool definition for remember_query_memory
@@ -113,6 +113,12 @@ export const queryMemoryTool = {
         enum: ['detailed', 'compact'],
         default: 'detailed',
       },
+      deleted_filter: {
+        type: 'string',
+        enum: ['exclude', 'include', 'only'],
+        default: 'exclude',
+        description: 'Filter deleted memories: "exclude" (default, hide deleted), "include" (show all), "only" (show only deleted)',
+      },
     },
     required: ['query'],
   },
@@ -128,6 +134,7 @@ export interface QueryMemoryArgs {
   filters?: SearchFilters;
   include_context?: boolean;
   format?: 'detailed' | 'compact';
+  deleted_filter?: DeletedFilter;
 }
 
 /**
@@ -169,8 +176,14 @@ export async function handleQueryMemory(
     const includeContext = args.include_context ?? true;
     const format = args.format ?? 'detailed';
 
+    // Build deleted filter
+    const deletedFilter = buildDeletedFilter(collection, args.deleted_filter || 'exclude');
+
     // Build filters using v3 API - search both memories and relationships
-    const filters = buildCombinedSearchFilters(collection, args.filters);
+    const searchFilters = buildCombinedSearchFilters(collection, args.filters);
+
+    // Combine deleted filter with search filters
+    const combinedFilters = combineFiltersWithAnd([deletedFilter, searchFilters].filter(f => f !== null));
 
     // Build search options
     const searchOptions: any = {
@@ -180,8 +193,8 @@ export async function handleQueryMemory(
     };
 
     // Add filters if present
-    if (filters) {
-      searchOptions.filters = filters;
+    if (combinedFilters) {
+      searchOptions.filters = combinedFilters;
     }
 
     // Perform semantic search using nearText

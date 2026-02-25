@@ -4,10 +4,11 @@
  */
 
 import { Filters } from 'weaviate-client';
-import type { Relationship } from '../types/memory.js';
+import type { Relationship, DeletedFilter } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
+import { buildDeletedFilter, combineFiltersWithAnd } from '../utils/weaviate-filters.js';
 
 /**
  * Tool definition for remember_search_relationship
@@ -65,6 +66,12 @@ export const searchRelationshipTool = {
         description: 'Offset for pagination (default: 0)',
         minimum: 0,
       },
+      deleted_filter: {
+        type: 'string',
+        enum: ['exclude', 'include', 'only'],
+        default: 'exclude',
+        description: 'Filter deleted memories: "exclude" (default, hide deleted), "include" (show all), "only" (show only deleted)',
+      },
     },
     required: ['query'],
   },
@@ -81,6 +88,7 @@ export interface SearchRelationshipArgs {
   tags?: string[];
   limit?: number;
   offset?: number;
+  deleted_filter?: DeletedFilter;
 }
 
 /**
@@ -112,8 +120,16 @@ export async function handleSearchRelationship(
     const limit = args.limit ?? 10;
     const offset = args.offset ?? 0;
 
+    // Build deleted filter
+    const deletedFilter = buildDeletedFilter(collection, args.deleted_filter || 'exclude');
+
     // Build filters using Weaviate v3 API
     const filterList: any[] = [];
+
+    // Add deleted filter if present
+    if (deletedFilter) {
+      filterList.push(deletedFilter);
+    }
 
     // Always filter by doc_type = 'relationship'
     filterList.push(
@@ -156,10 +172,8 @@ export async function handleSearchRelationship(
       );
     }
 
-    // Combine all filters with AND logic
-    const combinedFilters = filterList.length > 1
-      ? Filters.and(...filterList)
-      : filterList[0];
+    // Combine all filters with AND logic using the helper
+    const combinedFilters = combineFiltersWithAnd(filterList);
 
     // Build search options
     const searchOptions: any = {

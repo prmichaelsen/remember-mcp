@@ -7,7 +7,7 @@ import type { Memory, Relationship, SearchOptions, SearchResult, SearchFilters }
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
-import { buildCombinedSearchFilters, buildMemoryOnlyFilters } from '../utils/weaviate-filters.js';
+import { buildCombinedSearchFilters, buildMemoryOnlyFilters, buildDeletedFilter, combineFiltersWithAnd } from '../utils/weaviate-filters.js';
 
 /**
  * Tool definition for remember_search_memory
@@ -111,6 +111,12 @@ export const searchMemoryTool = {
         description: 'Include relationships in results. Default: true (searches both memories and relationships)',
         default: true,
       },
+      deleted_filter: {
+        type: 'string',
+        enum: ['exclude', 'include', 'only'],
+        default: 'exclude',
+        description: 'Filter deleted memories: "exclude" (default, hide deleted), "include" (show all), "only" (show only deleted)',
+      },
     },
     required: ['query'],
   },
@@ -142,11 +148,17 @@ export async function handleSearchMemory(
     const limit = args.limit ?? 10;
     const offset = args.offset ?? 0;
 
+    // Build deleted filter
+    const deletedFilter = buildDeletedFilter(collection, args.deleted_filter || 'exclude');
+
     // Build filters using v3 API
     // Use OR logic to search both memories and relationships
-    const filters = includeRelationships
+    const searchFilters = includeRelationships
       ? buildCombinedSearchFilters(collection, args.filters)
       : buildMemoryOnlyFilters(collection, args.filters);
+
+    // Combine deleted filter with search filters
+    const combinedFilters = combineFiltersWithAnd([deletedFilter, searchFilters].filter(f => f !== null));
 
     // Build search options
     const searchOptions: any = {
@@ -155,15 +167,16 @@ export async function handleSearchMemory(
     };
 
     // Add filters if present
-    if (filters) {
-      searchOptions.filters = filters;
+    if (combinedFilters) {
+      searchOptions.filters = combinedFilters;
     }
 
     // Log the query for debugging
     logger.info('Weaviate query', {
       query: args.query,
       searchOptions: JSON.stringify(searchOptions, null, 2),
-      hasFilters: !!filters,
+      hasFilters: !!combinedFilters,
+      deletedFilter: args.deleted_filter || 'exclude',
     });
 
     // Perform hybrid search with Weaviate v3 API

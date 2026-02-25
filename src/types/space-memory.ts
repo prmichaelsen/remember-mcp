@@ -55,6 +55,11 @@ export interface SpaceMemory extends Omit<Memory, 'user_id' | 'doc_type'> {
    * Always 'space_memory' for space memories
    */
   doc_type: 'space_memory';
+
+  // Soft Delete Fields (inherited from Memory, but explicitly typed here)
+  deleted_at?: Date | null;
+  deleted_by?: string;
+  deletion_reason?: string;
 }
 
 /**
