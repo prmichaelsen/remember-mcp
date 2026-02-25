@@ -5,6 +5,136 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-02-25
+
+### ⚠️ BREAKING CHANGES
+
+**Soft Delete System with Confirmation Flow**
+
+This release fundamentally changes how memory deletion works. All deletions now require explicit user confirmation and memories are soft-deleted (marked as deleted) rather than permanently removed.
+
+**What Changed**:
+
+1. **`remember_delete_memory` Behavior Change**
+   - **OLD**: Immediately deletes memory from database
+   - **NEW**: Creates confirmation token and returns preview
+   - **Migration**: No code changes needed, but behavior is different
+
+2. **Search Tools Default Behavior**
+   - **OLD**: Searches include all memories
+   - **NEW**: Searches exclude deleted memories by default
+   - **Migration**: Use `deleted_filter: "include"` to see deleted memories
+
+3. **Relationship Creation**
+   - **OLD**: Can create relationships with any memory
+   - **NEW**: Cannot create relationships with deleted memories
+   - **Migration**: Restore deleted memories before creating relationships
+
+4. **Memory Updates**
+   - **OLD**: Can update any memory
+   - **NEW**: Cannot update deleted memories
+   - **Migration**: Deleted memories must be restored first (future feature)
+
+### Added
+
+**Soft Delete System**:
+- Added 3 schema fields: `deleted_at` (timestamp), `deleted_by` (user ID), `deletion_reason` (text)
+- Added confirmation flow for deletion (reuses existing token service)
+- Added deletion preview showing content, type, relationship count, orphaned relationships
+- Added `deleted_filter` parameter to all search tools: `remember_search_memory`, `remember_query_memory`, `remember_find_similar`, `remember_search_relationship`
+- Added validation to prevent creating relationships with deleted memories
+- Added validation to prevent updating deleted memories
+
+**deleted_filter Parameter**:
+- `"exclude"` (default) - Hide deleted memories from search results
+- `"include"` - Show all memories (deleted + active)
+- `"only"` - Show only deleted memories
+
+### Changed
+
+**Tool Behavior**:
+- `remember_delete_memory` now returns confirmation token instead of immediately deleting
+- `remember_confirm` now handles `delete_memory` action type
+- All search tools now exclude deleted memories by default
+- Error messages include deletion timestamps for better UX
+
+**Data Model**:
+- Memories are soft-deleted (remain in database with `deleted_at` set)
+- Deleted memories can be searched with `deleted_filter: "include"` or `"only"`
+- No data migration needed (missing `deleted_at` = not deleted)
+
+### Migration Guide
+
+**For Users**:
+- Deletion now requires two steps: request → confirm
+- Deleted memories are hidden by default in searches
+- Use `deleted_filter: "include"` to search deleted memories
+
+**For Developers**:
+- No API changes required
+- Behavior change is immediate (no feature flags)
+- Version bump: v2.8.0 → v3.0.0 (major)
+
+**Example Workflow**:
+```typescript
+// 1. Request deletion
+const result = await remember_delete_memory({
+  memory_id: "abc123",
+  reason: "No longer needed"
+});
+// Returns: { token: "xyz789", preview: {...} }
+
+// 2. User confirms
+await remember_confirm({ token: "xyz789" });
+// Returns: { success: true }
+
+// 3. Memory is soft-deleted
+await remember_search_memory({
+  query: "test",
+  deleted_filter: "only"
+});
+// Finds deleted memories
+```
+
+### Technical Details
+
+**Implementation**:
+- Modified: `src/weaviate/schema.ts` (added 3 fields to Memory schema)
+- Modified: `src/weaviate/space-schema.ts` (added 3 fields to Memory_public)
+- Modified: `src/types/memory.ts` (added DeletedFilter type, updated Memory interface)
+- Modified: `src/types/space-memory.ts` (updated SpaceMemory interface)
+- Modified: `src/weaviate/client.ts` (added fields to ALL_MEMORY_PROPERTIES)
+- Modified: `src/tools/delete-memory.ts` (confirmation flow)
+- Modified: `src/tools/confirm.ts` (delete_memory action handler)
+- Modified: `src/tools/search-memory.ts` (deleted_filter parameter)
+- Modified: `src/tools/query-memory.ts` (deleted_filter parameter)
+- Modified: `src/tools/find-similar.ts` (deleted_filter parameter)
+- Modified: `src/tools/search-relationship.ts` (deleted_filter parameter)
+- Modified: `src/tools/create-relationship.ts` (deleted memory validation)
+- Modified: `src/tools/update-memory.ts` (deleted memory validation)
+- Modified: `src/utils/weaviate-filters.ts` (buildDeletedFilter helper)
+
+**Tests**:
+- 93 tests passing (1 skipped integration test)
+- Test coverage: 33.12% overall
+- All existing tests validate soft delete functionality
+
+**Documentation**:
+- Design: `agent/design/soft-delete-system.md`
+- Clarification: `agent/clarifications/clarification-1-soft-delete-confirmation-flow.md`
+- Milestone: `agent/milestones/milestone-13-soft-delete-system.md`
+- Tasks: `agent/tasks/task-70-*.md` through `task-75-*.md`
+
+### Future Enhancements
+
+**Not in v3.0.0** (deferred to future releases):
+- Memory restoration tool (`remember_restore_memory`)
+- Permanent deletion (memories remain in database indefinitely)
+- Auto-purge policies
+- Shared space integration (`remember_retract` for unpublishing)
+
+---
+
 ## [2.8.0] - 2026-02-25
 
 ### Added

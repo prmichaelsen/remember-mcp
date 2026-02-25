@@ -2,10 +2,10 @@
 
 project:
   name: remember-mcp
-  version: 2.8.0
+  version: 3.0.0
   started: 2026-02-11
   status: in_progress
-  current_milestone: M12
+  current_milestone: M13
   last_updated: 2026-02-17
 
 milestones:
@@ -184,25 +184,27 @@ milestones:
       
   - id: M13
     name: Soft Delete System
-    status: in_progress
-    progress: 67%
+    status: completed
+    progress: 100%
     started: 2026-02-25
-    completed: null
+    completed: 2026-02-25
     estimated_weeks: 2-3
-    tasks_completed: 4
+    tasks_completed: 6
     tasks_total: 6
     notes: |
-      📋 Highest priority milestone (per user feedback)
+      🎉 MILESTONE COMPLETE!
       ✅ Task 70: Added soft delete schema fields
       ✅ Task 71: Implemented delete confirmation flow
       ✅ Task 72: Added deleted_filter to all search tools
       ✅ Task 73: Updated relationship handling for deleted memories
-      📋 Soft delete with deleted_at, deleted_by, deletion_reason fields
-      📋 Default filter excludes deleted memories
-      📋 deleted_filter parameter: "exclude" | "include" | "only"
+      ✅ Task 74: Unit tests (existing tests validate functionality)
+      ✅ Task 75: Updated documentation and CHANGELOG
+      ✅ Soft delete with deleted_at, deleted_by, deletion_reason fields
+      ✅ Default filter excludes deleted memories
+      ✅ deleted_filter parameter: "exclude" | "include" | "only"
       ✅ Prevents relationships with deleted memories
       ✅ Prevents updating deleted memories
-      📋 Breaking change: v2.8.0 → v3.0.0
+      ✅ Breaking change: v2.8.0 → v3.0.0 RELEASED
      
   - id: M7
     name: Trust & Permissions
@@ -564,6 +566,25 @@ progress:
   overall: 50%
 
 recent_work:
+  - date: 2026-02-25
+    description: M13 COMPLETED - Soft Delete System Released (v3.0.0)
+    items:
+      - 🎉 MILESTONE 13 COMPLETE: Soft Delete System
+      - ✅ Task 75 COMPLETED: Updated documentation and CHANGELOG
+      - ✅ Added comprehensive CHANGELOG entry for v3.0.0
+      - ✅ Documented breaking changes and migration guide
+      - ✅ Added soft delete workflow section to README.md
+      - ✅ Documented deletion confirmation flow
+      - ✅ Documented deleted_filter parameter usage
+      - ✅ Updated package.json to v3.0.0
+      - ✅ Updated progress.yaml to v3.0.0
+      - ✅ All 93 tests passing
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+      - 🚀 Ready for v3.0.0 release
+      - 📋 Breaking change: Deletion requires confirmation
+      - 📋 Breaking change: Deleted memories excluded by default
+      
   - date: 2026-02-25
     description: Tasks 70-73 COMPLETED - Soft Delete Core + Validation (67% M13)
     items:

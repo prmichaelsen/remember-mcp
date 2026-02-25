@@ -64,9 +64,10 @@ Multi-tenant memory system MCP server with vector search, relationships, and tru
 ## Features
 
 - **17 MCP Tools**: Complete CRUD for memories, relationships, preferences, and shared spaces
+- **Soft Delete with Recovery**: Safe deletion with confirmation flow and recovery capability
 - **Multi-Tenant**: Per-user isolation with secure data boundaries
 - **Shared Spaces**: Publish memories to shared discovery spaces like "The Void"
-- **Token-Based Confirmation**: Secure two-phase workflow for sensitive operations
+- **Token-Based Confirmation**: Secure two-phase workflow for sensitive operations (publish, delete)
 - **Vector Search**: Semantic + keyword hybrid search with Weaviate
 - **Knowledge Graph**: N-way relationships with bidirectional tracking
 - **RAG Queries**: Natural language queries with context-aware responses
@@ -234,6 +235,99 @@ remember_search_space({
 - `remember_deny` - Cancel any pending action
 - `remember_search_space` - Search shared spaces
 - `remember_query_space` - Ask questions about shared memories
+
+## Safe Deletion with Confirmation
+
+**v3.0.0+**: Deletion now requires confirmation to prevent accidental data loss.
+
+### Deletion Workflow
+
+1. **Request Deletion**: Generate confirmation token
+```typescript
+remember_delete_memory({
+  memory_id: "abc123",
+  reason: "No longer needed"
+})
+
+// Returns:
+{
+  "success": true,
+  "token": "xyz789",
+  "expires_at": "2026-02-25T17:30:00Z",
+  "preview": {
+    "memory_id": "abc123",
+    "content": "My camping trip to Yosemite...",
+    "type": "note",
+    "relationships_count": 3,
+    "will_orphan": ["rel1", "rel2", "rel3"]
+  },
+  "message": "Deletion requested. Use remember_confirm with token..."
+}
+```
+
+2. **User Confirms**: Execute the deletion
+```typescript
+remember_confirm({ token: "xyz789" })
+
+// Returns:
+{
+  "success": true,
+  "memory_id": "abc123",
+  "message": "Memory deleted successfully"
+}
+```
+
+3. **Memory is Soft-Deleted**: Marked as deleted, not removed
+- Memory remains in database with `deleted_at` timestamp
+- Excluded from searches by default
+- Can be searched with `deleted_filter: "include"` or `"only"`
+- Future: restoration tool (not in v3.0.0)
+
+### Searching Deleted Memories
+
+**Default behavior** (exclude deleted):
+```typescript
+remember_search_memory({ query: "camping" })
+// Returns only active memories
+```
+
+**Include deleted memories**:
+```typescript
+remember_search_memory({
+  query: "camping",
+  deleted_filter: "include"
+})
+// Returns both active and deleted memories
+```
+
+**Only deleted memories**:
+```typescript
+remember_search_memory({
+  query: "camping",
+  deleted_filter: "only"
+})
+// Returns only deleted memories
+```
+
+**Applies to all search tools**:
+- `remember_search_memory`
+- `remember_query_memory`
+- `remember_find_similar`
+- `remember_search_relationship`
+
+### Important Notes
+
+**⚠️ Breaking Change (v3.0.0)**:
+- Deletion now requires confirmation (two-step process)
+- Deleted memories excluded from searches by default
+- Cannot create relationships with deleted memories
+- Cannot update deleted memories
+
+**Data Safety**:
+- Deleted memories remain in database (soft delete)
+- No permanent deletion feature
+- Deletion timestamp and reason tracked
+- Future restoration capability planned
 
 ## Debugging
 
