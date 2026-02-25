@@ -181,6 +181,24 @@ milestones:
       ✅ Zero new tools required - reuses existing infrastructure
       ✅ Backward compatible - comments excluded by default
       ✅ Released v2.6.0 with comment system foundation
+      
+  - id: M13
+    name: Soft Delete System
+    status: not_started
+    progress: 0%
+    started: null
+    completed: null
+    estimated_weeks: 2-3
+    tasks_completed: 0
+    tasks_total: 6
+    notes: |
+      📋 Highest priority milestone (per user feedback)
+      📋 Implements confirmation flow for deletion
+      📋 Soft delete with deleted_at, deleted_by, deletion_reason fields
+      📋 Default filter excludes deleted memories
+      📋 deleted_filter parameter: "exclude" | "include" | "only"
+      📋 Prevents relationships with deleted memories
+      📋 Breaking change: v2.8.0 → v3.0.0
      
   - id: M7
     name: Trust & Permissions
