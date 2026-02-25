@@ -65,14 +65,28 @@ get_script_dir() {
 # Source YAML parser
 # Usage: source_yaml_parser
 source_yaml_parser() {
-    local script_dir
-    script_dir=$(get_script_dir)
-    if [ -f "${script_dir}/acp.yaml-parser.sh" ]; then
-        . "${script_dir}/acp.yaml-parser.sh"
-    else
-        echo "${RED}Error: acp.yaml-parser.sh not found${NC}" >&2
-        return 1
+    # Check if already loaded (don't re-source to preserve AST_FILE)
+    if [ -n "${YAML_PARSER_LOADED:-}" ]; then
+        return 0
     fi
+    
+    # Try to find acp.yaml-parser.sh in multiple locations
+    local parser_locations=(
+        "$(dirname "${BASH_SOURCE[0]}")/acp.yaml-parser.sh"
+        "agent/scripts/acp.yaml-parser.sh"
+        "./agent/scripts/acp.yaml-parser.sh"
+        "../agent/scripts/acp.yaml-parser.sh"
+    )
+    
+    for parser_path in "${parser_locations[@]}"; do
+        if [ -f "$parser_path" ]; then
+            . "$parser_path"
+            return 0
+        fi
+    done
+    
+    echo "${RED}Error: acp.yaml-parser.sh not found${NC}" >&2
+    return 1
 }
 
 # Initialize manifest file if it doesn't exist
@@ -317,6 +331,12 @@ init_global_acp() {
         init_global_manifest
     fi
     
+    # Initialize projects registry
+    if [ ! -f "$HOME/.acp/projects.yaml" ]; then
+        init_projects_registry
+        echo "${GREEN}✓${NC} Initialized projects registry"
+    fi
+    
     # Append global installation notes to AGENT.md
     if [ -f "$global_dir/AGENT.md" ] && ! grep -q "## Global Installation" "$global_dir/AGENT.md"; then
         cat >> "$global_dir/AGENT.md" << 'EOF'
@@ -553,6 +573,7 @@ add_file_to_manifest() {
     local filename="$3"
     local file_version="$4"
     local file_path="$5"
+    local package_yaml_path="$6"  # Optional: path to package.yaml for experimental checking
     local timestamp
     timestamp=$(get_timestamp)
     
@@ -565,6 +586,12 @@ add_file_to_manifest() {
     if [ $? -ne 0 ]; then
         warn "Failed to calculate checksum for $filename"
         checksum="unknown"
+    fi
+    
+    # Check if experimental (if package.yaml provided)
+    local is_experimental=""
+    if [ -n "$package_yaml_path" ] && [ -f "$package_yaml_path" ]; then
+        is_experimental=$(grep -A 1000 "^  ${file_type}:" "$package_yaml_path" 2>/dev/null | grep -A 2 "name: ${filename}" | grep "^ *experimental: true" | grep -v "^[[:space:]]*#" | head -1)
     fi
     
     # Source YAML parser
@@ -588,6 +615,11 @@ add_file_to_manifest() {
     yaml_object_set "$obj_node" "installed_at" "$timestamp" >/dev/null
     yaml_object_set "$obj_node" "modified" "false" >/dev/null
     yaml_object_set "$obj_node" "checksum" "sha256:$checksum" >/dev/null
+    
+    # Add experimental field if marked
+    if [ -n "$is_experimental" ]; then
+        yaml_object_set "$obj_node" "experimental" "true" >/dev/null
+    fi
     
     # Write back
     yaml_write "$manifest"
@@ -1358,5 +1390,147 @@ EOF
     chmod +x "$hook_file"
     
     echo "${GREEN}✓${NC} Installed pre-commit hook"
-    return 0
+}
+
+# ============================================================================
+# Project Registry Functions
+# ============================================================================
+
+# Get path to projects registry
+# Usage: registry_path=$(get_projects_registry_path)
+get_projects_registry_path() {
+    echo "$HOME/.acp/projects.yaml"
+}
+
+# Check if projects registry exists
+# Usage: if projects_registry_exists; then ...
+projects_registry_exists() {
+    [ -f "$(get_projects_registry_path)" ]
+}
+
+# Initialize projects registry
+# Usage: init_projects_registry
+init_projects_registry() {
+    local registry_path
+    registry_path=$(get_projects_registry_path)
+    
+    if [ -f "$registry_path" ]; then
+        return 0  # Already exists
+    fi
+    
+    # Ensure ~/.acp/ exists
+    mkdir -p "$HOME/.acp"
+    
+    # Get timestamp
+    local timestamp
+    timestamp=$(get_timestamp)
+    
+    # Create registry with timestamp
+    cat > "$registry_path" << EOF
+# ACP Project Registry
+current_project: null
+projects:
+registry_version: 1.0.0
+last_updated: ${timestamp}
+EOF
+}
+
+# Register project in registry
+# Usage: register_project "project-name" "/path/to/project" "project-type" "description"
+# NOTE: Caller must source acp.yaml-parser.sh before calling this function
+register_project() {
+    local project_name="$1"
+    local project_path="$2"
+    local project_type="$3"
+    local project_description="$4"
+    local registry_path
+    registry_path=$(get_projects_registry_path)
+    
+    # Initialize registry if needed
+    if ! projects_registry_exists; then
+        init_projects_registry
+    fi
+    
+    # Source YAML parser
+    source_yaml_parser
+    
+    # Get timestamp
+    local timestamp
+    timestamp=$(get_timestamp)
+    
+    # Parse registry
+    yaml_parse "$registry_path"
+    
+    # Add project entry (yaml_set now creates missing nodes!)
+    yaml_set "projects.${project_name}.path" "$project_path"
+    yaml_set "projects.${project_name}.type" "$project_type"
+    yaml_set "projects.${project_name}.description" "$project_description"
+    yaml_set "projects.${project_name}.created" "$timestamp"
+    yaml_set "projects.${project_name}.last_modified" "$timestamp"
+    yaml_set "projects.${project_name}.last_accessed" "$timestamp"
+    yaml_set "projects.${project_name}.status" "active"
+    
+    # Set as current project if first project
+    local current
+    current=$(yaml_get "$registry_path" "current_project" 2>/dev/null || echo "")
+    current=$(echo "$current" | sed "s/^['\"]//; s/['\"]$//")
+    if [ -z "$current" ] || [ "$current" = "null" ]; then
+        yaml_set "current_project" "$project_name"
+    fi
+    
+    # Update registry timestamp
+    yaml_set "last_updated" "$timestamp"
+    
+    # Write changes
+    yaml_write "$registry_path"
+}
+
+# Check if project exists in registry
+# Usage: if project_exists "project-name"; then ...
+project_exists() {
+    local project_name="$1"
+    local registry_path
+    registry_path=$(get_projects_registry_path)
+    
+    if ! projects_registry_exists; then
+        return 1
+    fi
+    
+    grep -q "^  ${project_name}:" "$registry_path"
+}
+
+# Get current project name
+# Usage: current=$(get_current_project)
+get_current_project() {
+    local registry_path
+    registry_path=$(get_projects_registry_path)
+    
+    if ! projects_registry_exists; then
+        return 1
+    fi
+    
+    local current
+    current=$(grep "^current_project:" "$registry_path" | awk '{print $2}')
+    if [ -n "$current" ] && [ "$current" != "null" ]; then
+        echo "$current"
+    fi
+}
+
+# Get current project path
+# Usage: path=$(get_current_project_path)
+get_current_project_path() {
+    local current
+    current=$(get_current_project)
+    
+    if [ -z "$current" ]; then
+        pwd  # Fallback to current directory
+        return 0
+    fi
+    
+    local registry_path
+    registry_path=$(get_projects_registry_path)
+    local path
+    path=$(awk "/^  ${current}:/,/^  [a-z]/ {if (/^    path:/) print \$2}" "$registry_path")
+    # Expand ~ to HOME
+    echo "$path" | sed "s|^~|$HOME|"
 }

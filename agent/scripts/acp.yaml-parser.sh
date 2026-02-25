@@ -8,9 +8,13 @@
 # GLOBAL STATE
 # ============================================================================
 
-AST_FILE=""
-AST_ROOT_ID=0
-YAML_CURRENT_FILE=""
+# Prevent variable reset on re-sourcing
+if [ -z "${YAML_PARSER_LOADED:-}" ]; then
+    YAML_PARSER_LOADED=1
+    AST_FILE=""
+    AST_ROOT_ID=0
+    YAML_CURRENT_FILE=""
+fi
 
 # ============================================================================
 # UTILITY FUNCTIONS
@@ -310,7 +314,88 @@ yaml_query() {
         fi
     done
     
-    get_node_field "$current_node" 4
+    # Check node type
+    local node_type
+    node_type=$(get_node_field "$current_node" 2)
+    
+    # For map or array nodes, return children keys in YAML format
+    if [ "$node_type" = "map" ] || [ "$node_type" = "array" ]; then
+        local children
+        children=$(get_node_field "$current_node" 6)
+        
+        if [ -n "$children" ]; then
+            # Split by comma and iterate
+            local IFS=','
+            for child_id in $children; do
+                local child_key
+                child_key=$(get_node_field "$child_id" 3)
+                echo "${child_key}:"
+            done
+        fi
+    else
+        # For scalar nodes, return the value
+        get_node_field "$current_node" 4
+    fi
+}
+
+# Create a new node in the AST (used by yaml_set for auto-creation)
+# Usage: node_id=$(create_node_and_link "type" "key" "value" "parent_id")
+# Returns: new node ID
+# NOTE: This version adds the node as a child of parent (for yaml_set)
+create_node_and_link() {
+    local type="$1"
+    local key="$2"
+    local value="$3"
+    local parent_id="$4"
+    
+    # Get next node ID
+    local next_id
+    next_id=$(wc -l < "$AST_FILE")
+    
+    # Create node: id|type|key|value|parent|children
+    echo "${next_id}|${type}|${key}|${value}|${parent_id}|" >> "$AST_FILE"
+    
+    # Add this node to parent's children list
+    if [ "$parent_id" != "-1" ]; then
+        # Read current parent node
+        local parent_line
+        parent_line=$(sed -n "$((parent_id + 1))p" "$AST_FILE")
+        
+        # Extract parent fields
+        local parent_children
+        parent_children=$(echo "$parent_line" | cut -d'|' -f6)
+        
+        # Append new child ID
+        if [ -z "$parent_children" ]; then
+            parent_children="$next_id"
+        else
+            parent_children="${parent_children},${next_id}"
+        fi
+        
+        # Update parent node with new children list
+        local parent_prefix
+        parent_prefix=$(echo "$parent_line" | cut -d'|' -f1-5)
+        sed -i "$((parent_id + 1))s@.*@${parent_prefix}|${parent_children}@" "$AST_FILE"
+    fi
+    
+    echo "$next_id"
+}
+
+# Original create_node for backward compatibility (does NOT link to parent)
+create_node() {
+    local type="$1"
+    local key="$2"
+    local value="$3"
+    local parent_id="$4"
+    
+    # Get next node ID
+    local next_id
+    next_id=$(wc -l < "$AST_FILE")
+    
+    # Create node: id|type|key|value|parent|children
+    echo "${next_id}|${type}|${key}|${value}|${parent_id}|" >> "$AST_FILE"
+    
+    echo "$next_id"
 }
 
 yaml_set() {
@@ -326,23 +411,55 @@ yaml_set() {
     
     local current_node="$AST_ROOT_ID"
     local IFS='.'
-    for segment in $path; do
+    local segments=($path)
+    local last_index=$((${#segments[@]} - 1))
+    
+    # Traverse path, creating missing nodes
+    local i=0
+    for segment in "${segments[@]}"; do
+        local is_last=$((i == last_index))
+        
         if echo "$segment" | grep -q '\['; then
             local key index
             key=$(echo "$segment" | sed 's/\[.*//')
             index=$(echo "$segment" | sed 's/.*\[\([0-9]*\)\].*/\1/')
             
-            current_node=$(find_child_by_key "$current_node" "$key")
-            [ -z "$current_node" ] && return 1
+            local child_node
+            child_node=$(find_child_by_key "$current_node" "$key")
+            if [ -z "$child_node" ]; then
+                # Create missing array node
+                child_node=$(create_node_and_link "array" "$key" "" "$current_node")
+            fi
+            current_node="$child_node"
             
-            current_node=$(find_child_by_index "$current_node" "$index")
-            [ -z "$current_node" ] && return 1
+            child_node=$(find_child_by_index "$current_node" "$index")
+            if [ -z "$child_node" ]; then
+                echo "Error: Cannot create array index $index (not supported yet)" >&2
+                return 1
+            fi
+            current_node="$child_node"
         else
-            current_node=$(find_child_by_key "$current_node" "$segment")
-            [ -z "$current_node" ] && return 1
+            local child_node
+            child_node=$(find_child_by_key "$current_node" "$segment")
+            
+            if [ -z "$child_node" ]; then
+                # Create missing node
+                if [ "$is_last" -eq 1 ]; then
+                    # Last segment - create scalar with value
+                    child_node=$(create_node_and_link "scalar" "$segment" "$new_value" "$current_node")
+                    return 0
+                else
+                    # Intermediate segment - create map
+                    child_node=$(create_node_and_link "map" "$segment" "" "$current_node")
+                fi
+            fi
+            current_node="$child_node"
         fi
+        
+        i=$((i + 1))
     done
     
+    # Update existing node value
     local node
     node=$(get_node "$current_node")
     
@@ -700,7 +817,7 @@ yaml_object_set() {
 trap cleanup_ast EXIT INT TERM
 
 # Only run main if script is executed directly (not sourced)
-if [ -n "$1" ] && [ "$1" != "-" ] && [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+if [ -n "${1:-}" ] && [ "${1:-}" != "-" ] && [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     case "$1" in
         parse)
             yaml_parse "$2"

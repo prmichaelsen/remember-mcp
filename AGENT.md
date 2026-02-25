@@ -1,7 +1,7 @@
 # Agent Context Protocol (ACP)
 
 **Also Known As**: The Agent Directory Pattern
-**Version**: 3.9.0
+**Version**: 3.14.0
 **Created**: 2026-02-11
 **Status**: Production Pattern
 
@@ -720,6 +720,83 @@ When working in any project, you can discover globally installed packages:
 
 ---
 
+## Experimental Features
+
+ACP supports marking features as "experimental" to enable safe innovation without affecting stable installations.
+
+### What are Experimental Features?
+
+Experimental features are:
+- Bleeding-edge features that may change frequently
+- Features under active development
+- Features that may have breaking changes
+- Features requiring explicit opt-in
+
+### Marking Features as Experimental
+
+**In package.yaml**:
+```yaml
+contents:
+  commands:
+    - name: stable-command.md
+      description: A stable command
+    
+    - name: experimental-command.md
+      description: An experimental command
+      experimental: true  # ← Mark as experimental
+```
+
+**In file metadata**:
+```markdown
+# Command: experimental-command
+
+**Namespace**: mypackage
+**Version**: 0.1.0
+**Status**: Experimental  # ← Mark as experimental
+```
+
+### Installing Experimental Features
+
+```bash
+# Install only stable features (default)
+@acp.package-install --repo https://github.com/user/package.git
+
+# Install all features including experimental
+@acp.package-install --repo https://github.com/user/package.git --experimental
+```
+
+### Updating Experimental Features
+
+Once installed, experimental features update normally:
+```bash
+@acp.package-update package-name  # Updates experimental features if already installed
+```
+
+### Graduating Features
+
+To graduate a feature from experimental to stable:
+1. Remove `experimental: true` from package.yaml
+2. Change `**Status**: Experimental` to `**Status**: Active` in file
+3. Bump version to 1.0.0 (semantic versioning)
+4. Update CHANGELOG.md noting the graduation
+
+### Validation
+
+Validation ensures consistency:
+```bash
+@acp.package-validate  # Checks experimental marking is synchronized
+```
+
+### Best Practices
+
+1. **Use sparingly** - Only mark truly experimental features
+2. **Document risks** - Explain what might change in file documentation
+3. **Graduate promptly** - Move to stable once proven
+4. **Version appropriately** - Use 0.x.x versions for experimental
+5. **Communicate clearly** - Note experimental status in README.md
+
+---
+
 ## Sample Prompts for Using ACP
 
 ### Initialize Prompt
@@ -822,22 +899,34 @@ Run ./agent/scripts/unacp.install.sh to remove all ACP files (agent/ directory a
    - What milestone is current
    - What task is next
 
-2. **Read requirements.md**
+2. **Check for installed packages**
+   - Read `agent/manifest.yaml` to see what packages are installed locally
+   - Check `~/.acp/agent/manifest.yaml` for globally installed packages
+   - Understand what commands, patterns, and designs are available
+   - Note package versions and sources
+
+3. **Check project registry** (if in global workspace)
+   - Read `~/.acp/projects.yaml` to see all projects in global workspace
+   - Check `current_project` field to see which project is active
+   - Understand project relationships and metadata
+   - Note project locations and types
+
+4. **Read requirements.md**
    - Understand project goals
    - Learn constraints
    - Know success criteria
 
-3. **Review current milestone**
+5. **Review current milestone**
    - Understand current phase
    - Know deliverables
    - Check success criteria
 
-4. **Read next task**
+6. **Read next task**
    - Understand what to do
    - Follow steps
    - Verify completion
 
-5. **Check relevant patterns**
+7. **Check relevant patterns**
    - Learn coding standards
    - Understand architectural patterns
    - Follow best practices

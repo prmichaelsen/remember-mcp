@@ -9,6 +9,7 @@
 **Created**: 2026-02-21
 **Last Updated**: 2026-02-21
 **Status**: Active
+**Scripts**: acp.package-validate.sh, acp.common.sh, acp.yaml-parser.sh, acp.yaml-validate.sh
 
 ---
 
@@ -278,6 +279,10 @@ Show validation results to user.
 ✅ Namespace Consistency
   ✓ All command files use 'firebase' namespace
   ✓ All pattern files use 'firebase' namespace
+
+✅ Experimental Features
+  ✓ experimental-command.md: Experimental marking consistent
+  ✓ All experimental features marked consistently
 
 ✅ Git Repository
   ✓ Git repository initialized

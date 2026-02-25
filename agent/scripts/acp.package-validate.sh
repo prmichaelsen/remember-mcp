@@ -706,6 +706,192 @@ display_fixable_issues() {
     fi
 }
 
+# Validate experimental feature consistency
+validate_experimental_consistency() {
+    echo ""
+    echo "${BOLD}Experimental Features${NC}"
+    
+    local errors=0
+    local checked=0
+    
+    # Check each content type
+    for type in commands patterns designs scripts; do
+        # Determine directory path
+        local dir_path
+        case "$type" in
+            designs)
+                dir_path="agent/design"
+                ;;
+            *)
+                dir_path="agent/${type}"
+                ;;
+        esac
+        
+        # Skip if directory doesn't exist
+        if [ ! -d "$dir_path" ]; then
+            continue
+        fi
+        
+        # Get all .md or .sh files in directory
+        local files
+        if [ "$type" = "scripts" ]; then
+            files=$(find "$dir_path" -maxdepth 1 -name "*.sh" -type f 2>/dev/null | xargs -r basename -a)
+        else
+            files=$(find "$dir_path" -maxdepth 1 -name "*.md" -type f 2>/dev/null | xargs -r basename -a)
+        fi
+        
+        # Check each file
+        for file_name in $files; do
+            if [ -z "$file_name" ]; then
+                continue
+            fi
+            
+            local file_path="${dir_path}/${file_name}"
+            
+            # Check if file is in package.yaml contents
+            local in_contents=$(grep -A 1000 "^  ${type}:" package.yaml 2>/dev/null | grep -A 1 "name: ${file_name}" | head -1)
+            if [ -z "$in_contents" ]; then
+                continue  # File not in package.yaml, skip
+            fi
+            
+            # Check if marked experimental in package.yaml (exclude comments)
+            local is_experimental=$(grep -A 1000 "^  ${type}:" package.yaml 2>/dev/null | grep -A 2 "name: ${file_name}" | grep "^ *experimental: true" | grep -v "^[[:space:]]*#" | head -1)
+            
+            # Check if file has Status: Experimental
+            local has_experimental_status=$(grep "^\*\*Status\*\*: Experimental" "$file_path" 2>/dev/null)
+            
+            if [ -n "$is_experimental" ]; then
+                # Marked experimental in package.yaml
+                checked=$((checked + 1))
+                check
+                if [ -z "$has_experimental_status" ]; then
+                    error "${file_path}: Marked experimental in package.yaml but missing 'Status: Experimental' in file"
+                    fixable "Add '**Status**: Experimental' to ${file_path}"
+                    errors=$((errors + 1))
+                else
+                    pass "${file_name}: Experimental marking consistent"
+                fi
+            elif [ -n "$has_experimental_status" ]; then
+                # Has Status: Experimental but not marked in package.yaml
+                checked=$((checked + 1))
+                check
+                error "${file_path}: Has 'Status: Experimental' but not marked in package.yaml"
+                fixable "Add 'experimental: true' to ${file_name} in package.yaml"
+                errors=$((errors + 1))
+            fi
+        done
+    done
+    
+    if [ $checked -eq 0 ]; then
+        check
+        pass "No experimental features to validate"
+    elif [ $errors -eq 0 ] && [ $checked -gt 0 ]; then
+        pass "All experimental features marked consistently"
+    fi
+    
+    echo ""
+    
+    return $errors
+}
+
+# Validate script-command bindings
+validate_script_dependencies() {
+    echo ""
+    echo "${BOLD}Script-Command Bindings${NC}"
+    
+    local validation_errors=0
+    
+    # Get all commands from package.yaml
+    local commands=$(yaml_query ".contents.commands[]?.name" 2>/dev/null || echo "")
+    
+    if [ -z "$commands" ]; then
+        pass "No commands to validate"
+        return 0
+    fi
+    
+    local cmd_count=0
+    while IFS= read -r cmd; do
+        if [ -z "$cmd" ] || [ "$cmd" = "null" ]; then
+            continue
+        fi
+        
+        cmd_count=$((cmd_count + 1))
+        local cmd_file="agent/commands/$cmd"
+        
+        if [ ! -f "$cmd_file" ]; then
+            continue  # File existence checked elsewhere
+        fi
+        
+        # Get scripts from frontmatter
+        local frontmatter_line=$(grep "^\*\*Scripts\*\*:" "$cmd_file" 2>/dev/null || echo "")
+        
+        if [ -z "$frontmatter_line" ]; then
+            check
+            error "$cmd: Missing **Scripts**: field in frontmatter"
+            fixable "Add **Scripts**: field to $cmd_file frontmatter"
+            validation_errors=$((validation_errors + 1))
+            continue
+        fi
+        
+        local frontmatter_scripts=$(echo "$frontmatter_line" | awk -F': ' '{print $2}' | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v "^$" | sort)
+        
+        # Handle "None" case
+        if echo "$frontmatter_scripts" | grep -qi "^None$"; then
+            frontmatter_scripts=""
+        fi
+        
+        # Get scripts from package.yaml
+        local yaml_scripts=$(yaml_query ".contents.commands[] | select(.name == \"$cmd\") | .scripts[]?" 2>/dev/null | grep -v "^null$" | sort || echo "")
+        
+        # Compare (both should be empty or both should match)
+        if [ "$frontmatter_scripts" != "$yaml_scripts" ]; then
+            check
+            error "$cmd: Scripts mismatch between frontmatter and package.yaml"
+            echo "     ${DIM}Frontmatter: $(echo "$frontmatter_scripts" | tr '\n' ', ' | sed 's/, $//')${NC}"
+            echo "     ${DIM}package.yaml: $(echo "$yaml_scripts" | tr '\n' ', ' | sed 's/, $//')${NC}"
+            fixable "Update $cmd to have matching scripts in both locations"
+            validation_errors=$((validation_errors + 1))
+            continue
+        fi
+        
+        # Verify all scripts exist in scripts section
+        local script_errors=0
+        while IFS= read -r script; do
+            if [ -n "$script" ]; then
+                local script_exists=$(yaml_query ".contents.scripts[]? | select(.name == \"$script\") | .name" 2>/dev/null || echo "")
+                
+                if [ -z "$script_exists" ] || [ "$script_exists" = "null" ]; then
+                    if [ $script_errors -eq 0 ]; then
+                        check
+                        error "$cmd: Declares scripts not in scripts section"
+                    fi
+                    echo "     ${DIM}Missing: $script${NC}"
+                    fixable "Add $script to contents.scripts section in package.yaml"
+                    script_errors=$((script_errors + 1))
+                fi
+            fi
+        done <<< "$frontmatter_scripts"
+        
+        if [ $script_errors -gt 0 ]; then
+            validation_errors=$((validation_errors + 1))
+        else
+            check
+            local script_count=$(echo "$frontmatter_scripts" | grep -v "^$" | wc -l)
+            if [ "$script_count" -eq 0 ]; then
+                pass "$cmd: No script dependencies"
+            else
+                pass "$cmd: Scripts consistent ($script_count script(s))"
+            fi
+        fi
+    done <<< "$commands"
+    
+    if [ $cmd_count -eq 0 ]; then
+        pass "No commands to validate"
+    fi
+    
+    return $validation_errors
+}
+
 # Main validation function
 main() {
     echo "${BLUE}🔍 ACP Package Validation${NC}"
@@ -720,6 +906,8 @@ main() {
     validate_file_existence
     check_unlisted_files
     validate_namespace_consistency
+    validate_script_dependencies
+    validate_experimental_consistency
     validate_git_repository
     validate_readme
     
