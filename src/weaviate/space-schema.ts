@@ -117,11 +117,6 @@ async function createSpaceCollection(
         description: 'Spaces this memory is published to (e.g., ["the_void", "dogs"])',
       },
       {
-        name: 'space_id',
-        dataType: 'text' as any,
-        description: 'DEPRECATED: Use spaces array instead. Will be removed in v3.0.0.',
-      },
-      {
         name: 'author_id',
         dataType: 'text' as any,
         description: 'Original author user_id (for permissions)',
