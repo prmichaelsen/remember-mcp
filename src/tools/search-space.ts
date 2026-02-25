@@ -12,6 +12,7 @@ import { ensurePublicCollection, isValidSpaceId } from '../weaviate/space-schema
 import { SUPPORTED_SPACES } from '../types/space-memory.js';
 import { handleToolError } from '../utils/error-handler.js';
 import type { SearchFilters } from '../types/memory.js';
+import { createDebugLogger } from '../utils/debug.js';
 
 /**
  * Tool definition for remember_search_space
@@ -113,8 +114,18 @@ export async function handleSearchSpace(
   args: SearchSpaceArgs,
   userId: string  // May be used for private spaces in future
 ): Promise<string> {
+  const debug = createDebugLogger({
+    tool: 'remember_search_space',
+    userId,
+    operation: 'search_spaces',
+  });
+
   try {
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { args });
+    
     // Validate all space IDs
+    debug.debug('Validating space IDs', { spaces: args.spaces });
     const invalidSpaces = args.spaces.filter(s => !isValidSpaceId(s));
     if (invalidSpaces.length > 0) {
       return JSON.stringify(
@@ -197,11 +208,24 @@ export async function handleSearchSpace(
 
     const whereFilter = filterList.length > 0 ? Filters.and(...filterList) : undefined;
 
-    // Execute hybrid search
-    const searchResults = await publicCollection.query.hybrid(args.query, {
+    debug.debug('Executing hybrid search', {
+      query: args.query,
+      filterCount: filterList.length,
       limit: args.limit || 10,
       offset: args.offset || 0,
-      ...(whereFilter && { where: whereFilter }),
+    });
+
+    // Execute hybrid search
+    const searchResults = await debug.time('Hybrid search query', async () => {
+      return await publicCollection.query.hybrid(args.query, {
+        limit: args.limit || 10,
+        offset: args.offset || 0,
+        ...(whereFilter && { where: whereFilter }),
+      });
+    });
+    
+    debug.debug('Search completed', {
+      resultCount: searchResults.objects.length,
     });
 
     // Format results
@@ -220,8 +244,17 @@ export async function handleSearchSpace(
       limit: args.limit || 10,
     };
 
+    debug.info('Tool completed successfully', {
+      resultCount: memories.length,
+      spaces: args.spaces,
+    });
+
     return JSON.stringify(result, null, 2);
   } catch (error) {
+    debug.error('Tool failed', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return handleToolError(error, {
       toolName: 'remember_search_space',
       operation: 'search spaces',

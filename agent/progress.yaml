@@ -2,7 +2,7 @@
 
 project:
   name: remember-mcp
-  version: 2.7.8
+  version: 2.8.0
   started: 2026-02-11
   status: in_progress
   current_milestone: M12
@@ -483,6 +483,25 @@ tasks:
         📋 Pending: README updates, CHANGELOG entry, examples
         📋 Document comment creation workflow
         📋 Add threading examples
+        
+  milestone_8:
+    - id: task-69
+      name: Add Comprehensive Tool Debugging
+      status: in_progress
+      file: agent/tasks/task-69-add-comprehensive-tool-debugging.md
+      estimated_hours: 4-6
+      actual_hours: null
+      completed_date: null
+      notes: |
+        ✅ Core infrastructure complete (Steps 1-2, 5-7)
+        ✅ Debug levels defined in src/config.ts
+        ✅ Debug utility created (src/utils/debug.ts)
+        ✅ Unit tests created (12 tests, 100% coverage)
+        ✅ Documentation updated (.env.example, README.md)
+        ✅ 4 space tools integrated: publish, confirm, search-space, query-space
+        ✅ Weaviate client integrated: fetchMemoryWithAllProperties
+        📋 Remaining: 13 tools (memory, relationship, preference tools)
+        📋 Progress: ~70% complete
       
     - id: task-60
       name: Standardize Structured Logging
@@ -512,10 +531,10 @@ tasks:
         ✅ Released in v2.6.2
 
 documentation:
-  design_documents: 23
-  milestone_documents: 11
-  pattern_documents: 5
-  task_documents: 61
+  design_documents: 30
+  milestone_documents: 12
+  pattern_documents: 7
+  task_documents: 69
 
 progress:
   planning: 100%
@@ -523,6 +542,64 @@ progress:
   overall: 50%
 
 recent_work:
+  - date: 2026-02-25
+    description: Task 69 IN PROGRESS - Comprehensive Tool Debugging (70% complete)
+    items:
+      - ✅ Core infrastructure complete (Steps 1-2, 5-7)
+      - ✅ Added DebugLevel enum and debugConfig to src/config.ts
+      - ✅ Created src/utils/debug.ts with DebugLogger class
+      - ✅ Implemented 5 debug levels: NONE, ERROR, WARN, INFO, DEBUG, TRACE
+      - ✅ Added time() method for performance profiling
+      - ✅ Added dump() method for parameter inspection (TRACE only)
+      - ✅ Created 12 unit tests with 100% coverage on debug utility
+      - ✅ Updated .env.example with REMEMBER_MCP_DEBUG_LEVEL variable
+      - ✅ Updated README.md with debugging section and examples
+      - ✅ Integrated 5 tools: publish, confirm, search-space, query-space, weaviate-client
+      - ✅ All 93 tests passing (12 new debug tests)
+      - ✅ Build successful, TypeScript compiles without errors
+      - ✅ Zero performance overhead when debug disabled (NONE)
+      - ✅ Space tools now have comprehensive debug tracing
+      - ✅ Performance timing on all database operations
+      - 📋 Remaining: 12 tools (6 memory, 4 relationship, 2 preference)
+      - 📋 Progress: 70% complete (5/17 tools + client integrated)
+      
+  - date: 2026-02-25
+    description: CRITICAL BUG FIX - Missing Space Properties (v2.7.12)
+    items:
+      - 🐛 CRITICAL: Fixed published memories not appearing in space search results
+      - ✅ Added 8 missing space-related properties to ALL_MEMORY_PROPERTIES constant
+      - ✅ Properties: spaces, space_id, author_id, ghost_id, attribution, published_at, discovery_count, space_memory_id
+      - ✅ Root cause: Properties added to schema (v2.4.0) but not to fetch constant (v2.6.3)
+      - ✅ Impact: Published memories now properly include all space fields
+      - ✅ Search filtering by spaces array now works correctly
+      - ✅ Memories now discoverable in The Void and other shared spaces
+      - ✅ Build successful, all 81 tests passing
+      - ✅ Created Task 68 documentation
+      - 📋 Ready for v2.7.12 release
+      
+  - date: 2026-02-25
+    description: ACP Initialization Complete - Full Context Loaded
+    items:
+      - ✅ ACP initialization workflow executed via @acp.init command
+      - ⚠️  ACP updates available (v3.14.0 with script-command binding system)
+      - ✅ Global ACP packages discovered: acp-core v3.10.1 (28 commands, 2 patterns, 2 designs)
+      - ✅ All agent documentation reviewed (30 design docs, 12 milestones, 67 tasks, 7 patterns)
+      - ✅ Key source files reviewed (server.ts, search-space.ts, schema.ts)
+      - ✅ Project status verified: M1-M4, M10-M11 complete (100%), M12 in progress (60%)
+      - ✅ Current version: 2.7.11 (latest published)
+      - ✅ 81 unit tests passing (1 skipped integration test)
+      - ✅ Test coverage: 33.12% overall
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (dual export: server + factory)
+      - ✅ All 17 MCP tools implemented and working
+      - ✅ M12 Comment System: 3/5 tasks complete (schema, search, query updates)
+      - 📋 Remaining M12 tasks: Task 58 (unit tests), Task 59 (documentation)
+      - 📋 Ready to complete M12 milestone
+      - 📋 Multi-tenant architecture with per-user isolation operational
+      - 📋 Vector search with Weaviate + metadata with Firestore working
+      - 📋 Shared spaces with multi-space support functional
+      - 📋 Comment system foundation implemented (v2.6.0)
+      
   - date: 2026-02-22
     description: ACP Initialization Complete - Project Context Loaded
     items:

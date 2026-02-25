@@ -11,6 +11,7 @@ import { getWeaviateClient } from '../weaviate/client.js';
 import { ensurePublicCollection, isValidSpaceId } from '../weaviate/space-schema.js';
 import { SUPPORTED_SPACES } from '../types/space-memory.js';
 import { handleToolError } from '../utils/error-handler.js';
+import { createDebugLogger } from '../utils/debug.js';
 
 /**
  * Tool definition for remember_query_space
@@ -106,8 +107,18 @@ export async function handleQuerySpace(
   args: QuerySpaceArgs,
   userId: string  // May be used for private spaces in future
 ): Promise<string> {
+  const debug = createDebugLogger({
+    tool: 'remember_query_space',
+    userId,
+    operation: 'query_spaces',
+  });
+
   try {
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { args });
+    
     // Validate all space IDs
+    debug.debug('Validating space IDs', { spaces: args.spaces });
     const invalidSpaces = args.spaces.filter(s => !isValidSpaceId(s));
     if (invalidSpaces.length > 0) {
       return JSON.stringify(
@@ -181,10 +192,23 @@ export async function handleQuerySpace(
 
     const whereFilter = filterList.length > 0 ? Filters.and(...filterList) : undefined;
 
-    // Execute semantic search using nearText
-    const searchResults = await publicCollection.query.nearText(args.question, {
+    debug.debug('Executing semantic query', {
+      question: args.question,
+      filterCount: filterList.length,
       limit: args.limit || 10,
-      ...(whereFilter && { where: whereFilter }),
+    });
+
+    // Execute semantic search using nearText
+    const searchResults = await debug.time('Semantic query', async () => {
+      return await publicCollection.query.nearText(args.question, {
+        limit: args.limit || 10,
+        ...(whereFilter && { where: whereFilter }),
+      });
+    });
+    
+    debug.debug('Query completed', {
+      resultCount: searchResults.objects.length,
+      format: args.format || 'detailed',
     });
 
     // Format results based on requested format
@@ -222,9 +246,18 @@ export async function handleQuerySpace(
         total: memories.length,
       };
 
+      debug.info('Tool completed successfully', {
+        resultCount: memories.length,
+        format: 'detailed',
+      });
+      
       return JSON.stringify(result, null, 2);
     }
   } catch (error) {
+    debug.error('Tool failed', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return handleToolError(error, {
       toolName: 'remember_query_space',
       operation: 'query spaces',

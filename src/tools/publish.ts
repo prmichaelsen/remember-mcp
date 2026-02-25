@@ -12,6 +12,7 @@ import { isValidSpaceId } from '../weaviate/space-schema.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { SUPPORTED_SPACES } from '../types/space-memory.js';
 import { logger } from '../utils/logger.js';
+import { createDebugLogger } from '../utils/debug.js';
 
 /**
  * Tool definition for remember_publish
@@ -62,7 +63,16 @@ export async function handlePublish(
   args: PublishArgs,
   userId: string
 ): Promise<string> {
+  const debug = createDebugLogger({
+    tool: 'remember_publish',
+    userId,
+    operation: 'publish_request',
+  });
+
   try {
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { args });
+    
     logger.info('Starting publish request', {
       tool: 'remember_publish',
       userId,
@@ -73,8 +83,10 @@ export async function handlePublish(
     });
     
     // Validate all space IDs
+    debug.debug('Validating space IDs', { spaces: args.spaces });
     const invalidSpaces = args.spaces.filter(s => !isValidSpaceId(s));
     if (invalidSpaces.length > 0) {
+      debug.warn('Invalid space IDs detected', { invalidSpaces });
       logger.warn('Invalid space IDs provided', {
         tool: 'remember_publish',
         invalidSpaces,
@@ -124,7 +136,9 @@ export async function handlePublish(
     
     const userCollection = weaviateClient.collections.get(collectionName);
 
-    const memory = await fetchMemoryWithAllProperties(userCollection, args.memory_id);
+    const memory = await debug.time('Fetch memory from user collection', async () => {
+      return await fetchMemoryWithAllProperties(userCollection, args.memory_id);
+    });
     
     logger.debug('Memory fetch result', {
       tool: 'remember_publish',
@@ -232,6 +246,10 @@ export async function handlePublish(
       2
     );
   } catch (error) {
+    debug.error('Tool failed', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return handleToolError(error, {
       toolName: 'remember_publish',
       userId,

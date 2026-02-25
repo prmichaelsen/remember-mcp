@@ -11,6 +11,7 @@ import { getWeaviateClient, getMemoryCollectionName, fetchMemoryWithAllPropertie
 import { ensurePublicCollection } from '../weaviate/space-schema.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { logger } from '../utils/logger.js';
+import { createDebugLogger } from '../utils/debug.js';
 
 /**
  * Tool definition for remember_confirm
@@ -63,7 +64,16 @@ export async function handleConfirm(
   args: ConfirmArgs,
   userId: string
 ): Promise<string> {
+  const debug = createDebugLogger({
+    tool: 'remember_confirm',
+    userId,
+    operation: 'confirm_action',
+  });
+
   try {
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { token: args.token });
+    
     logger.info('Starting confirmation', {
       tool: 'remember_confirm',
       userId,
@@ -71,7 +81,10 @@ export async function handleConfirm(
     });
     
     // Validate and confirm token
-    const request = await confirmationTokenService.confirmRequest(userId, args.token);
+    debug.debug('Validating confirmation token');
+    const request = await debug.time('Confirm token', async () => {
+      return await confirmationTokenService.confirmRequest(userId, args.token);
+    });
     
     logger.debug('Token validation result', {
       tool: 'remember_confirm',
@@ -114,6 +127,10 @@ export async function handleConfirm(
 
     throw new Error(`Unknown action type: ${request.action}`);
   } catch (error) {
+    debug.error('Tool failed', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     handleToolError(error, {
       toolName: 'remember_confirm',
       userId,
@@ -130,7 +147,18 @@ async function executePublishMemory(
   request: ConfirmationRequest & { request_id: string },
   userId: string
 ): Promise<string> {
+  const debug = createDebugLogger({
+    tool: 'remember_confirm',
+    userId,
+    operation: 'execute_publish',
+  });
+
   try {
+    debug.debug('Executing publish memory action', {
+      memoryId: request.payload.memory_id,
+      spaces: request.payload.spaces,
+    });
+    
     logger.info('Executing publish memory action', {
       function: 'executePublishMemory',
       userId,
@@ -151,10 +179,12 @@ async function executePublishMemory(
       memoryId: request.payload.memory_id,
     });
 
-    const originalMemory = await fetchMemoryWithAllProperties(
-      userCollection,
-      request.payload.memory_id
-    );
+    const originalMemory = await debug.time('Fetch original memory', async () => {
+      return await fetchMemoryWithAllProperties(
+        userCollection,
+        request.payload.memory_id
+      );
+    });
     
     logger.info('Original memory fetch result', {
       function: 'executePublishMemory',
@@ -286,12 +316,19 @@ async function executePublishMemory(
     
     // Insert directly into unified public collection
     // CRITICAL: Weaviate insert API expects {properties: {...}}, not the properties directly!
-    const result = await publicCollection.data.insert({
-      properties: publishedMemory,
+    const result = await debug.time('Insert into Memory_public', async () => {
+      return await publicCollection.data.insert({
+        properties: publishedMemory,
+      });
     });
     
     logger.info('Memory published successfully', {
       function: 'executePublishMemory',
+      spaceMemoryId: result,
+      spaces: request.payload.spaces,
+    });
+    
+    debug.info('Memory published successfully', {
       spaceMemoryId: result,
       spaces: request.payload.spaces,
     });
@@ -331,6 +368,10 @@ async function executePublishMemory(
       2
     );
   } catch (error) {
+    debug.error('Execute publish failed', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     handleToolError(error, {
       toolName: 'remember_confirm',
       userId,

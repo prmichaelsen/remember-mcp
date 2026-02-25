@@ -3,6 +3,39 @@ import { logger } from './utils/logger.js';
 
 dotenv.config();
 
+/**
+ * Debug levels for tool logging
+ */
+export enum DebugLevel {
+  NONE = 0,      // No debug output (production default)
+  ERROR = 1,     // Only errors
+  WARN = 2,      // Warnings and errors
+  INFO = 3,      // Info, warnings, and errors
+  DEBUG = 4,     // Debug, info, warnings, and errors
+  TRACE = 5,     // Everything including parameter dumps
+}
+
+/**
+ * Debug configuration
+ */
+export const debugConfig = {
+  level: ((): DebugLevel => {
+    const level = process.env.REMEMBER_MCP_DEBUG_LEVEL?.toUpperCase();
+    switch (level) {
+      case 'TRACE': return DebugLevel.TRACE;
+      case 'DEBUG': return DebugLevel.DEBUG;
+      case 'INFO': return DebugLevel.INFO;
+      case 'WARN': return DebugLevel.WARN;
+      case 'ERROR': return DebugLevel.ERROR;
+      case 'NONE': return DebugLevel.NONE;
+      default: return DebugLevel.NONE;
+    }
+  })(),
+  enabled: (level: DebugLevel): boolean => {
+    return debugConfig.level >= level;
+  },
+};
+
 export const config = {
   // Weaviate
   weaviate: {

@@ -1,6 +1,7 @@
 import weaviate, { WeaviateClient } from 'weaviate-client';
 import { config } from '../config.js';
 import { logger } from '../utils/logger.js';
+import { createDebugLogger } from '../utils/debug.js';
 
 let client: WeaviateClient | null = null;
 
@@ -207,6 +208,16 @@ export const ALL_MEMORY_PROPERTIES = [
   'parent_id',
   'thread_root_id',
   'moderation_flags',
+  
+  // Space/publishing fields (for Memory_public collection)
+  'spaces',
+  'space_id',
+  'author_id',
+  'ghost_id',
+  'attribution',
+  'published_at',
+  'discovery_count',
+  'space_memory_id',
 ] as const;
 
 /**
@@ -228,22 +239,50 @@ export async function fetchMemoryWithAllProperties(
   collection: any,
   memoryId: string
 ) {
+  const debug = createDebugLogger({
+    tool: 'weaviate-client',
+    operation: 'fetchMemoryWithAllProperties',
+  });
+
+  debug.debug('Fetching memory', {
+    memoryId,
+    collectionName: collection.name,
+    propertyCount: ALL_MEMORY_PROPERTIES.length,
+  });
+
   try {
     // Try to fetch with all properties specified
-    return await collection.query.fetchObjectById(memoryId, {
-      returnProperties: ALL_MEMORY_PROPERTIES,
+    const result = await debug.time('Fetch with all properties', async () => {
+      return await collection.query.fetchObjectById(memoryId, {
+        returnProperties: ALL_MEMORY_PROPERTIES,
+      });
     });
+    
+    debug.trace('Fetch result', {
+      found: !!result,
+      propertyCount: result?.properties ? Object.keys(result.properties).length : 0,
+      hasSpaces: !!result?.properties?.spaces,
+      hasAuthorId: !!result?.properties?.author_id,
+    });
+    
+    return result;
   } catch (error) {
     // If that fails (e.g., property doesn't exist on this record),
     // fetch without specifying properties - Weaviate will return
     // all properties that actually exist on the record
+    debug.warn('Fetch with all properties failed, falling back', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    
     logger.warn('Failed to fetch with all properties, falling back to unspecified fetch', {
       module: 'weaviate-client',
       memoryId,
       error: error instanceof Error ? error.message : String(error),
     });
     
-    return await collection.query.fetchObjectById(memoryId);
+    return await debug.time('Fetch without property specification', async () => {
+      return await collection.query.fetchObjectById(memoryId);
+    });
   }
 }
 

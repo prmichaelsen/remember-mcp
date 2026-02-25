@@ -235,6 +235,41 @@ remember_search_space({
 - `remember_search_space` - Search shared spaces
 - `remember_query_space` - Ask questions about shared memories
 
+## Debugging
+
+Enable detailed debug logging with the `REMEMBER_MCP_DEBUG_LEVEL` environment variable:
+
+```bash
+# No debug output (production default)
+REMEMBER_MCP_DEBUG_LEVEL=NONE
+
+# Only errors
+REMEMBER_MCP_DEBUG_LEVEL=ERROR
+
+# Warnings and errors
+REMEMBER_MCP_DEBUG_LEVEL=WARN
+
+# Info, warnings, and errors
+REMEMBER_MCP_DEBUG_LEVEL=INFO
+
+# Debug, info, warnings, and errors (recommended for development)
+REMEMBER_MCP_DEBUG_LEVEL=DEBUG
+
+# Everything including parameter dumps (use with caution)
+REMEMBER_MCP_DEBUG_LEVEL=TRACE
+```
+
+**Example**:
+```bash
+# Enable debug logging for development
+REMEMBER_MCP_DEBUG_LEVEL=DEBUG npm run dev
+
+# Enable trace logging for troubleshooting
+REMEMBER_MCP_DEBUG_LEVEL=TRACE npm start
+```
+
+**⚠️ Security Note**: TRACE level includes full parameter dumps and may expose sensitive data. Use only in development environments.
+
 ## Documentation
 
 See `agent/` directory for:
