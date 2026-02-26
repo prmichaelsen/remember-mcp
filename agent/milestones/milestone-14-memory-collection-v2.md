@@ -177,6 +177,6 @@ This milestone implements Memory Collection Pattern v2 for remember-mcp, introdu
 
 ---
 
-**Status**: Not Started
+**Status**: In Progress (37% - 3/8 tasks completed)
 **Blockers**: None
-**Notes**: This is the foundation for all social features. Must be completed before social feature milestones can proceed.
+**Notes**: Foundation for all social features. Tasks 165, 166, 167 complete (pending commit). Next: Task 168 (remember_revise).

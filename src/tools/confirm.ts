@@ -20,7 +20,7 @@ import { logger } from '../utils/logger.js';
 import { createDebugLogger } from '../utils/debug.js';
 import { CollectionType, getCollectionName } from '../collections/dot-notation.js';
 import { generateCompositeId, parseCompositeId } from '../collections/composite-ids.js';
-import { addToSpaceIds, addToGroupIds, getPublishedLocations } from '../collections/tracking-arrays.js';
+import { addToSpaceIds, addToGroupIds, removeFromSpaceIds, removeFromGroupIds, getPublishedLocations } from '../collections/tracking-arrays.js';
 
 /**
  * Tool definition for remember_confirm
@@ -134,10 +134,10 @@ export async function handleConfirm(
       return await executeDeleteMemory(request, userId);
     }
 
-    // Add other action types here as needed
-    // if (request.action === 'retract_memory') {
-    //   return await executeRetractMemory(request, userId);
-    // }
+    // Handle retract_memory action
+    if (request.action === 'retract_memory') {
+      return await executeRetractMemory(request, userId);
+    }
 
     throw new Error(`Unknown action type: ${request.action}`);
   } catch (error) {
@@ -613,5 +613,307 @@ async function executeDeleteMemory(
       stack: error instanceof Error ? error.stack : undefined,
     });
     throw error;
+  }
+}
+
+/**
+ * Execute retract memory action
+ *
+ * Memory Collection Pattern v2:
+ * - Selective retraction from specific spaces/groups
+ * - Space memories are orphaned (remain in Memory_spaces_public with empty tracking arrays)
+ * - Group memories are deleted from group collections
+ * - Tracking arrays updated on source memory
+ */
+async function executeRetractMemory(
+  request: ConfirmationRequest & { request_id: string },
+  userId: string
+): Promise<string> {
+  const debug = createDebugLogger({
+    tool: 'remember_confirm',
+    userId,
+    operation: 'execute_retract',
+  });
+
+  try {
+    // Normalize arrays (handle undefined)
+    const spaces = request.payload.spaces || [];
+    const groups = request.payload.groups || [];
+
+    debug.debug('Executing retract memory action', {
+      memoryId: request.payload.memory_id,
+      spaces,
+      groups,
+    });
+
+    logger.info('Executing retract memory action', {
+      function: 'executeRetractMemory',
+      userId,
+      memoryId: request.payload.memory_id,
+      spaces,
+      groups,
+      spaceCount: spaces.length,
+      groupCount: groups.length,
+    });
+
+    // Fetch the source memory
+    const weaviateClient = getWeaviateClient();
+    const userCollectionName = getMemoryCollectionName(userId);
+    const userCollection = weaviateClient.collections.get(userCollectionName);
+
+    const sourceMemory = await fetchMemoryWithAllProperties(
+      userCollection,
+      request.payload.memory_id
+    );
+
+    if (!sourceMemory) {
+      logger.info('Source memory not found for retraction', {
+        function: 'executeRetractMemory',
+        memoryId: request.payload.memory_id,
+      });
+      return JSON.stringify(
+        {
+          success: false,
+          error: 'Memory not found',
+          message: `Source memory ${request.payload.memory_id} no longer exists`,
+        },
+        null,
+        2
+      );
+    }
+
+    // Get current tracking arrays
+    const currentSpaceIds: string[] = Array.isArray(sourceMemory.properties.space_ids)
+      ? sourceMemory.properties.space_ids
+      : [];
+    const currentGroupIds: string[] = Array.isArray(sourceMemory.properties.group_ids)
+      ? sourceMemory.properties.group_ids
+      : [];
+
+    // Generate composite ID for published memories
+    const compositeId = generateCompositeId(userId, request.payload.memory_id);
+
+    // Track retraction results
+    const retractionResults: {
+      spaces?: { success: boolean; error?: string };
+      groups: Array<{ groupId: string; success: boolean; error?: string }>;
+    } = { groups: [] };
+
+    // STEP 1: Retract from spaces (Memory_spaces_public)
+    // Space memories are ORPHANED, not deleted, for historical reference
+    if (spaces.length > 0) {
+      try {
+        const publicCollection = weaviateClient.collections.get(
+          getCollectionName(CollectionType.SPACES)
+        );
+
+        // Fetch the published memory from spaces
+        const publishedMemory = await fetchMemoryWithAllProperties(publicCollection, compositeId);
+
+        if (publishedMemory) {
+          // Calculate new space_ids (remove retracted spaces)
+          const newSpaceIds = currentSpaceIds.filter(id => !spaces.includes(id));
+
+          // Update the published memory with new tracking arrays
+          // Memory remains even if space_ids becomes empty (orphaned)
+          await publicCollection.data.update({
+            id: compositeId,
+            properties: {
+              space_ids: newSpaceIds,
+              retracted_at: new Date().toISOString(),
+            },
+          });
+
+          retractionResults.spaces = { success: true };
+
+          logger.info('Memory retracted from spaces (orphaned)', {
+            function: 'executeRetractMemory',
+            compositeId,
+            retractedSpaces: spaces,
+            remainingSpaces: newSpaceIds,
+            isOrphaned: newSpaceIds.length === 0 && currentGroupIds.length === 0,
+          });
+        } else {
+          // Memory not found in spaces collection
+          retractionResults.spaces = {
+            success: false,
+            error: 'Memory not found in spaces collection',
+          };
+          logger.warn('Memory not found in spaces collection', {
+            function: 'executeRetractMemory',
+            compositeId,
+          });
+        }
+      } catch (spaceError) {
+        logger.error('Failed to retract from spaces', {
+          function: 'executeRetractMemory',
+          error: spaceError instanceof Error ? spaceError.message : String(spaceError),
+        });
+        retractionResults.spaces = {
+          success: false,
+          error: spaceError instanceof Error ? spaceError.message : String(spaceError),
+        };
+      }
+    }
+
+    // STEP 2: Retract from groups (Memory_groups_{groupId})
+    // Group memories are ORPHANED (same as spaces), not deleted
+    // This preserves historical data while making it unsearchable by default
+    for (const groupId of groups) {
+      const groupCollectionName = getCollectionName(CollectionType.GROUPS, groupId);
+
+      try {
+        const groupCollection = weaviateClient.collections.get(groupCollectionName);
+
+        // Check if memory exists in this group
+        const groupMemory = await fetchMemoryWithAllProperties(groupCollection, compositeId);
+
+        if (groupMemory) {
+          // Get current group_ids from the group memory
+          const groupMemoryGroupIds: string[] = Array.isArray(groupMemory.properties.group_ids)
+            ? groupMemory.properties.group_ids
+            : [];
+          
+          // Remove this group from the group_ids array
+          const newGroupIds = groupMemoryGroupIds.filter(id => id !== groupId);
+          
+          // Update the memory with new tracking arrays (orphan if empty)
+          await groupCollection.data.update({
+            id: compositeId,
+            properties: {
+              group_ids: newGroupIds,
+              retracted_at: new Date().toISOString(),
+            },
+          });
+
+          retractionResults.groups.push({ groupId, success: true });
+
+          logger.info('Memory retracted from group (orphaned)', {
+            function: 'executeRetractMemory',
+            compositeId,
+            groupId,
+            remainingGroups: newGroupIds,
+            isOrphaned: newGroupIds.length === 0,
+          });
+        } else {
+          // Memory not found in this group
+          retractionResults.groups.push({
+            groupId,
+            success: false,
+            error: 'Memory not found in group',
+          });
+          logger.warn('Memory not found in group collection', {
+            function: 'executeRetractMemory',
+            compositeId,
+            groupId,
+          });
+        }
+      } catch (groupError) {
+        logger.error('Failed to retract from group', {
+          function: 'executeRetractMemory',
+          groupId,
+          error: groupError instanceof Error ? groupError.message : String(groupError),
+        });
+        retractionResults.groups.push({
+          groupId,
+          success: false,
+          error: groupError instanceof Error ? groupError.message : String(groupError),
+        });
+      }
+    }
+
+    // STEP 3: Update source memory tracking arrays
+    const finalSpaceIds = retractionResults.spaces?.success
+      ? currentSpaceIds.filter(id => !spaces.includes(id))
+      : currentSpaceIds;
+
+    const successfulGroupRetractions = retractionResults.groups
+      .filter(g => g.success)
+      .map(g => g.groupId);
+    const finalGroupIds = currentGroupIds.filter(id => !successfulGroupRetractions.includes(id));
+
+    // Update source memory
+    try {
+      await userCollection.data.update({
+        id: request.payload.memory_id,
+        properties: {
+          space_ids: finalSpaceIds,
+          group_ids: finalGroupIds,
+        },
+      });
+
+      logger.info('Updated source memory tracking arrays after retraction', {
+        function: 'executeRetractMemory',
+        memoryId: request.payload.memory_id,
+        spaceIds: finalSpaceIds,
+        groupIds: finalGroupIds,
+      });
+    } catch (updateError) {
+      logger.warn('Failed to update source memory tracking arrays after retraction', {
+        function: 'executeRetractMemory',
+        memoryId: request.payload.memory_id,
+        error: updateError instanceof Error ? updateError.message : String(updateError),
+      });
+      // Don't fail the retraction if this update fails
+    }
+
+    // Build response
+    const successfulRetractions: string[] = [];
+    const failedRetractions: string[] = [];
+
+    if (spaces.length > 0) {
+      if (retractionResults.spaces?.success) {
+        successfulRetractions.push(`spaces: ${spaces.join(', ')}`);
+      } else {
+        failedRetractions.push(`spaces: ${retractionResults.spaces?.error || 'unknown error'}`);
+      }
+    }
+
+    for (const groupResult of retractionResults.groups) {
+      if (groupResult.success) {
+        successfulRetractions.push(`group: ${groupResult.groupId}`);
+      } else {
+        failedRetractions.push(`group ${groupResult.groupId}: ${groupResult.error || 'unknown error'}`);
+      }
+    }
+
+    // Return result
+    if (successfulRetractions.length > 0) {
+      return JSON.stringify(
+        {
+          success: true,
+          composite_id: compositeId,
+          retracted_from: successfulRetractions,
+          failed: failedRetractions.length > 0 ? failedRetractions : undefined,
+          space_ids: finalSpaceIds,
+          group_ids: finalGroupIds,
+          is_orphaned: finalSpaceIds.length === 0 && finalGroupIds.length === 0,
+        },
+        null,
+        2
+      );
+    } else {
+      return JSON.stringify(
+        {
+          success: false,
+          error: 'Retraction failed',
+          message: 'Failed to retract from any destination',
+          details: failedRetractions,
+        },
+        null,
+        2
+      );
+    }
+  } catch (error) {
+    debug.error('Execute retract failed', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    handleToolError(error, {
+      toolName: 'remember_confirm',
+      userId,
+      operation: 'execute retract_memory',
+      action: 'retract_memory',
+    });
   }
 }

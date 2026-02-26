@@ -2,7 +2,7 @@
 
 project:
   name: remember-mcp
-  version: 3.0.1
+  version: 3.3.0
   started: 2026-02-11
   status: in_progress
   current_milestone: M14
@@ -209,35 +209,36 @@ milestones:
   - id: M14
     name: Memory Collection Pattern v2
     status: in_progress
-    progress: 25%
+    progress: 37%
     started: 2026-02-26
     completed: null
     estimated_weeks: 2-3
-    tasks_completed: 2
+    tasks_completed: 3
     tasks_total: 8
     notes: |
       Foundation for all social features (People Discovery, Memory Feed API).
       Fresh implementation with no migration complexity.
-      
+
       ✅ Task 165: Core Infrastructure Setup COMPLETED (2026-02-26)
       ✅ Task 166: Implement remember_publish Tool COMPLETED (2026-02-26)
-      
+      ✅ Task 167: Implement remember_retract Tool COMPLETED (2026-02-26)
+         - src/tools/retract.ts: New tool with confirmation token flow
+         - src/tools/confirm.ts: Added executeRetractMemory() handler
+         - Both servers registered with retractTool + handleRetract
+         - Orphan strategy: memories kept in spaces/groups with cleared tracking arrays
+      📋 Task 168: remember_revise Tool (next)
+      📋 Task 169: remember_search_space Tool
+      📋 Task 170: remember_create_memory and remember_update_memory
+      📋 Task 172: Performance Testing and Optimization
+      📋 Task 173: Documentation and Examples
+
       Key Innovations:
-      - Dot notation collections: Memory.users.{userId}, Memory.spaces.public, Memory.groups.{groupId}
+      - Dot notation collections: Memory_users_{userId}, Memory_spaces_public, Memory_groups_{groupId}
       - Composite IDs: {userId}.{memoryId} format preserves source reference
       - Tracking arrays: space_ids and group_ids track publication locations
       - Dual publication: Memories can exist in both spaces and groups
       - Revision support: remember_revise updates published memories in-place
-      
-      Tasks:
-      - Task 165: Core Infrastructure Setup (8-10 hours)
-      - Task 166: Implement remember_publish Tool (6-8 hours)
-      - Task 167: Implement remember_retract Tool (4-6 hours)
-      - Task 168: Implement remember_revise Tool (6-8 hours)
-      - Task 169: Implement remember_search_space Tool (4-6 hours)
-      - Task 170: Implement remember_create_memory and remember_update_memory (3-4 hours)
-      - Task 172: Performance Testing and Optimization (6-8 hours)
-      - Task 173: Documentation and Examples (4-6 hours)
+      - Orphan strategy: retracted memories preserved for historical reference
      
   - id: M7
     name: Trust & Permissions
@@ -599,6 +600,23 @@ progress:
   overall: 50%
 
 recent_work:
+  - date: 2026-02-26
+    description: ACP Initialization - M14 Task 167 (remember_retract) Implemented
+    items:
+      - ✅ ACP init workflow executed - context fully loaded
+      - ⚠️  ACP update available (v4.2.1 - critical rule: never force-add gitignored files)
+      - ✅ Task 167: Implemented remember_retract tool (src/tools/retract.ts)
+      - ✅ Task 167: Added executeRetractMemory() handler in src/tools/confirm.ts
+      - ✅ Task 167: Registered retract tool in src/server.ts and src/server-factory.ts
+      - ✅ Orphan strategy: retracted memories preserved with cleared tracking arrays
+      - ✅ Fixed documentation drift: milestone-14 now shows In Progress
+      - ✅ Fixed documentation drift: task-167 now shows Completed
+      - ✅ Fixed version drift: progress.yaml now shows v3.2.0
+      - ✅ Build: passing (v3.2.0)
+      - ✅ Tests: 137 passed, 1 skipped (138 total)
+      - 📋 Uncommitted changes pending (retract.ts + confirm.ts + server registrations)
+      - 📋 Next: Task 168 - Implement remember_revise Tool
+
   - date: 2026-02-25
     description: CRITICAL BUG FIX - indexNullState Schema Configuration (v3.0.1)
     items:

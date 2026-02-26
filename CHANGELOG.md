@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2026-02-26
+
+### Added
+
+**Memory Collection Pattern v2 - remember_retract Tool (Task 167)**
+
+Selective retraction of published memories from specific spaces and groups, with an orphan strategy that preserves historical data.
+
+- **`remember_retract` Tool** ([`src/tools/retract.ts`](src/tools/retract.ts))
+  - Retract a memory from specific spaces (e.g., `["cooking", "recipes"]`)
+  - Retract a memory from specific groups (e.g., `["group-123"]`)
+  - Selective retraction: retract from some destinations while remaining in others
+  - Ownership validation: users can only retract their own memories
+  - Publication validation: returns error if memory isn't published to the specified destination
+  - Two-phase confirmation flow: generates token, user confirms to execute
+
+- **Orphan Strategy** ([`src/tools/confirm.ts`](src/tools/confirm.ts) `executeRetractMemory()`)
+  - Space memories: remain in `Memory_spaces_public` with `space_ids` array updated (orphaned if empty)
+  - Group memories: remain in `Memory_groups_{groupId}` with `group_ids` array updated (orphaned if empty)
+  - `retracted_at` timestamp set on orphaned memories
+  - Source memory tracking arrays (`space_ids`, `group_ids`) updated on success
+  - Partial success: failed retractions don't block successful ones
+
+- **Server Registration**
+  - `remember_retract` tool registered in both `src/server.ts` and `src/server-factory.ts`
+
+---
+
 ## [3.2.0] - 2026-02-26
 
 ### Added

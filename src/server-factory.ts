@@ -34,6 +34,7 @@ import { getPreferencesTool, handleGetPreferences } from './tools/get-preference
 
 // Import space tools
 import { publishTool, handlePublish } from './tools/publish.js';
+import { retractTool, handleRetract } from './tools/retract.js';
 import { confirmTool, handleConfirm } from './tools/confirm.js';
 import { denyTool, handleDeny } from './tools/deny.js';
 import { searchSpaceTool, handleSearchSpace } from './tools/search-space.js';
@@ -182,6 +183,7 @@ function registerHandlers(server: Server, userId: string, accessToken: string): 
         getPreferencesTool,
         // Space tools
         publishTool,
+        retractTool,
         confirmTool,
         denyTool,
         searchSpaceTool,
@@ -248,6 +250,10 @@ function registerHandlers(server: Server, userId: string, accessToken: string): 
 
         case 'remember_publish':
           result = await handlePublish(args as any, userId);
+          break;
+
+        case 'remember_retract':
+          result = await handleRetract(args as any, userId);
           break;
 
         case 'remember_confirm':
