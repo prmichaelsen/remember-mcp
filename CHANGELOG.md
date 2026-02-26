@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-02-26
+
+### Added
+
+**Memory Collection Pattern v2 - Core Infrastructure (Task 165)**
+
+Foundation for multi-user social features including user profiles, friend systems, P2P conversations, and group conversations.
+
+- **Dot Notation Collections** ([`src/collections/dot-notation.ts`](src/collections/dot-notation.ts))
+  - `getCollectionName()` - Generate collection names (Memory_users_{userId}, Memory_spaces_public, Memory_groups_{groupId})
+  - `parseCollectionName()` - Parse collection metadata from names
+  - Collection type validation and ID validation (rejects dots in IDs)
+
+- **Composite IDs** ([`src/collections/composite-ids.ts`](src/collections/composite-ids.ts))
+  - `generateCompositeId()` - Create {userId}.{memoryId} format
+  - `parseCompositeId()` - Extract components from composite IDs
+  - `validateCompositeId()` - Validate and return true on success
+  - `isCompositeId()`, `belongsToUser()` helper functions
+
+- **Tracking Arrays** ([`src/collections/tracking-arrays.ts`](src/collections/tracking-arrays.ts))
+  - Immutable array operations for `space_ids` and `group_ids`
+  - `addToSpaceIds()`, `removeFromSpaceIds()`, `addToGroupIds()`, `removeFromGroupIds()`
+  - Publication status checking (`isPublishedToSpace`, `isPublishedToGroup`, `getPublicationLocations`)
+  - Batch operations for multiple spaces/groups
+
+- **Weaviate Schema Definitions** ([`src/schema/v2-collections.ts`](src/schema/v2-collections.ts))
+  - Schema creation for user, space, and group collections
+  - Property lists and validation functions
+  - Collection name validation and type detection
+
+- **Unit Tests** ([`src/collections/core-infrastructure.spec.ts`](src/collections/core-infrastructure.spec.ts))
+  - 44 tests covering all utilities
+  - 79% coverage on new collections code
+  - 97% coverage on tracking arrays
+
+### Fixed
+
+- Added ID validation to reject dots in user/group IDs in `getCollectionName()`
+- Updated error message in `parseCompositeId()` to include "must be exactly 2 parts"
+- Changed `validateCompositeId()` return type from `void` to `true`
+
+---
+
 ## [3.0.1] - 2026-02-25
 
 ### Fixed

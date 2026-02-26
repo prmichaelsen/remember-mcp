@@ -208,16 +208,18 @@ milestones:
      
   - id: M14
     name: Memory Collection Pattern v2
-    status: not_started
-    progress: 0%
-    started: null
+    status: in_progress
+    progress: 12%
+    started: 2026-02-26
     completed: null
     estimated_weeks: 2-3
-    tasks_completed: 0
+    tasks_completed: 1
     tasks_total: 8
     notes: |
       Foundation for all social features (People Discovery, Memory Feed API).
       Fresh implementation with no migration complexity.
+      
+      ✅ Task 165: Core Infrastructure Setup COMPLETED (2026-02-26)
       
       Key Innovations:
       - Dot notation collections: Memory.users.{userId}, Memory.spaces.public, Memory.groups.{groupId}
@@ -1046,6 +1048,18 @@ recent_work:
   - date: 2026-02-15
     description: All Production Error Tasks COMPLETED (Tasks 23-25)
     items:
+      - 🎉 Task 165 (Core Infrastructure Setup) COMPLETED!
+      - ✅ Fixed 3 failing tests in core-infrastructure.spec.ts
+      - ✅ Added ID validation for dots in getCollectionName()
+      - ✅ Updated error message in parseCompositeId() to include "must be exactly 2 parts"
+      - ✅ Changed validateCompositeId() to return true instead of void
+      - ✅ All 138 tests passing (137 passed, 1 skipped)
+      - ✅ 79% coverage on new collections code
+      - 🚀 M14: Memory Collection Pattern v2 now in progress (1/8 tasks complete)
+      
+  - date: 2026-02-26
+    description: Task 165 COMPLETED - Core Infrastructure Setup
+    items:
       - 🎉 Task 25 (Fix Update Memory Errors) COMPLETED!
       - 🎉 Task 23 (Fix Relationship Creation Errors) COMPLETED!
       - 🎉 Task 24 (Fix Weaviate Filter Path Error) COMPLETED!
@@ -1234,18 +1248,15 @@ recent_work:
       - ✅ Build successful
 
 next_steps:
+  - Start Task 166: Implement remember_publish Tool (6-8 hours)
+  - Continue M14: Memory Collection Pattern v2 (7 tasks remaining)
   - Complete Task 58: Add Comment Unit Tests (3 hours)
   - Complete Task 59: Update Documentation for Comments (2 hours)
   - Complete M12: Comment System (Phase 1)
-  - Consider updating to ACP v4.1.1 (task subdirectory structure)
-  - Start M5: Template System (15 default templates + auto-suggestion)
-  - Optional: Create integration tests (Task 6)
-  - Optional: Add development documentation (Task 7)
-  - Consider M6: Auth & Multi-Tenancy
-  - Consider M7: Trust & Permissions
-  - Consider M8: Testing & Quality
 
 notes:
+  - 🚀 Milestone 14 (Memory Collection Pattern v2) IN PROGRESS - 12% complete!
+  - ✅ Task 165: Core Infrastructure Setup COMPLETED (2026-02-26)
   - 🚀 Milestone 12 (Comment System Phase 1) IN PROGRESS - 60% complete!
   - 🎉 Milestone 11 (Unified Public Collection) COMPLETED!
   - 🎉 Milestone 10 (Shared Spaces & Confirmation Flow) COMPLETED!
@@ -1410,14 +1421,18 @@ task_20_completion:
   milestone_14:
     - id: task-165
       name: Core Infrastructure Setup
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-14-memory-collection-v2/task-165-core-infrastructure-setup.md
       estimated_hours: 8-10
-      actual_hours: null
-      completed_date: null
+      actual_hours: 10
+      completed_date: 2026-02-26
       notes: |
-        Dot notation collections, composite IDs, tracking arrays, Weaviate schemas.
-        Foundation for all subsequent tasks.
+        ✅ Dot notation collections (dot-notation.ts)
+        ✅ Composite IDs (composite-ids.ts)
+        ✅ Tracking arrays (tracking-arrays.ts)
+        ✅ Weaviate schema definitions (v2-collections.ts)
+        ✅ 44 unit tests passing (79% coverage on collections)
+        ✅ Fixed 3 failing tests (ID validation, error messages, return types)
     
     - id: task-166
       name: Implement remember_publish Tool

@@ -1,0 +1,24 @@
+{
+  "name": "remember-mcp-scripts",
+  "version": "1.0.0",
+  "description": "Migration and utility scripts for remember-mcp",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "backup": "tsx backup-collections.ts",
+    "backup:dry-run": "tsx backup-collections.ts --dry-run",
+    "delete": "tsx delete-collection.ts",
+    "migrate:recreate": "tsx migrate-recreate-collections.ts",
+    "migrate:recreate:dry-run": "tsx migrate-recreate-collections.ts --dry-run"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "weaviate-client": "^3.2.0",
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19",
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3"
+  }
+}

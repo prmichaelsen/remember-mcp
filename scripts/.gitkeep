@@ -1,0 +1,5 @@
+# Scripts
+
+Migration and utility scripts for remember-mcp.
+
+**Note**: Scripts have their own dependencies. See [scripts/README.md](scripts/README.md) for setup instructions.

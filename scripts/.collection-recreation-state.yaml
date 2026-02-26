@@ -1,0 +1,16 @@
+migration:
+  id: recreate-collections-2026-02-25T21-34-24
+  started_at: 2026-02-25T21:34:24.770Z
+  updated_at: 2026-02-25T21:38:05.333Z
+  status: completed
+collections:
+  - name: Memory_MnOyIarhz5b8n06TsTovM582NSG2
+    status: completed
+    total_documents: 0
+    backed_up_documents: 0
+    restored_documents: 6577
+progress:
+  total_collections: 1
+  completed_collections: 4
+  percentage: 400
+errors: []
