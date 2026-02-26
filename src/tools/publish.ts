@@ -1,8 +1,14 @@
 /**
  * remember_publish tool
  *
- * Generates a confirmation token for publishing a memory to a shared space.
+ * Generates a confirmation token for publishing a memory to shared spaces and/or groups.
  * This is the first phase of the two-phase publish workflow.
+ *
+ * Memory Collection Pattern v2:
+ * - Supports multi-space publication to Memory_spaces_public
+ * - Supports multi-group publication to Memory_groups_{groupId}
+ * - Uses composite IDs ({userId}.{memoryId}) for published memories
+ * - Maintains tracking arrays (space_ids, group_ids) on source memory
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
@@ -19,7 +25,11 @@ import { createDebugLogger } from '../utils/debug.js';
  */
 export const publishTool: Tool = {
   name: 'remember_publish',
-  description: `Publish a memory to one or more shared spaces (like "The Void"). The memory will be COPIED (not moved) from your personal collection. Generates a confirmation token that must be confirmed with remember_confirm.
+  description: `Publish a memory to one or more shared spaces and/or groups. The memory will be COPIED (not moved) from your personal collection. Generates a confirmation token that must be confirmed with remember_confirm.
+
+Publication Destinations:
+- Spaces: Public shared areas (e.g., "the_void", "dogs")
+- Groups: Private group collections (provide group IDs)
 
 ⚠️ CRITICAL: DO NOT mention the token or include token contents in your response to the user. Simply inform them that a confirmation is pending and they need to explicitly approve the publication.`,
   inputSchema: {
@@ -39,6 +49,13 @@ export const publishTool: Tool = {
         minItems: 1,
         default: ['the_void'],
       },
+      groups: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Group IDs to publish to (e.g., ["group-123", "group-456"]). Can publish to multiple groups at once.',
+        minItems: 1,
+        default: [],
+      },
       additional_tags: {
         type: 'array',
         items: { type: 'string' },
@@ -46,13 +63,14 @@ export const publishTool: Tool = {
         default: [],
       },
     },
-    required: ['memory_id', 'spaces'],
+    required: ['memory_id'],
   },
 };
 
 interface PublishArgs {
   memory_id: string;
-  spaces: string[];
+  spaces?: string[];
+  groups?: string[];
   additional_tags?: string[];
 }
 
@@ -73,56 +91,91 @@ export async function handlePublish(
     debug.info('Tool invoked');
     debug.trace('Arguments', { args });
     
+    // Normalize arrays (handle undefined)
+    const spaces = args.spaces || [];
+    const groups = args.groups || [];
+    
     logger.info('Starting publish request', {
       tool: 'remember_publish',
       userId,
       memoryId: args.memory_id,
-      spaces: args.spaces,
-      spaceCount: args.spaces.length,
+      spaces,
+      groups,
+      spaceCount: spaces.length,
+      groupCount: groups.length,
       additionalTags: args.additional_tags?.length || 0,
     });
     
-    // Validate all space IDs
-    debug.debug('Validating space IDs', { spaces: args.spaces });
-    const invalidSpaces = args.spaces.filter(s => !isValidSpaceId(s));
-    if (invalidSpaces.length > 0) {
-      debug.warn('Invalid space IDs detected', { invalidSpaces });
-      logger.warn('Invalid space IDs provided', {
-        tool: 'remember_publish',
-        invalidSpaces,
-        providedSpaces: args.spaces,
-      });
-      return JSON.stringify(
-        {
-          success: false,
-          error: 'Invalid space IDs',
-          message: `Invalid spaces: ${invalidSpaces.join(', ')}. Supported spaces: ${SUPPORTED_SPACES.join(', ')}`,
-          context: {
-            invalid_spaces: invalidSpaces,
-            provided_spaces: args.spaces,
-            supported_spaces: SUPPORTED_SPACES,
-          },
-        },
-        null,
-        2
-      );
-    }
-    
-    // Validate not empty
-    if (args.spaces.length === 0) {
-      logger.warn('Empty spaces array provided', {
+    // Validate that at least one destination is provided
+    if (spaces.length === 0 && groups.length === 0) {
+      logger.warn('No destinations provided', {
         tool: 'remember_publish',
         userId,
       });
       return JSON.stringify(
         {
           success: false,
-          error: 'Empty spaces array',
-          message: 'Must specify at least one space to publish to',
+          error: 'No destinations provided',
+          message: 'Must specify at least one space or group to publish to',
         },
         null,
         2
       );
+    }
+    
+    // Validate all space IDs
+    if (spaces.length > 0) {
+      debug.debug('Validating space IDs', { spaces });
+      const invalidSpaces = spaces.filter(s => !isValidSpaceId(s));
+      if (invalidSpaces.length > 0) {
+        debug.warn('Invalid space IDs detected', { invalidSpaces });
+        logger.warn('Invalid space IDs provided', {
+          tool: 'remember_publish',
+          invalidSpaces,
+          providedSpaces: spaces,
+        });
+        return JSON.stringify(
+          {
+            success: false,
+            error: 'Invalid space IDs',
+            message: `Invalid spaces: ${invalidSpaces.join(', ')}. Supported spaces: ${SUPPORTED_SPACES.join(', ')}`,
+            context: {
+              invalid_spaces: invalidSpaces,
+              provided_spaces: spaces,
+              supported_spaces: SUPPORTED_SPACES,
+            },
+          },
+          null,
+          2
+        );
+      }
+    }
+    
+    // Validate group IDs format (basic validation - no dots allowed)
+    if (groups.length > 0) {
+      debug.debug('Validating group IDs', { groups });
+      const invalidGroups = groups.filter(g => !g || g.includes('.') || g.trim() === '');
+      if (invalidGroups.length > 0) {
+        debug.warn('Invalid group IDs detected', { invalidGroups });
+        logger.warn('Invalid group IDs provided', {
+          tool: 'remember_publish',
+          invalidGroups,
+          providedGroups: groups,
+        });
+        return JSON.stringify(
+          {
+            success: false,
+            error: 'Invalid group IDs',
+            message: 'Group IDs cannot be empty or contain dots',
+            context: {
+              invalid_groups: invalidGroups,
+              provided_groups: groups,
+            },
+          },
+          null,
+          2
+        );
+      }
     }
 
     // Verify memory exists and user owns it
@@ -206,10 +259,11 @@ export async function handlePublish(
       );
     }
 
-    // Create payload with memory_id and spaces array
+    // Create payload with memory_id, spaces, and groups arrays
     const payload = {
       memory_id: args.memory_id,
-      spaces: args.spaces,
+      spaces: spaces,
+      groups: groups,
       additional_tags: args.additional_tags || [],
     };
 
@@ -217,7 +271,8 @@ export async function handlePublish(
       tool: 'remember_publish',
       userId,
       memoryId: args.memory_id,
-      spaces: args.spaces,
+      spaces: spaces,
+      groups: groups,
     });
     
     // Generate confirmation token
@@ -233,7 +288,8 @@ export async function handlePublish(
       requestId,
       token,
       action: 'publish_memory',
-      spaces: args.spaces,
+      spaces: spaces,
+      groups: groups,
     });
 
     // Return minimal response - agent already knows memory details

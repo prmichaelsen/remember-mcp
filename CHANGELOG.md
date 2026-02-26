@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2026-02-26
+
+### Added
+
+**Memory Collection Pattern v2 - remember_publish Tool (Task 166)**
+
+Multi-space and multi-group publication with composite IDs and tracking arrays.
+
+- **Multi-Space Publication** ([`src/tools/publish.ts`](src/tools/publish.ts), [`src/tools/confirm.ts`](src/tools/confirm.ts))
+  - Publish memories to multiple spaces at once (e.g., `["cooking", "recipes"]`)
+  - Publish memories to multiple groups at once (e.g., `["group-123", "group-456"]`)
+  - Dual publication: publish to both spaces and groups simultaneously
+  - Composite IDs (`{userId}.{memoryId}`) for published memories
+  - Tracking arrays (`space_ids`, `group_ids`) on source and published memories
+  - Partial success reporting with detailed results per destination
+  - Error handling for each publication destination independently
+
+- **Tool Schema Updates**
+  - Added `groups` parameter to `remember_publish` tool
+  - Validation for group IDs (no dots allowed)
+  - Support for publishing to spaces only, groups only, or both
+
+### Changed
+
+- `executePublishMemory()` in confirm.ts completely rewritten for v2 architecture
+- Publications now use composite IDs instead of random UUIDs
+- Source memories updated with `space_ids` and `group_ids` tracking arrays
+
+---
+
 ## [3.1.0] - 2026-02-26
 
 ### Added

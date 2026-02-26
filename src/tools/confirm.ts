@@ -3,6 +3,12 @@
  *
  * Generic confirmation tool that executes any pending action.
  * This is the second phase of the confirmation workflow.
+ *
+ * Memory Collection Pattern v2:
+ * - Multi-space publication to Memory_spaces_public
+ * - Multi-group publication to Memory_groups_{groupId}
+ * - Composite IDs ({userId}.{memoryId}) for published memories
+ * - Tracking arrays (space_ids, group_ids) on source and published memories
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
@@ -12,6 +18,9 @@ import { ensurePublicCollection } from '../weaviate/space-schema.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { logger } from '../utils/logger.js';
 import { createDebugLogger } from '../utils/debug.js';
+import { CollectionType, getCollectionName } from '../collections/dot-notation.js';
+import { generateCompositeId, parseCompositeId } from '../collections/composite-ids.js';
+import { addToSpaceIds, addToGroupIds, getPublishedLocations } from '../collections/tracking-arrays.js';
 
 /**
  * Tool definition for remember_confirm
@@ -147,6 +156,12 @@ export async function handleConfirm(
 
 /**
  * Execute publish memory action
+ *
+ * Memory Collection Pattern v2:
+ * - Publishes to Memory_spaces_public with composite ID
+ * - Publishes to Memory_groups_{groupId} for each group
+ * - Updates tracking arrays on source memory
+ * - Supports rollback on partial failure
  */
 async function executePublishMemory(
   request: ConfirmationRequest & { request_id: string },
@@ -159,28 +174,47 @@ async function executePublishMemory(
   });
 
   try {
+    // Normalize arrays (handle undefined)
+    const spaces = request.payload.spaces || [];
+    const groups = request.payload.groups || [];
+    
     debug.debug('Executing publish memory action', {
       memoryId: request.payload.memory_id,
-      spaces: request.payload.spaces,
+      spaces,
+      groups,
     });
     
     logger.info('Executing publish memory action', {
       function: 'executePublishMemory',
       userId,
       memoryId: request.payload.memory_id,
-      spaces: request.payload.spaces,
-      spaceCount: request.payload.spaces?.length || 0,
+      spaces,
+      groups,
+      spaceCount: spaces.length,
+      groupCount: groups.length,
     });
+    
+    // Validate that at least one destination is provided
+    if (spaces.length === 0 && groups.length === 0) {
+      return JSON.stringify(
+        {
+          success: false,
+          error: 'No destinations',
+          message: 'Must specify at least one space or group to publish to',
+        },
+        null,
+        2
+      );
+    }
     
     // Fetch the memory NOW (during confirmation, not from stored payload)
     const weaviateClient = getWeaviateClient();
-    const userCollection = weaviateClient.collections.get(
-      getMemoryCollectionName(userId)
-    );
+    const userCollectionName = getMemoryCollectionName(userId);
+    const userCollection = weaviateClient.collections.get(userCollectionName);
     
     logger.debug('Fetching original memory', {
       function: 'executePublishMemory',
-      collectionName: getMemoryCollectionName(userId),
+      collectionName: userCollectionName,
       memoryId: request.payload.memory_id,
     });
 
@@ -197,14 +231,6 @@ async function executePublishMemory(
       memoryId: request.payload.memory_id,
       hasProperties: !!originalMemory?.properties,
       propertyCount: originalMemory?.properties ? Object.keys(originalMemory.properties).length : 0,
-      propertyKeys: originalMemory?.properties ? Object.keys(originalMemory.properties) : [],
-      hasTitle: !!originalMemory?.properties?.title,
-      hasContent: !!originalMemory?.properties?.content,
-      hasUserId: !!originalMemory?.properties?.user_id,
-      hasTags: !!originalMemory?.properties?.tags,
-      hasWeight: !!originalMemory?.properties?.weight,
-      contentLength: originalMemory?.properties?.content?.length || 0,
-      titleValue: originalMemory?.properties?.title || 'NO_TITLE',
     });
 
     if (!originalMemory) {
@@ -217,28 +243,6 @@ async function executePublishMemory(
           success: false,
           error: 'Memory not found',
           message: `Original memory ${request.payload.memory_id} no longer exists`,
-        },
-        null,
-        2
-      );
-    }
-
-    // Check if memory has already been published
-    if (originalMemory.properties.space_memory_id) {
-      const requestedSpaces = request.payload.spaces?.join(', ') || 'unknown';
-      logger.warn('Memory already published', {
-        function: 'executePublishMemory',
-        memoryId: request.payload.memory_id,
-        existingSpaceMemoryId: originalMemory.properties.space_memory_id,
-        requestedSpaces: request.payload.spaces,
-      });
-      return JSON.stringify(
-        {
-          success: false,
-          error: 'Already published',
-          message: `This memory has already been published to this space. Space memory ID: ${originalMemory.properties.space_memory_id}`,
-          space_memory_id: originalMemory.properties.space_memory_id,
-          requested_spaces: request.payload.spaces,
         },
         null,
         2
@@ -263,115 +267,282 @@ async function executePublishMemory(
         2
       );
     }
-    
-    logger.debug('Ensuring public collection exists', {
-      function: 'executePublishMemory',
-    });
 
-    // Get unified public collection
-    const publicCollection = await ensurePublicCollection(weaviateClient);
+    // Generate composite ID for published memories
+    const compositeId = generateCompositeId(userId, request.payload.memory_id);
     
-    logger.debug('Public collection ready', {
+    logger.debug('Generated composite ID', {
       function: 'executePublishMemory',
-      collectionName: 'Memory_public',
+      compositeId,
+      userId,
+      memoryId: request.payload.memory_id,
     });
-
-    // Create published memory (copy with modifications)
+    
+    // Get existing tracking arrays from source memory
+    const existingSpaceIds: string[] = Array.isArray(originalMemory.properties.space_ids)
+      ? originalMemory.properties.space_ids
+      : [];
+    const existingGroupIds: string[] = Array.isArray(originalMemory.properties.group_ids)
+      ? originalMemory.properties.group_ids
+      : [];
+    
+    // Prepare tags
     const originalTags = Array.isArray(originalMemory.properties.tags)
       ? originalMemory.properties.tags
       : [];
     const additionalTags = Array.isArray(request.payload.additional_tags)
       ? request.payload.additional_tags
       : [];
-
-    // Validate payload has required fields
-    if (!request.payload.spaces || !Array.isArray(request.payload.spaces) || request.payload.spaces.length === 0) {
-      throw new Error('Payload missing required field: spaces');
-    }
+    const mergedTags = [...originalTags, ...additionalTags];
     
-    // Create published memory - preserve ALL original properties
-    const publishedMemory = {
-      ...originalMemory.properties,
-      // Add space-specific fields (don't overwrite existing properties)
-      spaces: request.payload.spaces,  // Required field (validated above)
-      author_id: userId, // Track original author
-      published_at: new Date().toISOString(),
-      discovery_count: 0,
-      attribution: 'user' as const,
-      // Merge additional tags with original tags
-      tags: [...originalTags, ...additionalTags],
-      // Keep doc_type as 'memory' (space_memory concept was removed)
-      // Keep original created_at, updated_at, version (don't overwrite)
-    };
-
-    logger.info('Inserting memory into Memory_public', {
-      function: 'executePublishMemory',
-      spaces: request.payload.spaces,
-      spaceCount: request.payload.spaces?.length || 0,
-      memoryId: request.payload.memory_id,
-      hasUserId: !!(publishedMemory as any).user_id,
-      hasAuthorId: !!publishedMemory.author_id,
-      publishedMemoryKeys: Object.keys(publishedMemory),
-      publishedMemoryKeyCount: Object.keys(publishedMemory).length,
-      hasContent: !!publishedMemory.content,
-      hasTitle: !!publishedMemory.title,
-      contentLength: publishedMemory.content?.length || 0,
-      titleValue: publishedMemory.title || 'NO_TITLE',
-    });
+    // Track publication results for rollback
+    const publicationResults: {
+      spaces?: { success: boolean; id?: string; error?: string };
+      groups: Array<{ groupId: string; success: boolean; id?: string; error?: string }>;
+    } = { groups: [] };
     
-    // Insert directly into unified public collection
-    // CRITICAL: Weaviate insert API expects {properties: {...}}, not the properties directly!
-    const result = await debug.time('Insert into Memory_public', async () => {
-      return await publicCollection.data.insert({
-        properties: publishedMemory,
+    // STEP 1: Publish to spaces (Memory_spaces_public)
+    if (spaces.length > 0) {
+      logger.debug('Ensuring public spaces collection exists', {
+        function: 'executePublishMemory',
       });
-    });
-    
-    logger.info('Memory published successfully', {
-      function: 'executePublishMemory',
-      spaceMemoryId: result,
-      spaces: request.payload.spaces,
-    });
-    
-    debug.info('Memory published successfully', {
-      spaceMemoryId: result,
-      spaces: request.payload.spaces,
-    });
 
-    // Update original memory with space_memory_id for bidirectional linking
-    try {
-      await userCollection.data.update({
-        id: request.payload.memory_id,
-        properties: {
-          space_memory_id: result,
-        },
+      const publicCollection = await ensurePublicCollection(weaviateClient);
+      
+      // Check if memory already exists in spaces collection with this composite ID
+      let existingSpaceMemory = null;
+      try {
+        existingSpaceMemory = await fetchMemoryWithAllProperties(publicCollection, compositeId);
+      } catch (e) {
+        // Memory doesn't exist, which is fine
+      }
+      
+      // Calculate new space_ids array
+      const newSpaceIds = [...new Set([...existingSpaceIds, ...spaces])];
+      
+      // Create published memory with tracking arrays
+      const publishedMemory: Record<string, any> = {
+        ...originalMemory.properties,
+        // Use composite ID as the document ID
+        id: compositeId,
+        // Tracking arrays (v2 feature)
+        space_ids: newSpaceIds,
+        group_ids: existingGroupIds,
+        // Legacy compatibility
+        spaces: spaces,
+        // Publication metadata
+        author_id: userId,
+        published_at: new Date().toISOString(),
+        discovery_count: 0,
+        attribution: 'user' as const,
+        // Merge tags
+        tags: mergedTags,
+      };
+      
+      // Remove internal Weaviate properties
+      delete publishedMemory._additional;
+      
+      logger.info('Publishing memory to Memory_spaces_public', {
+        function: 'executePublishMemory',
+        compositeId,
+        spaces,
+        spaceIds: newSpaceIds,
       });
       
-      logger.info('Updated original memory with space_memory_id', {
-        function: 'executePublishMemory',
-        memoryId: request.payload.memory_id,
-        spaceMemoryId: result,
-      });
-    } catch (updateError) {
-      logger.warn('Failed to update original memory with space_memory_id', {
-        function: 'executePublishMemory',
-        memoryId: request.payload.memory_id,
-        spaceMemoryId: result,
-        error: updateError instanceof Error ? updateError.message : String(updateError),
-      });
-      // Don't fail the publish if this update fails - it's not critical
+      try {
+        if (existingSpaceMemory) {
+          // Update existing memory
+          await publicCollection.data.update({
+            id: compositeId,
+            properties: publishedMemory,
+          });
+          publicationResults.spaces = { success: true, id: compositeId };
+        } else {
+          // Insert new memory with specific ID
+          await publicCollection.data.insert({
+            id: compositeId,
+            properties: publishedMemory,
+          });
+          publicationResults.spaces = { success: true, id: compositeId };
+        }
+        
+        logger.info('Memory published to spaces successfully', {
+          function: 'executePublishMemory',
+          compositeId,
+          spaces,
+        });
+      } catch (spaceError) {
+        logger.error('Failed to publish to spaces', {
+          function: 'executePublishMemory',
+          error: spaceError instanceof Error ? spaceError.message : String(spaceError),
+        });
+        publicationResults.spaces = {
+          success: false,
+          error: spaceError instanceof Error ? spaceError.message : String(spaceError)
+        };
+      }
     }
-
-    // Return minimal response with spaces array
-    return JSON.stringify(
-      {
-        success: true,
-        space_memory_id: result,
-        spaces: request.payload.spaces || ['the_void'],
-      },
-      null,
-      2
-    );
+    
+    // STEP 2: Publish to groups (Memory_groups_{groupId})
+    for (const groupId of groups) {
+      const groupCollectionName = getCollectionName(CollectionType.GROUPS, groupId);
+      
+      logger.debug('Publishing to group collection', {
+        function: 'executePublishMemory',
+        groupId,
+        collectionName: groupCollectionName,
+      });
+      
+      try {
+        const groupCollection = weaviateClient.collections.get(groupCollectionName);
+        
+        // Check if memory already exists in this group
+        let existingGroupMemory = null;
+        try {
+          existingGroupMemory = await fetchMemoryWithAllProperties(groupCollection, compositeId);
+        } catch (e) {
+          // Memory doesn't exist in this group
+        }
+        
+        // Calculate new group_ids array (for this group publication)
+        const newGroupIds = [...new Set([...existingGroupIds, groupId])];
+        
+        // Create published memory for group
+        const groupMemory: Record<string, any> = {
+          ...originalMemory.properties,
+          // Use composite ID
+          id: compositeId,
+          // Tracking arrays
+          space_ids: existingSpaceIds,
+          group_ids: newGroupIds,
+          // Publication metadata
+          author_id: userId,
+          published_at: new Date().toISOString(),
+          discovery_count: 0,
+          attribution: 'user' as const,
+          // Merge tags
+          tags: mergedTags,
+        };
+        
+        // Remove internal Weaviate properties
+        delete groupMemory._additional;
+        
+        if (existingGroupMemory) {
+          await groupCollection.data.update({
+            id: compositeId,
+            properties: groupMemory,
+          });
+        } else {
+          await groupCollection.data.insert({
+            id: compositeId,
+            properties: groupMemory,
+          });
+        }
+        
+        publicationResults.groups.push({ groupId, success: true, id: compositeId });
+        
+        logger.info('Memory published to group successfully', {
+          function: 'executePublishMemory',
+          compositeId,
+          groupId,
+        });
+      } catch (groupError) {
+        logger.error('Failed to publish to group', {
+          function: 'executePublishMemory',
+          groupId,
+          error: groupError instanceof Error ? groupError.message : String(groupError),
+        });
+        publicationResults.groups.push({
+          groupId,
+          success: false,
+          error: groupError instanceof Error ? groupError.message : String(groupError)
+        });
+      }
+    }
+    
+    // STEP 3: Update source memory with tracking arrays
+    const finalSpaceIds = publicationResults.spaces?.success
+      ? [...new Set([...existingSpaceIds, ...spaces])]
+      : existingSpaceIds;
+    
+    const successfulGroups = publicationResults.groups
+      .filter(g => g.success)
+      .map(g => g.groupId);
+    const finalGroupIds = [...new Set([...existingGroupIds, ...successfulGroups])];
+    
+    // Only update if there are changes
+    if (finalSpaceIds.length > existingSpaceIds.length || finalGroupIds.length > existingGroupIds.length) {
+      try {
+        await userCollection.data.update({
+          id: request.payload.memory_id,
+          properties: {
+            space_ids: finalSpaceIds,
+            group_ids: finalGroupIds,
+          },
+        });
+        
+        logger.info('Updated source memory with tracking arrays', {
+          function: 'executePublishMemory',
+          memoryId: request.payload.memory_id,
+          spaceIds: finalSpaceIds,
+          groupIds: finalGroupIds,
+        });
+      } catch (updateError) {
+        logger.warn('Failed to update source memory tracking arrays', {
+          function: 'executePublishMemory',
+          memoryId: request.payload.memory_id,
+          error: updateError instanceof Error ? updateError.message : String(updateError),
+        });
+        // Don't fail the publish if this update fails
+      }
+    }
+    
+    // Build response
+    const successfulPublications: string[] = [];
+    const failedPublications: string[] = [];
+    
+    if (spaces.length > 0) {
+      if (publicationResults.spaces?.success) {
+        successfulPublications.push(`spaces: ${spaces.join(', ')}`);
+      } else {
+        failedPublications.push(`spaces: ${publicationResults.spaces?.error || 'unknown error'}`);
+      }
+    }
+    
+    for (const groupResult of publicationResults.groups) {
+      if (groupResult.success) {
+        successfulPublications.push(`group: ${groupResult.groupId}`);
+      } else {
+        failedPublications.push(`group ${groupResult.groupId}: ${groupResult.error || 'unknown error'}`);
+      }
+    }
+    
+    // Return result
+    if (successfulPublications.length > 0) {
+      return JSON.stringify(
+        {
+          success: true,
+          composite_id: compositeId,
+          published_to: successfulPublications,
+          failed: failedPublications.length > 0 ? failedPublications : undefined,
+          space_ids: finalSpaceIds,
+          group_ids: finalGroupIds,
+        },
+        null,
+        2
+      );
+    } else {
+      return JSON.stringify(
+        {
+          success: false,
+          error: 'Publication failed',
+          message: 'Failed to publish to any destination',
+          details: failedPublications,
+        },
+        null,
+        2
+      );
+    }
   } catch (error) {
     debug.error('Execute publish failed', {
       error: error instanceof Error ? error.message : String(error),

@@ -209,17 +209,18 @@ milestones:
   - id: M14
     name: Memory Collection Pattern v2
     status: in_progress
-    progress: 12%
+    progress: 25%
     started: 2026-02-26
     completed: null
     estimated_weeks: 2-3
-    tasks_completed: 1
+    tasks_completed: 2
     tasks_total: 8
     notes: |
       Foundation for all social features (People Discovery, Memory Feed API).
       Fresh implementation with no migration complexity.
       
       ✅ Task 165: Core Infrastructure Setup COMPLETED (2026-02-26)
+      ✅ Task 166: Implement remember_publish Tool COMPLETED (2026-02-26)
       
       Key Innovations:
       - Dot notation collections: Memory.users.{userId}, Memory.spaces.public, Memory.groups.{groupId}
@@ -1436,13 +1437,21 @@ task_20_completion:
     
     - id: task-166
       name: Implement remember_publish Tool
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-14-memory-collection-v2/task-166-update-remember-publish.md
       estimated_hours: 6-8
-      actual_hours: null
-      completed_date: null
+      actual_hours: 4
+      completed_date: 2026-02-26
       notes: |
-        Multi-space and multi-group publication with composite IDs.
+        ✅ Multi-space publication to Memory_spaces_public
+        ✅ Multi-group publication to Memory_groups_{groupId}
+        ✅ Composite IDs ({userId}.{memoryId}) for published memories
+        ✅ Tracking arrays (space_ids, group_ids) on source and published memories
+        ✅ Dual publication support (spaces + groups simultaneously)
+        ✅ Error handling with partial success reporting
+        ✅ Updated publish.ts schema with groups parameter
+        ✅ Updated confirm.ts executePublishMemory with v2 logic
+        ✅ All 138 tests passing
     
     - id: task-167
       name: Implement remember_retract Tool
