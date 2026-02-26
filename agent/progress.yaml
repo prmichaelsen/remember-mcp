@@ -2,7 +2,7 @@
 
 project:
   name: remember-mcp
-  version: 3.3.0
+  version: 3.4.0
   started: 2026-02-11
   status: in_progress
   current_milestone: M14
@@ -209,11 +209,11 @@ milestones:
   - id: M14
     name: Memory Collection Pattern v2
     status: in_progress
-    progress: 37%
+    progress: 50%
     started: 2026-02-26
     completed: null
     estimated_weeks: 2-3
-    tasks_completed: 3
+    tasks_completed: 4
     tasks_total: 8
     notes: |
       Foundation for all social features (People Discovery, Memory Feed API).
@@ -226,7 +226,12 @@ milestones:
          - src/tools/confirm.ts: Added executeRetractMemory() handler
          - Both servers registered with retractTool + handleRetract
          - Orphan strategy: memories kept in spaces/groups with cleared tracking arrays
-      📋 Task 168: remember_revise Tool (next)
+      ✅ Task 168: Implement remember_revise Tool COMPLETED (2026-02-26) [actual: 15m / est: 6-8h]
+         - src/tools/revise.ts: Direct action tool (no confirmation needed)
+         - parseRevisionHistory() + buildRevisionHistory() pure helpers
+         - Updates content + revised_at + revision_count + revision_history (JSON)
+         - Handles partial success: each location reported independently
+         - 19 new unit tests (revise.spec.ts) — 156 tests total passing
       📋 Task 169: remember_search_space Tool
       📋 Task 170: remember_create_memory and remember_update_memory
       📋 Task 172: Performance Testing and Optimization
@@ -600,6 +605,24 @@ progress:
   overall: 50%
 
 recent_work:
+  - date: 2026-02-26
+    description: M14 Task 168 - remember_revise Tool Implemented (v3.4.0)
+    items:
+      - ✅ Created src/tools/revise.ts - direct action tool (no confirmation flow)
+      - ✅ parseRevisionHistory() - safe JSON parsing of revision history field
+      - ✅ buildRevisionHistory() - prepends old content, trims to 10 entries max
+      - ✅ Reads space_ids/group_ids from source memory tracking arrays
+      - ✅ Updates Memory_spaces_public and Memory_groups_{groupId} in sequence
+      - ✅ Preserves old content in revision_history (JSON string field)
+      - ✅ Sets revised_at timestamp and increments revision_count per copy
+      - ✅ Partial success: each location reported independently
+      - ✅ Registered in src/server.ts and src/server-factory.ts
+      - ✅ 19 new unit tests (src/tools/revise.spec.ts)
+      - ✅ All 156 tests passing (was 137)
+      - ✅ Build passing (v3.4.0)
+      - 📋 M14 now 50% complete (4/8 tasks)
+      - 📋 Next: Task 169 - remember_search_space updates
+
   - date: 2026-02-26
     description: ACP Initialization - M14 Task 167 (remember_retract) Implemented
     items:

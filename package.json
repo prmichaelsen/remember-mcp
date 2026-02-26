@@ -1,6 +1,6 @@
 {
   "name": "@prmichaelsen/remember-mcp",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "description": "Multi-tenant memory system MCP server with vector search and relationships",
   "main": "dist/server.js",
   "type": "module",

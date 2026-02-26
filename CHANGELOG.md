@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2026-02-26
+
+### Added
+
+**Memory Collection Pattern v2 - remember_revise Tool (Task 168)**
+
+Content synchronization for published memories — propagates source memory updates to all published copies.
+
+- **`remember_revise` Tool** ([`src/tools/revise.ts`](src/tools/revise.ts))
+  - Direct action tool (no confirmation flow — content sync is non-destructive)
+  - Reads `space_ids` and `group_ids` tracking arrays from source memory
+  - Updates content in `Memory_spaces_public` (one call for all spaces)
+  - Updates content in each `Memory_groups_{groupId}` in sequence
+  - Partial success: each location reported independently, failures don't block successes
+  - Returns detailed `results` array with status per location
+
+- **Revision History** ([`src/tools/revise.ts`](src/tools/revise.ts))
+  - Old content saved to `revision_history` field (JSON string) before overwrite
+  - Capped at 10 entries (`MAX_REVISION_HISTORY`)
+  - `revised_at` timestamp set on each updated copy
+  - `revision_count` incremented on each updated copy
+  - `parseRevisionHistory()` and `buildRevisionHistory()` exported as pure helpers
+
+- **Server Registration**
+  - `remember_revise` tool registered in both `src/server.ts` and `src/server-factory.ts`
+
+- **Unit Tests** ([`src/tools/revise.spec.ts`](src/tools/revise.spec.ts))
+  - 19 new tests covering `parseRevisionHistory`, `buildRevisionHistory`, and tool definition
+  - Total: 156 tests passing
+
+---
+
 ## [3.3.0] - 2026-02-26
 
 ### Added
