@@ -5,8 +5,8 @@ project:
   version: 3.0.1
   started: 2026-02-11
   status: in_progress
-  current_milestone: M12
-  last_updated: 2026-02-25
+  current_milestone: M14
+  last_updated: 2026-02-26
 
 milestones:
   - id: M1
@@ -205,6 +205,36 @@ milestones:
       ✅ Prevents relationships with deleted memories
       ✅ Prevents updating deleted memories
       ✅ Breaking change: v2.8.0 → v3.0.0 RELEASED
+     
+  - id: M14
+    name: Memory Collection Pattern v2
+    status: not_started
+    progress: 0%
+    started: null
+    completed: null
+    estimated_weeks: 2-3
+    tasks_completed: 0
+    tasks_total: 8
+    notes: |
+      Foundation for all social features (People Discovery, Memory Feed API).
+      Fresh implementation with no migration complexity.
+      
+      Key Innovations:
+      - Dot notation collections: Memory.users.{userId}, Memory.spaces.public, Memory.groups.{groupId}
+      - Composite IDs: {userId}.{memoryId} format preserves source reference
+      - Tracking arrays: space_ids and group_ids track publication locations
+      - Dual publication: Memories can exist in both spaces and groups
+      - Revision support: remember_revise updates published memories in-place
+      
+      Tasks:
+      - Task 165: Core Infrastructure Setup (8-10 hours)
+      - Task 166: Implement remember_publish Tool (6-8 hours)
+      - Task 167: Implement remember_retract Tool (4-6 hours)
+      - Task 168: Implement remember_revise Tool (6-8 hours)
+      - Task 169: Implement remember_search_space Tool (4-6 hours)
+      - Task 170: Implement remember_create_memory and remember_update_memory (3-4 hours)
+      - Task 172: Performance Testing and Optimization (6-8 hours)
+      - Task 173: Documentation and Examples (4-6 hours)
      
   - id: M7
     name: Trust & Permissions
@@ -1376,3 +1406,85 @@ task_20_completion:
     - v2.6.0: Minor release with comment system foundation
     - v2.6.1: Patch release with structured logging
     - v2.6.2: Patch release with confirmation tool safety guidelines
+
+  milestone_14:
+    - id: task-165
+      name: Core Infrastructure Setup
+      status: not_started
+      file: agent/tasks/milestone-14-memory-collection-v2/task-165-core-infrastructure-setup.md
+      estimated_hours: 8-10
+      actual_hours: null
+      completed_date: null
+      notes: |
+        Dot notation collections, composite IDs, tracking arrays, Weaviate schemas.
+        Foundation for all subsequent tasks.
+    
+    - id: task-166
+      name: Implement remember_publish Tool
+      status: not_started
+      file: agent/tasks/milestone-14-memory-collection-v2/task-166-update-remember-publish.md
+      estimated_hours: 6-8
+      actual_hours: null
+      completed_date: null
+      notes: |
+        Multi-space and multi-group publication with composite IDs.
+    
+    - id: task-167
+      name: Implement remember_retract Tool
+      status: not_started
+      file: agent/tasks/milestone-14-memory-collection-v2/task-167-update-remember-retract.md
+      estimated_hours: 4-6
+      actual_hours: null
+      completed_date: null
+      notes: |
+        Selective retraction from spaces/groups, orphaned memory handling.
+    
+    - id: task-168
+      name: Implement remember_revise Tool
+      status: not_started
+      file: agent/tasks/milestone-14-memory-collection-v2/task-168-implement-remember-revise.md
+      estimated_hours: 6-8
+      actual_hours: null
+      completed_date: null
+      notes: |
+        New tool for syncing content across all published copies.
+    
+    - id: task-169
+      name: Implement remember_search_space Tool
+      status: not_started
+      file: agent/tasks/milestone-14-memory-collection-v2/task-169-update-remember-search-space.md
+      estimated_hours: 4-6
+      actual_hours: null
+      completed_date: null
+      notes: |
+        Query by space_ids filtering, group searches, deduplication.
+    
+    - id: task-170
+      name: Implement remember_create_memory and remember_update_memory Tools
+      status: not_started
+      file: agent/tasks/milestone-14-memory-collection-v2/task-170-update-remember-create-update.md
+      estimated_hours: 3-4
+      actual_hours: null
+      completed_date: null
+      notes: |
+        Initialize and maintain tracking arrays in user memories.
+    
+    - id: task-172
+      name: Performance Testing and Optimization
+      status: not_started
+      file: agent/tasks/milestone-14-memory-collection-v2/task-172-performance-testing-optimization.md
+      estimated_hours: 6-8
+      actual_hours: null
+      completed_date: null
+      notes: |
+        Comprehensive performance testing, optimization to meet <200ms targets.
+    
+    - id: task-173
+      name: Documentation and Examples
+      status: not_started
+      file: agent/tasks/milestone-14-memory-collection-v2/task-173-documentation-examples.md
+      estimated_hours: 4-6
+      actual_hours: null
+      completed_date: null
+      notes: |
+        API docs, architecture docs, usage examples.
