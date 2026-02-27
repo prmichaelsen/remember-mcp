@@ -284,7 +284,7 @@ describe('Schema Definitions', () => {
       expect(schema.name).toBe('Memory_users_user123');
       expect(schema.description).toContain('user123');
       expect(schema.properties).toBeDefined();
-      expect(schema.vectorizer).toBeDefined();
+      expect(schema.vectorizers).toBeDefined();
     });
 
     it('should create space collection schema', () => {
@@ -303,7 +303,7 @@ describe('Schema Definitions', () => {
   describe('Property lists', () => {
     it('should get user collection properties', () => {
       const props = getUserCollectionProperties();
-      expect(props).toContain('id');
+      expect(props).not.toContain('id'); // 'id' is reserved by Weaviate
       expect(props).toContain('content');
       expect(props).toContain('space_ids');
       expect(props).toContain('group_ids');
@@ -311,7 +311,7 @@ describe('Schema Definitions', () => {
 
     it('should get published collection properties', () => {
       const props = getPublishedCollectionProperties();
-      expect(props).toContain('id');
+      expect(props).not.toContain('id'); // 'id' is reserved by Weaviate
       expect(props).toContain('published_at');
       expect(props).toContain('author_id');
     });

@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.1] - 2026-02-27
+
+### Fixed
+
+**v2 Schema Weaviate Cloud Compatibility**
+
+- Remove reserved `id` property from `COMMON_MEMORY_PROPERTIES` — Weaviate reserves `id` for UUID primary key
+- Change `vectorizer` to `vectorizers` (plural) in all schema creation functions — required by `client.collections.create()` v3 API
+- Replace `'text' as any` data type casts with `configure.dataType.TEXT` (and corresponding typed variants) throughout schema definitions
+- Update `jest.e2e.config.js` to ESM format matching unit test config
+
+### Added
+
+- `src/v2-smoke.e2e.ts` — E2E smoke test validating full v2 flow against live Weaviate (connect → create collections → publish → search → revise)
+
+---
+
 ## [3.7.0] - 2026-02-27
 
 ### Changed

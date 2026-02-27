@@ -11,58 +11,61 @@ import weaviate, { WeaviateClient, configure } from 'weaviate-client';
 
 /**
  * Common properties shared across all memory collection types
+ *
+ * Note: 'id' is NOT included — it is reserved by Weaviate for the UUID primary key.
+ * Use the Weaviate UUID as the memory identifier. For published memories, store the
+ * composite ID ({userId}.{memoryId}) in 'original_memory_id' on the published copy.
  */
 const COMMON_MEMORY_PROPERTIES = [
-  // Core identity
-  { name: 'id', dataType: 'text' as any },
-  { name: 'content', dataType: 'text' as any },
-  { name: 'content_type', dataType: 'text' as any },
-  
+  // Core content
+  { name: 'content', dataType: configure.dataType.TEXT },
+  { name: 'content_type', dataType: configure.dataType.TEXT },
+
   // Tracking arrays (v2 feature)
-  { name: 'space_ids', dataType: 'text[]' as any },
-  { name: 'group_ids', dataType: 'text[]' as any },
-  
+  { name: 'space_ids', dataType: configure.dataType.TEXT_ARRAY },
+  { name: 'group_ids', dataType: configure.dataType.TEXT_ARRAY },
+
   // Metadata
-  { name: 'created_at', dataType: 'date' as any },
-  { name: 'updated_at', dataType: 'date' as any },
-  { name: 'version', dataType: 'int' as any },
-  
+  { name: 'created_at', dataType: configure.dataType.DATE },
+  { name: 'updated_at', dataType: configure.dataType.DATE },
+  { name: 'version', dataType: configure.dataType.INT },
+
   // User context
-  { name: 'user_id', dataType: 'text' as any },
-  
+  { name: 'user_id', dataType: configure.dataType.TEXT },
+
   // Document type (memory, relationship, comment)
-  { name: 'doc_type', dataType: 'text' as any },
-  
+  { name: 'doc_type', dataType: configure.dataType.TEXT },
+
   // Memory-specific fields
-  { name: 'tags', dataType: 'text[]' as any },
-  { name: 'weight', dataType: 'number' as any },
-  { name: 'trust_score', dataType: 'number' as any },
-  
+  { name: 'tags', dataType: configure.dataType.TEXT_ARRAY },
+  { name: 'weight', dataType: configure.dataType.NUMBER },
+  { name: 'trust_score', dataType: configure.dataType.NUMBER },
+
   // Location data
-  { name: 'location_name', dataType: 'text' as any },
-  { name: 'location_lat', dataType: 'number' as any },
-  { name: 'location_lon', dataType: 'number' as any },
-  
+  { name: 'location_name', dataType: configure.dataType.TEXT },
+  { name: 'location_lat', dataType: configure.dataType.NUMBER },
+  { name: 'location_lon', dataType: configure.dataType.NUMBER },
+
   // Context
-  { name: 'context_app', dataType: 'text' as any },
-  { name: 'context_url', dataType: 'text' as any },
-  { name: 'context_conversation_id', dataType: 'text' as any },
-  
+  { name: 'context_app', dataType: configure.dataType.TEXT },
+  { name: 'context_url', dataType: configure.dataType.TEXT },
+  { name: 'context_conversation_id', dataType: configure.dataType.TEXT },
+
   // Relationships
-  { name: 'relationship_ids', dataType: 'text[]' as any },
-  { name: 'relationship_type', dataType: 'text' as any },
-  { name: 'related_memory_ids', dataType: 'text[]' as any },
-  { name: 'observation', dataType: 'text' as any },
-  
+  { name: 'relationship_ids', dataType: configure.dataType.TEXT_ARRAY },
+  { name: 'relationship_type', dataType: configure.dataType.TEXT },
+  { name: 'related_memory_ids', dataType: configure.dataType.TEXT_ARRAY },
+  { name: 'observation', dataType: configure.dataType.TEXT },
+
   // Comments (Phase 1)
-  { name: 'parent_id', dataType: 'text' as any },
-  { name: 'thread_root_id', dataType: 'text' as any },
-  { name: 'moderation_flags', dataType: 'text[]' as any },
-  
+  { name: 'parent_id', dataType: configure.dataType.TEXT },
+  { name: 'thread_root_id', dataType: configure.dataType.TEXT },
+  { name: 'moderation_flags', dataType: configure.dataType.TEXT_ARRAY },
+
   // Soft delete
-  { name: 'deleted_at', dataType: 'date' as any },
-  { name: 'deleted_by', dataType: 'text' as any },
-  { name: 'deletion_reason', dataType: 'text' as any },
+  { name: 'deleted_at', dataType: configure.dataType.DATE },
+  { name: 'deleted_by', dataType: configure.dataType.TEXT },
+  { name: 'deletion_reason', dataType: configure.dataType.TEXT },
 ];
 
 /**
@@ -70,25 +73,25 @@ const COMMON_MEMORY_PROPERTIES = [
  */
 const PUBLISHED_MEMORY_PROPERTIES = [
   // Publication metadata
-  { name: 'published_at', dataType: 'date' as any },
-  { name: 'revised_at', dataType: 'date' as any },
-  
+  { name: 'published_at', dataType: configure.dataType.DATE },
+  { name: 'revised_at', dataType: configure.dataType.DATE },
+
   // Attribution
-  { name: 'author_id', dataType: 'text' as any },
-  { name: 'ghost_id', dataType: 'text' as any },
-  { name: 'attribution', dataType: 'text' as any },
-  
+  { name: 'author_id', dataType: configure.dataType.TEXT },
+  { name: 'ghost_id', dataType: configure.dataType.TEXT },
+  { name: 'attribution', dataType: configure.dataType.TEXT },
+
   // Discovery
-  { name: 'discovery_count', dataType: 'int' as any },
-  
+  { name: 'discovery_count', dataType: configure.dataType.INT },
+
   // Revision tracking
-  { name: 'revision_count', dataType: 'int' as any },
-  { name: 'original_memory_id', dataType: 'text' as any },
-  
+  { name: 'revision_count', dataType: configure.dataType.INT },
+  { name: 'original_memory_id', dataType: configure.dataType.TEXT },
+
   // Legacy compatibility (deprecated but kept for migration)
-  { name: 'spaces', dataType: 'text[]' as any },
-  { name: 'space_id', dataType: 'text' as any },
-  { name: 'space_memory_id', dataType: 'text' as any },
+  { name: 'spaces', dataType: configure.dataType.TEXT_ARRAY },
+  { name: 'space_id', dataType: configure.dataType.TEXT },
+  { name: 'space_memory_id', dataType: configure.dataType.TEXT },
 ];
 
 /**
@@ -111,7 +114,7 @@ export function createUserCollectionSchema(userId: string) {
     description: `Private memory collection for user: ${userId}`,
     
     // Vector configuration
-    vectorizer: configure.vectorizer.text2VecOpenAI({
+    vectorizers: configure.vectorizer.text2VecOpenAI({
       model: 'text-embedding-3-small',
       dimensions: 1536,
       vectorizeCollectionName: false,
@@ -148,7 +151,7 @@ export function createSpaceCollectionSchema() {
     description: 'Shared memory collection for all public spaces',
     
     // Vector configuration
-    vectorizer: configure.vectorizer.text2VecOpenAI({
+    vectorizers: configure.vectorizer.text2VecOpenAI({
       model: 'text-embedding-3-small',
       dimensions: 1536,
       vectorizeCollectionName: false,
@@ -189,7 +192,7 @@ export function createGroupCollectionSchema(groupId: string) {
     description: `Group memory collection for group: ${groupId}`,
     
     // Vector configuration
-    vectorizer: configure.vectorizer.text2VecOpenAI({
+    vectorizers: configure.vectorizer.text2VecOpenAI({
       model: 'text-embedding-3-small',
       dimensions: 1536,
       vectorizeCollectionName: false,
