@@ -2,13 +2,17 @@
 
 **Milestone**: M7 — Trust & Permissions
 **Status**: pending
-**Dependencies**: Tasks 180-185
+**Dependencies**: Tasks 180, 182, 183
+**Updated**: 2026-02-27 (scope adjusted for deferred tasks)
 
 ---
 
 ## Objective
 
 Final verification, CHANGELOG update, version bump, and design doc status updates.
+
+> **Scope change (2026-02-27)**: Tasks 181, 184, 185 deferred to M16 (ghost/persona).
+> M7 delivers: types (180), trust enforcement service (182), access control service (183).
 
 ## Deliverables
 
@@ -17,25 +21,23 @@ Final verification, CHANGELOG update, version bump, and design doc status update
 - `npm test` — all tests pass
 - `npm run build` — compiles without errors
 - `npm run typecheck` — no type errors
-- Grep: all 25 tools registered in both server.ts and server-factory.ts
-- Grep: all handlers pass authContext parameter
+- Grep: 'ghost' and 'comment' in ContentType union
 
 ### 2. CHANGELOG
 
 Add v3.11.0 entry documenting:
-- Trust enforcement system (5 levels)
-- Permission management (5 new tools)
-- Access control with Result pattern
-- Trust escalation prevention
-- Access logging
+- AccessResult discriminated union type
+- GhostConfig type and TrustEnforcementMode
+- Trust enforcement service (3 modes: query, prompt, hybrid)
+- Access control service with escalation prevention
+- 'ghost' content type added
 
 ### 3. Design Doc Updates
 
-Update status in:
-- `agent/design/trust-system-implementation.md` → "Implemented"
-- `agent/design/permissions-storage-architecture.md` → "Implemented"
-- `agent/design/trust-escalation-prevention.md` → "Implemented"
-- `agent/design/access-control-result-pattern.md` → "Implemented"
+Verify notes added to:
+- `trust-system-implementation.md` — notes about 3-mode enforcement
+- `permissions-storage-architecture.md` — notes about GhostConfig
+- `trust-escalation-prevention.md` — notes about ghost conversations
 
 ### 4. Progress Tracker
 
@@ -43,13 +45,12 @@ Update `agent/progress.yaml`:
 - M7 status: completed
 - All task statuses updated
 - Version: 3.11.0
-- Next milestone set
 
 ## Acceptance Criteria
 
-- [ ] All tests pass (expected: 330+)
+- [ ] All tests pass
 - [ ] Build succeeds
 - [ ] CHANGELOG updated
-- [ ] Design docs marked implemented
+- [ ] Design doc notes verified
 - [ ] Progress tracker updated
 - [ ] Version bumped to 3.11.0

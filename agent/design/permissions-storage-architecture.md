@@ -1,8 +1,16 @@
 # Permissions & Trust Storage Architecture
 
-**Concept**: Storage strategy for user permissions and trust relationships  
-**Created**: 2026-02-11  
-**Status**: Design Specification
+**Concept**: Storage strategy for user permissions and trust relationships
+**Created**: 2026-02-11
+**Updated**: 2026-02-27
+**Status**: Partially Superseded by Ghost/Persona Design
+
+> **NOTE (2026-02-27)**: The Firestore hybrid approach (Firestore for permissions, Weaviate for
+> memories) remains correct. However, the `UserPermission` schema described here is overbuilt
+> for the ghost/persona model. The ghost system uses a simpler `GhostConfig` at
+> `users/{ownerUserId}/ghost_config` with `per_user_trust: Record<string, number>`,
+> `blocked_users: string[]`, and tiered trust defaults. The full UserPermission CRUD
+> (grant/revoke/list) is deferred. See `local.ghost-persona-system.md` for the current schema.
 
 ---
 

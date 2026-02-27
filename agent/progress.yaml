@@ -268,17 +268,18 @@ milestones:
     progress: 0%
     estimated_weeks: 2
     tasks_completed: 0
-    tasks_total: 5
+    tasks_total: 4
     notes: |
-      Task breakdown created (tasks 180-183, 186):
-      ⏳ Task 180: Access Result & Permission types
-      ⏳ Task 181: Firestore permissions & access logs
-      ⏳ Task 182: Trust enforcement service
-      ⏳ Task 183: Access control service
+      Task breakdown created (tasks 180, 182, 183, 186 active):
+      ⏳ Task 180: Access Result & GhostConfig types + 'ghost' content type
+      🔜 Task 181: DEFERRED — Firestore CRUD deferred to M16 (ghost builds it)
+      ⏳ Task 182: Trust enforcement service (3 modes: query/prompt/hybrid)
+      ⏳ Task 183: Access control service (escalation, blocking)
       🔜 Task 184: DEFERRED — Permission tools (ghost/persona model replaces direct access)
       🔜 Task 185: DEFERRED — Wire trust into search (ghost handles this)
       ⏳ Task 186: Documentation & verification
-      See: agent/clarifications/clarification-2-cross-user-access-model.md
+      Synced with ghost/persona design (2026-02-27)
+      See: agent/design/local.ghost-persona-system.md
     
   - id: M8
     name: Testing & Quality
@@ -654,13 +655,14 @@ tasks:
 
     - id: task-181
       name: Firestore Permissions & Access Logs
-      status: pending
+      status: deferred
       file: agent/tasks/milestone-7-trust-permissions/task-181-firestore-permissions-access-logs.md
       estimated_hours: 4-6
       dependencies: [task-180]
       notes: |
-        📋 Permission CRUD, access logging, memory block operations
-        📋 Uses existing Firestore paths from paths.ts
+        🔜 DEFERRED: Ghost model uses GhostConfig, not UserPermission CRUD
+        📋 Firestore operations built alongside ghost in M16
+        📋 See local.ghost-persona-system.md
 
     - id: task-182
       name: Trust Enforcement Service
@@ -677,10 +679,11 @@ tasks:
       status: pending
       file: agent/tasks/milestone-7-trust-permissions/task-183-access-control-service.md
       estimated_hours: 4-6
-      dependencies: [task-180, task-181, task-182]
+      dependencies: [task-180, task-182]
       notes: |
         📋 checkMemoryAccess() → AccessResult
         📋 Trust escalation prevention (-0.1/attempt, block after 3)
+        📋 Ghost mode: handles escalation tracking, not per-memory filtering
 
     - id: task-184
       name: Permission Tools (5 tools)

@@ -1,8 +1,15 @@
 # Trust Escalation Prevention
 
-**Concept**: Automatic trust reduction for repeated unauthorized access attempts  
-**Created**: 2026-02-11  
+**Concept**: Automatic trust reduction for repeated unauthorized access attempts
+**Created**: 2026-02-11
+**Updated**: 2026-02-27
 **Status**: Design Specification
+
+> **NOTE (2026-02-27)**: Trust escalation applies to ghost/persona conversations (confirmed in
+> clarification-3). When a user repeatedly asks a ghost about topics above their trust level,
+> the escalation system triggers: -0.1 trust per failed attempt, block after 3 attempts. The
+> ghost's system prompt warns progressively before backend escalation kicks in.
+> See `local.ghost-persona-system.md` for ghost-specific escalation behavior.
 
 ---
 

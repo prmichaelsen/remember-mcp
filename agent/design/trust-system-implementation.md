@@ -1,8 +1,17 @@
 # Trust System Implementation - Prompt-Based Enforcement
 
-**Concept**: Trust enforcement through LLM prompting and validation  
-**Created**: 2026-02-11  
-**Status**: Design Specification
+**Concept**: Trust enforcement through LLM prompting and validation
+**Created**: 2026-02-11
+**Updated**: 2026-02-27
+**Status**: Superseded by Ghost/Persona Design
+
+> **NOTE (2026-02-27)**: This document describes **prompt-based enforcement** as the primary
+> trust mechanism. Per the ghost/persona design (`local.ghost-persona-system.md`), the primary
+> enforcement is now **query-level filtering** at the Weaviate layer — memories above the
+> accessor's trust threshold are never returned. Prompt-based enforcement remains as one of
+> three configurable modes (query, prompt, hybrid), but query is the default. The prompt-based
+> approach described here applies only when enforcement_mode is set to 'prompt' or 'hybrid'.
+> See `local.ghost-persona-system.md` for the current architecture.
 
 ---
 

@@ -1,8 +1,9 @@
 # Task 181: Firestore Permissions & Access Logs
 
 **Milestone**: M7 — Trust & Permissions
-**Status**: pending
+**Status**: deferred
 **Dependencies**: Task 180 (types)
+**Deferred Reason**: Full permission CRUD not needed until ghost/persona system (M16). Ghost model uses GhostConfig (per_user_trust, blocked_users) instead of UserPermission grants. Firestore operations will be built alongside ghost implementation. See clarification-2/3 and local.ghost-persona-system.md.
 
 ---
 
