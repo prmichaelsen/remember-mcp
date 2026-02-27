@@ -247,17 +247,20 @@ export function addMultipleSpaceIds<T extends MemoryWithTracking>(
   memory: T,
   spaceIds: string[]
 ): T {
-  const newSpaceIds = [...memory.space_ids]
-  
+  // Use Set for O(n+m) deduplication instead of O(n*m) includes() loop
+  const existing = new Set(memory.space_ids)
+  const merged = [...memory.space_ids]
+
   for (const spaceId of spaceIds) {
-    if (!newSpaceIds.includes(spaceId)) {
-      newSpaceIds.push(spaceId)
+    if (!existing.has(spaceId)) {
+      existing.add(spaceId)
+      merged.push(spaceId)
     }
   }
-  
+
   return {
     ...memory,
-    space_ids: newSpaceIds,
+    space_ids: merged,
   }
 }
 
@@ -277,16 +280,19 @@ export function addMultipleGroupIds<T extends MemoryWithTracking>(
   memory: T,
   groupIds: string[]
 ): T {
-  const newGroupIds = [...memory.group_ids]
-  
+  // Use Set for O(n+m) deduplication instead of O(n*m) includes() loop
+  const existing = new Set(memory.group_ids)
+  const merged = [...memory.group_ids]
+
   for (const groupId of groupIds) {
-    if (!newGroupIds.includes(groupId)) {
-      newGroupIds.push(groupId)
+    if (!existing.has(groupId)) {
+      existing.add(groupId)
+      merged.push(groupId)
     }
   }
-  
+
   return {
     ...memory,
-    group_ids: newGroupIds,
+    group_ids: merged,
   }
 }

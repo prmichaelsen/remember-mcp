@@ -339,9 +339,10 @@ If migration fails:
 
 ---
 
-**Status**: Design Specification (ready for implementation)
-**Recommendation**: Implement migration script in remember-mcp, test thoroughly, then migrate production
-**Related Documents**: 
+**Status**: Implemented (v3.1.0–v3.6.0)
+**Recommendation**: See API reference and migration guide for integration details
+**Related Documents**:
+- [v2 API Reference](local.v2-api-reference.md) — Complete tool documentation
+- [v2 Migration Guide](local.v2-migration-guide.md) — Migration from v1 to v2
+- [v2 Usage Examples](local.v2-usage-examples.md) — Real-world usage patterns
 - agent/clarifications/ARCHITECTURE_SUMMARY.md
-- agent/design/local.people-discovery-architecture.md (to be created)
-- agent/design/local.remember-mcp-v2-specification.md (to be created)

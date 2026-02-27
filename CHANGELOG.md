@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.0] - 2026-02-27
+
+### Changed
+
+**remember_revise: Added Confirmation Flow**
+
+`remember_revise` now uses the same two-phase confirmation flow as `remember_publish` and `remember_retract`.
+
+- **Phase 1**: `remember_revise({ memory_id })` validates the request and returns a confirmation token
+- **Phase 2**: `remember_confirm({ token })` executes the revision, syncing content to all published copies
+- Revision logic moved from `revise.ts` to `executeReviseMemory()` in `confirm.ts`
+- New action type: `revise_memory` handled by `remember_confirm`
+- Token response includes destination summary (`space_ids`, `group_ids`, `total_locations`)
+- All existing revision behavior preserved (revision_history, revised_at, partial success)
+
+### Added
+
+**Documentation (Task 173)**
+
+- `agent/design/local.v2-api-reference.md` — Complete API docs for all 6 v2 tools
+- `agent/design/local.v2-migration-guide.md` — v1 → v2 migration guide
+- `agent/design/local.v2-usage-examples.md` — Real-world usage patterns and examples
+- Updated `README.md` with v2 architecture, 18 tools, v2 tool listing
+- Updated `agent/design/local.memory-collection-pattern-v2.md` status to Implemented
+
+---
+
 ## [3.6.0] - 2026-02-27
 
 ### Added

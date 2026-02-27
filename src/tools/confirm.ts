@@ -21,6 +21,7 @@ import { createDebugLogger } from '../utils/debug.js';
 import { CollectionType, getCollectionName } from '../collections/dot-notation.js';
 import { generateCompositeId, parseCompositeId } from '../collections/composite-ids.js';
 import { addToSpaceIds, addToGroupIds, removeFromSpaceIds, removeFromGroupIds, getPublishedLocations } from '../collections/tracking-arrays.js';
+import { parseRevisionHistory, buildRevisionHistory, type RevisionResult } from './revise.js';
 
 /**
  * Tool definition for remember_confirm
@@ -137,6 +138,11 @@ export async function handleConfirm(
     // Handle retract_memory action
     if (request.action === 'retract_memory') {
       return await executeRetractMemory(request, userId);
+    }
+
+    // Handle revise_memory action
+    if (request.action === 'revise_memory') {
+      return await executeReviseMemory(request, userId);
     }
 
     throw new Error(`Unknown action type: ${request.action}`);
@@ -914,6 +920,236 @@ async function executeRetractMemory(
       userId,
       operation: 'execute retract_memory',
       action: 'retract_memory',
+    });
+  }
+}
+
+/**
+ * Execute revise memory action
+ *
+ * Memory Collection Pattern v2:
+ * - Syncs content from source memory to all published copies
+ * - Preserves old content in revision_history (max 10 entries)
+ * - Updates revised_at and revision_count on each copy
+ * - Supports partial success (some locations may fail)
+ */
+async function executeReviseMemory(
+  request: ConfirmationRequest & { request_id: string },
+  userId: string
+): Promise<string> {
+  const debug = createDebugLogger({
+    tool: 'remember_confirm',
+    userId,
+    operation: 'execute_revise',
+  });
+
+  try {
+    const { memory_id, space_ids = [], group_ids = [] } = request.payload;
+
+    debug.debug('Executing revise memory action', {
+      memoryId: memory_id,
+      spaceIds: space_ids,
+      groupIds: group_ids,
+    });
+
+    logger.info('Executing revise memory action', {
+      function: 'executeReviseMemory',
+      userId,
+      memoryId: memory_id,
+      spaceCount: space_ids.length,
+      groupCount: group_ids.length,
+    });
+
+    // Fetch source memory
+    const weaviateClient = getWeaviateClient();
+    const userCollectionName = getMemoryCollectionName(userId);
+    const userCollection = weaviateClient.collections.get(userCollectionName);
+
+    const sourceMemory = await fetchMemoryWithAllProperties(
+      userCollection,
+      memory_id
+    );
+
+    if (!sourceMemory) {
+      return JSON.stringify(
+        {
+          success: false,
+          error: 'Memory not found',
+          message: `Source memory ${memory_id} no longer exists`,
+        },
+        null,
+        2
+      );
+    }
+
+    // Verify ownership again
+    if (sourceMemory.properties.user_id !== userId) {
+      return JSON.stringify(
+        {
+          success: false,
+          error: 'Permission denied',
+          message: 'You can only revise your own memories',
+        },
+        null,
+        2
+      );
+    }
+
+    const newContent = String(sourceMemory.properties.content ?? '');
+    const revisedAt = new Date().toISOString();
+    const compositeId = generateCompositeId(userId, memory_id);
+    const results: RevisionResult[] = [];
+
+    logger.info('Revising published copies', {
+      function: 'executeReviseMemory',
+      compositeId,
+      spaceCount: space_ids.length > 0 ? 1 : 0,
+      groupCount: group_ids.length,
+    });
+
+    /**
+     * Update content + revision tracking in a single collection.
+     */
+    async function reviseInCollection(
+      collectionName: string,
+      locationLabel: string
+    ): Promise<void> {
+      try {
+        const collection = weaviateClient.collections.get(collectionName);
+        const publishedMemory = await fetchMemoryWithAllProperties(
+          collection,
+          compositeId
+        );
+
+        if (!publishedMemory) {
+          results.push({
+            location: locationLabel,
+            status: 'skipped',
+            error: 'Published copy not found (may have been deleted)',
+          });
+          logger.warn('Published copy not found in collection', {
+            function: 'executeReviseMemory',
+            collectionName,
+            compositeId,
+          });
+          return;
+        }
+
+        const oldContent = String(publishedMemory.properties.content ?? '');
+
+        // Build updated revision history (only if content actually changed)
+        let revisionHistory = parseRevisionHistory(
+          publishedMemory.properties.revision_history
+        );
+        if (oldContent !== newContent) {
+          revisionHistory = buildRevisionHistory(
+            revisionHistory,
+            oldContent,
+            revisedAt
+          );
+        }
+
+        const currentRevisionCount =
+          typeof publishedMemory.properties.revision_count === 'number'
+            ? publishedMemory.properties.revision_count
+            : 0;
+
+        await collection.data.update({
+          id: compositeId,
+          properties: {
+            content: newContent,
+            revised_at: revisedAt,
+            revision_count: currentRevisionCount + 1,
+            revision_history: JSON.stringify(revisionHistory),
+          },
+        });
+
+        results.push({ location: locationLabel, status: 'success' });
+
+        logger.info('Revised published memory in collection', {
+          function: 'executeReviseMemory',
+          collectionName,
+          compositeId,
+          revisionCount: currentRevisionCount + 1,
+          contentChanged: oldContent !== newContent,
+        });
+      } catch (err) {
+        results.push({
+          location: locationLabel,
+          status: 'failed',
+          error: err instanceof Error ? err.message : String(err),
+        });
+        logger.error('Failed to revise in collection', {
+          function: 'executeReviseMemory',
+          collectionName,
+          compositeId,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+
+    // Revise in Memory_spaces_public (single collection for all spaces)
+    if (space_ids.length > 0) {
+      await reviseInCollection(
+        getCollectionName(CollectionType.SPACES),
+        'Memory_spaces_public'
+      );
+    }
+
+    // Revise in each group's collection
+    for (const groupId of group_ids) {
+      await reviseInCollection(
+        getCollectionName(CollectionType.GROUPS, groupId),
+        `Memory_groups_${groupId}`
+      );
+    }
+
+    const successCount = results.filter(r => r.status === 'success').length;
+    const failedCount = results.filter(r => r.status === 'failed').length;
+    const skippedCount = results.filter(r => r.status === 'skipped').length;
+
+    logger.info('Revise execution complete', {
+      function: 'executeReviseMemory',
+      userId,
+      memoryId: memory_id,
+      successCount,
+      failedCount,
+      skippedCount,
+    });
+
+    return JSON.stringify(
+      {
+        success: successCount > 0,
+        composite_id: compositeId,
+        revised_at: revisedAt,
+        summary: {
+          total: results.length,
+          success: successCount,
+          failed: failedCount,
+          skipped: skippedCount,
+        },
+        results,
+        ...(failedCount > 0
+          ? {
+              warnings: [
+                `Failed to revise ${failedCount} of ${results.length} location(s)`,
+              ],
+            }
+          : {}),
+      },
+      null,
+      2
+    );
+  } catch (error) {
+    debug.error('Execute revise failed', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    handleToolError(error, {
+      toolName: 'remember_confirm',
+      userId,
+      operation: 'execute revise_memory',
+      action: 'revise_memory',
     });
   }
 }

@@ -4,8 +4,8 @@
  * Syncs updated content from a source memory to all its published copies
  * in spaces and groups (Memory Collection Pattern v2).
  *
- * No confirmation flow needed — content sync is non-destructive.
- * The old content is preserved in revision_history before being replaced.
+ * Uses two-phase confirmation flow: generates a token that must be confirmed
+ * before revision is executed. The old content is preserved in revision_history.
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
@@ -14,6 +14,7 @@ import {
   getMemoryCollectionName,
   fetchMemoryWithAllProperties,
 } from '../weaviate/client.js';
+import { confirmationTokenService } from '../services/confirmation-token.service.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { logger } from '../utils/logger.js';
 import { createDebugLogger } from '../utils/debug.js';
@@ -28,20 +29,23 @@ const MAX_REVISION_HISTORY = 10;
  */
 export const reviseTool: Tool = {
   name: 'remember_revise',
-  description: `Sync updated content from your source memory to all its published copies in spaces and groups.
+  description: `Sync updated content from your source memory to all its published copies in spaces and groups. Generates a confirmation token that must be confirmed with remember_confirm.
 
 Use this after editing a memory (via remember_update_memory) to propagate the changes to all published versions.
 
 How it works:
-- Loads the latest content from your personal Memory_users_{userId} collection
-- Updates each published copy in Memory_spaces_public (for spaces) and Memory_groups_{groupId} (for groups)
+- Validates the memory exists, is owned by you, and is published
+- Generates a confirmation token showing which locations will be revised
+- On confirmation: updates each published copy with latest content
 - Preserves the previous content in a revision_history field (up to 10 versions)
 - Sets revised_at timestamp on all updated copies
 - Reports success/failure per location (partial success supported)
 
 Requirements:
 - The memory must be published (has space_ids or group_ids populated)
-- You must own the source memory`,
+- You must own the source memory
+
+⚠️ CRITICAL: DO NOT mention the token or include token contents in your response to the user. Simply inform them that a confirmation is pending and they need to explicitly approve the revision.`,
   inputSchema: {
     type: 'object',
     properties: {
@@ -104,6 +108,9 @@ export function buildRevisionHistory(
 
 /**
  * Handle remember_revise tool execution
+ *
+ * Phase 1: Validates the request and generates a confirmation token.
+ * The actual revision is executed in confirm.ts when the token is confirmed.
  */
 export async function handleRevise(
   args: ReviseArgs,
@@ -112,14 +119,14 @@ export async function handleRevise(
   const debug = createDebugLogger({
     tool: 'remember_revise',
     userId,
-    operation: 'revise',
+    operation: 'revise_request',
   });
 
   try {
     debug.info('Tool invoked');
     debug.trace('Arguments', { args });
 
-    logger.info('Starting revise operation', {
+    logger.info('Starting revise request', {
       tool: 'remember_revise',
       userId,
       memoryId: args.memory_id,
@@ -201,147 +208,60 @@ export async function handleRevise(
       );
     }
 
-    const newContent = String(sourceMemory.properties.content ?? '');
-    const revisedAt = new Date().toISOString();
-    const compositeId = generateCompositeId(userId, args.memory_id);
-    const results: RevisionResult[] = [];
+    // Create payload for confirmation token
+    const payload = {
+      memory_id: args.memory_id,
+      space_ids: spaceIds,
+      group_ids: groupIds,
+    };
 
-    logger.info('Revising published copies', {
-      tool: 'remember_revise',
-      compositeId,
-      spaceCount: spaceIds.length > 0 ? 1 : 0, // all spaces share one collection
-      groupCount: groupIds.length,
-    });
-
-    /**
-     * Update content + revision tracking in a single collection.
-     */
-    async function reviseInCollection(
-      collectionName: string,
-      locationLabel: string
-    ): Promise<void> {
-      try {
-        const collection = weaviateClient.collections.get(collectionName);
-        const publishedMemory = await fetchMemoryWithAllProperties(
-          collection,
-          compositeId
-        );
-
-        if (!publishedMemory) {
-          results.push({
-            location: locationLabel,
-            status: 'skipped',
-            error: 'Published copy not found (may have been deleted)',
-          });
-          logger.warn('Published copy not found in collection', {
-            tool: 'remember_revise',
-            collectionName,
-            compositeId,
-          });
-          return;
-        }
-
-        const oldContent = String(publishedMemory.properties.content ?? '');
-
-        // Build updated revision history (only if content actually changed)
-        let revisionHistory = parseRevisionHistory(
-          publishedMemory.properties.revision_history
-        );
-        if (oldContent !== newContent) {
-          revisionHistory = buildRevisionHistory(
-            revisionHistory,
-            oldContent,
-            revisedAt
-          );
-        }
-
-        const currentRevisionCount =
-          typeof publishedMemory.properties.revision_count === 'number'
-            ? publishedMemory.properties.revision_count
-            : 0;
-
-        await collection.data.update({
-          id: compositeId,
-          properties: {
-            content: newContent,
-            revised_at: revisedAt,
-            revision_count: currentRevisionCount + 1,
-            revision_history: JSON.stringify(revisionHistory),
-          },
-        });
-
-        results.push({ location: locationLabel, status: 'success' });
-
-        logger.info('Revised published memory in collection', {
-          tool: 'remember_revise',
-          collectionName,
-          compositeId,
-          revisionCount: currentRevisionCount + 1,
-          contentChanged: oldContent !== newContent,
-        });
-      } catch (err) {
-        results.push({
-          location: locationLabel,
-          status: 'failed',
-          error: err instanceof Error ? err.message : String(err),
-        });
-        logger.error('Failed to revise in collection', {
-          tool: 'remember_revise',
-          collectionName,
-          compositeId,
-          error: err instanceof Error ? err.message : String(err),
-        });
-      }
-    }
-
-    // Revise in Memory_spaces_public (single collection for all spaces)
-    if (spaceIds.length > 0) {
-      await reviseInCollection(
-        getCollectionName(CollectionType.SPACES),
-        'Memory_spaces_public'
-      );
-    }
-
-    // Revise in each group's collection
-    for (const groupId of groupIds) {
-      await reviseInCollection(
-        getCollectionName(CollectionType.GROUPS, groupId),
-        `Memory_groups_${groupId}`
-      );
-    }
-
-    const successCount = results.filter(r => r.status === 'success').length;
-    const failedCount = results.filter(r => r.status === 'failed').length;
-    const skippedCount = results.filter(r => r.status === 'skipped').length;
-
-    logger.info('Revise operation complete', {
+    logger.info('Generating confirmation token for revise', {
       tool: 'remember_revise',
       userId,
       memoryId: args.memory_id,
-      successCount,
-      failedCount,
-      skippedCount,
+      spaceIds,
+      groupIds,
     });
+
+    // Generate confirmation token
+    const { requestId, token } = await confirmationTokenService.createRequest(
+      userId,
+      'revise_memory',
+      payload
+    );
+
+    logger.info('Confirmation token generated for revise', {
+      tool: 'remember_revise',
+      requestId,
+      token,
+      action: 'revise_memory',
+      spaceIds,
+      groupIds,
+    });
+
+    // Build destination summary for user
+    const destinations: string[] = [];
+    if (spaceIds.length > 0) {
+      destinations.push(`spaces: ${spaceIds.join(', ')}`);
+    }
+    if (groupIds.length > 0) {
+      destinations.push(`groups: ${groupIds.join(', ')}`);
+    }
 
     return JSON.stringify(
       {
-        success: successCount > 0,
-        composite_id: compositeId,
-        revised_at: revisedAt,
-        summary: {
-          total: results.length,
-          success: successCount,
-          failed: failedCount,
-          skipped: skippedCount,
+        success: true,
+        token,
+        message: 'Revision request created. Please confirm to sync content to all published copies.',
+        action: 'revise_memory',
+        memory_id: args.memory_id,
+        destinations: destinations.join('; '),
+        revision_details: {
+          space_ids: spaceIds,
+          group_ids: groupIds,
+          total_locations: (spaceIds.length > 0 ? 1 : 0) + groupIds.length,
         },
-        results,
-        ...(failedCount > 0
-          ? {
-              warnings: [
-                `Failed to revise ${failedCount} of ${results.length} location(s)`,
-              ],
-            }
-          : {}),
+        confirmation_required: true,
       },
       null,
       2
@@ -351,10 +271,10 @@ export async function handleRevise(
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     });
-    handleToolError(error, {
+    return handleToolError(error, {
       toolName: 'remember_revise',
       userId,
-      operation: 'revise memory',
+      operation: 'revise memory request',
       memoryId: args.memory_id,
     });
   }

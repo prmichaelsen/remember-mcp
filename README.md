@@ -63,7 +63,7 @@ Multi-tenant memory system MCP server with vector search, relationships, and tru
 
 ## Features
 
-- **17 MCP Tools**: Complete CRUD for memories, relationships, preferences, and shared spaces
+- **18 MCP Tools**: Complete CRUD for memories, relationships, preferences, shared spaces, and content sync
 - **Soft Delete with Recovery**: Safe deletion with confirmation flow and recovery capability
 - **Multi-Tenant**: Per-user isolation with secure data boundaries
 - **Shared Spaces**: Publish memories to shared discovery spaces like "The Void"
@@ -150,39 +150,46 @@ await wrapped.start();
 ## Architecture
 
 - **Weaviate**: Vector storage for memories, relationships, and shared spaces
-  - Personal collections: `Memory_{user_id}` (per-user isolation)
-  - Unified public collection: `Memory_public` (all public spaces)
-  - Multi-space support: Memories can belong to multiple spaces via `spaces` array
+  - Personal collections: `Memory_users_{userId}` (per-user isolation)
+  - Public space collection: `Memory_spaces_public` (all shared spaces)
+  - Group collections: `Memory_groups_{groupId}` (private groups)
+  - Composite IDs: `{userId}.{memoryId}` for published memories
+  - Tracking arrays: `space_ids[]` and `group_ids[]` track publication locations
 - **Firestore**: Permissions, preferences, confirmation tokens
   - User data: `users/{user_id}/preferences`, `users/{user_id}/requests`
 - **Firebase Auth**: User authentication
 
-### Multi-Space Architecture (v2.4.0+)
+### Memory Collection Pattern v2 (v3.1.0+)
 
-**Unified Collection**: All public memories stored in single `Memory_public` collection
+Three-tier collection architecture with composite IDs and tracking arrays.
 
-**Benefits**:
-- ✅ Search multiple spaces in one query
-- ✅ Publish to multiple spaces in one operation
-- ✅ No memory duplication
-- ✅ Efficient storage (N× reduction)
+**Collections**:
+- `Memory_users_{userId}` — Private memories with simple IDs
+- `Memory_spaces_public` — All public space memories with composite IDs
+- `Memory_groups_{groupId}` — Group memories with composite IDs
+
+**Key Features**:
+- Publish to multiple spaces and groups simultaneously
+- Composite IDs (`{userId}.{memoryId}`) preserve source reference
+- `remember_revise` syncs content changes to all published copies
+- Orphan strategy keeps retracted memories for historical reference
+- Revision history (max 10 entries) tracks content changes
 
 **Example**:
 ```typescript
-// One memory, three spaces
-{
-  "id": "abc123",
-  "spaces": ["the_void", "dogs", "cats"],
-  "content": "My dog is adorable!",
-  "author_id": "user123"
-}
+// Publish to spaces + groups
+remember_publish({
+  memory_id: "my-recipe",
+  spaces: ["cooking", "recipes"],
+  groups: ["foodie-club"]
+})
 
 // Search across spaces
 remember_search_space({
-  spaces: ["the_void", "dogs"],
-  query: "adorable pets"
+  query: "pasta recipe",
+  spaces: ["cooking"],
+  search_type: "hybrid"
 })
-// Finds memories published to ANY of the requested spaces
 ```
 
 ## Shared Spaces
@@ -195,45 +202,56 @@ Publish memories to shared discovery spaces where other users can find them.
 
 ### Publishing Workflow
 
-1. **Request Publication**: Generate confirmation token
+1. **Publish**: Generate confirmation token
 ```typescript
-// Publish to single space
-remember_publish({ memory_id: "abc123", spaces: ["the_void"] })
-
-// Publish to multiple spaces at once!
-remember_publish({ memory_id: "abc123", spaces: ["the_void", "dogs", "cats"] })
-
+// Publish to spaces + groups
+remember_publish({
+  memory_id: "abc123",
+  spaces: ["the_void", "cooking"],
+  groups: ["foodie-club"]
+})
 // Returns: { success: true, token: "xyz789" }
 ```
 
-2. **User Confirms**: Execute the publication
+2. **Confirm**: Execute the publication
 ```typescript
 remember_confirm({ token: "xyz789" })
-// Returns: {
-//   success: true,
-//   space_memory_id: "new-id",
-//   spaces: ["the_void", "dogs", "cats"]
-// }
+// Creates composite ID copies in Memory_spaces_public and Memory_groups_{groupId}
 ```
 
-3. **Discover**: Search shared spaces
+3. **Revise**: Sync content changes (confirmation required)
 ```typescript
-// Search single space
-remember_search_space({ query: "interesting ideas", spaces: ["the_void"] })
+// After updating source memory, request revision
+remember_revise({ memory_id: "abc123" })
+// Returns: { success: true, token: "xyz789" }
 
-// Search multiple spaces at once!
+remember_confirm({ token: "xyz789" })
+// Updates all copies, preserves old content in revision_history
+```
+
+4. **Retract**: Remove from specific destinations
+```typescript
+remember_retract({ memory_id: "abc123", spaces: ["cooking"] })
+// Orphan strategy: memory remains in collection for historical reference
+```
+
+5. **Search**: Discover shared memories
+```typescript
 remember_search_space({
-  query: "cute dog pictures",
-  spaces: ["the_void", "dogs"]
+  query: "pasta recipe",
+  spaces: ["cooking"],
+  search_type: "hybrid"  // hybrid | bm25 | semantic
 })
 ```
 
-### Space Tools (5 new)
+### Space & Group Tools
 
-- `remember_publish` - Request to publish memory (generates token)
+- `remember_publish` - Publish to spaces and/or groups (confirmation required)
+- `remember_retract` - Retract from spaces and/or groups (confirmation required)
+- `remember_revise` - Sync content to all published copies (confirmation required)
 - `remember_confirm` - Confirm any pending action
 - `remember_deny` - Cancel any pending action
-- `remember_search_space` - Search shared spaces
+- `remember_search_space` - Search shared spaces and groups
 - `remember_query_space` - Ask questions about shared memories
 
 ## Safe Deletion with Confirmation
@@ -366,8 +384,13 @@ REMEMBER_MCP_DEBUG_LEVEL=TRACE npm start
 
 ## Documentation
 
-See `agent/` directory for:
-- Design documents (`agent/design/`)
+See `agent/design/` for detailed documentation:
+- [Memory Collection Pattern v2](agent/design/local.memory-collection-pattern-v2.md) — Architecture and design rationale
+- [v2 API Reference](agent/design/local.v2-api-reference.md) — Complete tool schemas and parameters
+- [v2 Migration Guide](agent/design/local.v2-migration-guide.md) — Migrating from v1 to v2
+- [v2 Usage Examples](agent/design/local.v2-usage-examples.md) — Real-world usage patterns
+
+Additional project docs:
 - Milestones (`agent/milestones/`)
 - Implementation tasks (`agent/tasks/`)
 

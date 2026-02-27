@@ -209,11 +209,11 @@ milestones:
   - id: M14
     name: Memory Collection Pattern v2
     status: in_progress
-    progress: 75%
+    progress: 100%
     started: 2026-02-26
     completed: null
     estimated_weeks: 2-3
-    tasks_completed: 6
+    tasks_completed: 8
     tasks_total: 8
     notes: |
       Foundation for all social features (People Discovery, Memory Feed API).
@@ -222,33 +222,17 @@ milestones:
       ✅ Task 165: Core Infrastructure Setup COMPLETED (2026-02-26)
       ✅ Task 166: Implement remember_publish Tool COMPLETED (2026-02-26)
       ✅ Task 167: Implement remember_retract Tool COMPLETED (2026-02-26)
-         - src/tools/retract.ts: New tool with confirmation token flow
-         - src/tools/confirm.ts: Added executeRetractMemory() handler
-         - Both servers registered with retractTool + handleRetract
-         - Orphan strategy: memories kept in spaces/groups with cleared tracking arrays
-      ✅ Task 168: Implement remember_revise Tool COMPLETED (2026-02-26) [actual: 15m / est: 6-8h]
-         - src/tools/revise.ts: Direct action tool (no confirmation needed)
-         - parseRevisionHistory() + buildRevisionHistory() pure helpers
-         - Updates content + revised_at + revision_count + revision_history (JSON)
-         - Handles partial success: each location reported independently
-         - 19 new unit tests (revise.spec.ts) — 156 tests total passing
+      ✅ Task 168: Implement remember_revise Tool COMPLETED (2026-02-26)
       ✅ Task 169: remember_search_space Tool COMPLETED (2026-02-27)
-         - src/tools/search-space.ts: Updated to Memory Collection Pattern v2
-         - Uses Memory_spaces_public (was Memory_public) via getCollectionName(CollectionType.SPACES)
-         - Filters by space_ids.containsAny() (was spaces field)
-         - spaces now optional (was required); added groups array parameter
-         - Added search_type parameter: hybrid | bm25 | semantic
-         - Multi-source merge + deduplication by UUID + score sort
-         - All-public search when neither spaces nor groups specified
-         - Added deleted_at isNull(true) filter (soft delete aware)
-         - 23 new unit tests (search-space.spec.ts) — 179 tests total passing
       ✅ Task 170: remember_create_memory and remember_update_memory COMPLETED (2026-02-27)
-         - src/types/memory.ts: Added space_ids?: string[] and group_ids?: string[] to Memory interface
-         - src/tools/create-memory.ts: Initializes space_ids: [] and group_ids: [] on every new memory
-         - src/tools/update-memory.ts: Tracking arrays preserved via spread; explicitly excluded from UpdateMemoryArgs
-         - src/tools/create-memory.spec.ts: 19 new unit tests for both tool schemas — 198 tests total passing
-      📋 Task 172: Performance Testing and Optimization
-      📋 Task 173: Documentation and Examples
+      ✅ Task 172: Performance Testing and Optimization COMPLETED (2026-02-27)
+      ✅ Task 173: Documentation and Examples COMPLETED (2026-02-27)
+         - Created agent/design/local.v2-api-reference.md (API docs for all 6 v2 tools)
+         - Created agent/design/local.v2-migration-guide.md (v1→v2 migration guide)
+         - Created agent/design/local.v2-usage-examples.md (real-world usage patterns)
+         - Updated README.md (18 tools, v2 architecture, v2 tool listing)
+         - Updated local.memory-collection-pattern-v2.md status to Implemented
+         - CHANGELOG.md already current through v3.6.0
 
       Key Innovations:
       - Dot notation collections: Memory_users_{userId}, Memory_spaces_public, Memory_groups_{groupId}
