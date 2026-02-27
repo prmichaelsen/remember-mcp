@@ -56,7 +56,10 @@ export type ContentType =
   | 'system'
   | 'action'
   | 'audit'
-  | 'history';
+  | 'history'
+  // Cross-user & Threading
+  | 'ghost'
+  | 'comment';
 
 /**
  * GPS coordinates

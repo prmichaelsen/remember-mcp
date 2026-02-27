@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.11.0] - 2026-02-27
+
+### Added
+
+**Trust & Permissions Foundation Types (M7 Task 180)**
+
+- `src/types/access-result.ts` — `AccessResult` discriminated union with 6 variants: `granted`, `insufficient_trust`, `blocked`, `no_permission`, `not_found`, `deleted`
+- `src/types/ghost-config.ts` — `GhostConfig` interface (Firestore schema for ghost/persona system), `TrustEnforcementMode` type, `DEFAULT_GHOST_CONFIG` constant
+- `ghost` and `comment` content types added to `ContentType` union and `CONTENT_TYPES` metadata
+- 11 new tests (310 total: 310 passed, 1 skipped)
+
 ## [3.10.0] - 2026-02-27
 
 ### Added

@@ -59,6 +59,9 @@ export const CONTENT_TYPES: readonly ContentType[] = [
   'action',
   'audit',
   'history',
+  // Cross-user & Threading
+  'ghost',
+  'comment',
 ] as const;
 
 /**
@@ -376,6 +379,22 @@ export const CONTENT_TYPE_METADATA: Record<ContentType, ContentTypeMetadata> = {
     examples: ['Edit history', 'Version history', 'Change logs'],
     common_fields: ['target_id', 'change_type', 'previous_value', 'new_value'],
   },
+
+  // Cross-user & Threading
+  ghost: {
+    name: 'ghost',
+    category: 'cross_user',
+    description: 'Ghost conversation memory — stores context from AI-mediated cross-user interactions',
+    examples: ['Ghost conversation context', 'Cross-user interaction history'],
+    common_fields: ['ghost_owner_id', 'conversing_user_id'],
+  },
+  comment: {
+    name: 'comment',
+    category: 'cross_user',
+    description: 'Threaded comments on shared memories in spaces and groups',
+    examples: ['Comments on shared memories', 'Discussion replies', 'Feedback'],
+    common_fields: ['parent_id', 'thread_root_id'],
+  },
 };
 
 /**
@@ -392,6 +411,7 @@ export const CONTENT_TYPE_CATEGORIES = {
   organizational: ['bookmark', 'form', 'location'],
   business: ['invoice', 'contract'],
   system: ['system', 'action', 'audit', 'history'],
+  cross_user: ['ghost', 'comment'],
 } as const;
 
 /**
