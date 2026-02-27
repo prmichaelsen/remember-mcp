@@ -9,12 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-**Trust & Permissions Foundation Types (M7 Task 180)**
+**Trust & Permissions System (M7)**
 
 - `src/types/access-result.ts` — `AccessResult` discriminated union with 6 variants: `granted`, `insufficient_trust`, `blocked`, `no_permission`, `not_found`, `deleted`
 - `src/types/ghost-config.ts` — `GhostConfig` interface (Firestore schema for ghost/persona system), `TrustEnforcementMode` type, `DEFAULT_GHOST_CONFIG` constant
 - `ghost` and `comment` content types added to `ContentType` union and `CONTENT_TYPES` metadata
-- 11 new tests (310 total: 310 passed, 1 skipped)
+- `src/services/trust-enforcement.ts` — 3-mode trust enforcement (query/prompt/hybrid), `buildTrustFilter` for Weaviate, `formatMemoryForPrompt` for 5 trust tiers, trust utilities
+- `src/services/trust-validator.ts` — `validateTrustAssignment` and `suggestTrustLevel` for content-aware trust suggestions
+- `src/services/access-control.ts` — `checkMemoryAccess` with discriminated union results, trust escalation (-0.1 penalty/attempt, block after 3), `resolveAccessorTrustLevel` from GhostConfig, `formatAccessResultMessage`
+- Dependency injection: `GhostConfigProvider` and `EscalationStore` interfaces with in-memory stubs (Firestore in M16)
+- 89 new tests (389 total: 388 passed, 1 skipped)
 
 ## [3.10.0] - 2026-02-27
 

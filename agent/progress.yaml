@@ -2,7 +2,7 @@
 
 project:
   name: remember-mcp
-  version: 3.10.0
+  version: 3.11.0
   started: 2026-02-11
   status: in_progress
   current_milestone: M7
@@ -264,20 +264,21 @@ milestones:
 
   - id: M7
     name: Trust & Permissions
-    status: in_progress
-    progress: 0%
+    status: completed
+    progress: 100%
     estimated_weeks: 2
-    tasks_completed: 0
+    tasks_completed: 4
     tasks_total: 4
+    completed: 2026-02-27
     notes: |
-      Task breakdown created (tasks 180, 182, 183, 186 active):
-      ⏳ Task 180: Access Result & GhostConfig types + 'ghost' content type
+      M7 complete. Trust & permissions foundations for ghost/persona system:
+      ✅ Task 180: Access Result & GhostConfig types + 'ghost' content type (v3.11.0)
       🔜 Task 181: DEFERRED — Firestore CRUD deferred to M16 (ghost builds it)
-      ⏳ Task 182: Trust enforcement service (3 modes: query/prompt/hybrid)
-      ⏳ Task 183: Access control service (escalation, blocking)
+      ✅ Task 182: Trust enforcement service (3 modes: query/prompt/hybrid)
+      ✅ Task 183: Access control service (escalation, blocking)
       🔜 Task 184: DEFERRED — Permission tools (ghost/persona model replaces direct access)
       🔜 Task 185: DEFERRED — Wire trust into search (ghost handles this)
-      ⏳ Task 186: Documentation & verification
+      ✅ Task 186: Documentation & verification
       Synced with ghost/persona design (2026-02-27)
       See: agent/design/local.ghost-persona-system.md
     
@@ -646,7 +647,7 @@ tasks:
   milestone_7:
     - id: task-180
       name: Access Result & Permission Types
-      status: pending
+      status: completed
       file: agent/tasks/milestone-7-trust-permissions/task-180-access-result-permission-types.md
       estimated_hours: 2-3
       notes: |
@@ -666,7 +667,7 @@ tasks:
 
     - id: task-182
       name: Trust Enforcement Service
-      status: pending
+      status: completed
       file: agent/tasks/milestone-7-trust-permissions/task-182-trust-enforcement-service.md
       estimated_hours: 3-4
       dependencies: [task-180]
@@ -676,7 +677,7 @@ tasks:
 
     - id: task-183
       name: Access Control Service
-      status: pending
+      status: completed
       file: agent/tasks/milestone-7-trust-permissions/task-183-access-control-service.md
       estimated_hours: 4-6
       dependencies: [task-180, task-182]
@@ -707,7 +708,7 @@ tasks:
 
     - id: task-186
       name: Documentation & Verification
-      status: pending
+      status: completed
       file: agent/tasks/milestone-7-trust-permissions/task-186-documentation-verification.md
       estimated_hours: 2-3
       dependencies: [task-180, task-181, task-182, task-183, task-184, task-185]
