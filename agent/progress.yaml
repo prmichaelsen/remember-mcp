@@ -2,10 +2,10 @@
 
 project:
   name: remember-mcp
-  version: 3.6.0
+  version: 3.7.0
   started: 2026-02-11
   status: in_progress
-  current_milestone: M14
+  current_milestone: M7
   last_updated: 2026-02-27
 
 milestones:
@@ -208,10 +208,10 @@ milestones:
      
   - id: M14
     name: Memory Collection Pattern v2
-    status: in_progress
+    status: completed
     progress: 100%
     started: 2026-02-26
-    completed: null
+    completed: 2026-02-27
     estimated_weeks: 2-3
     tasks_completed: 8
     tasks_total: 8
@@ -591,7 +591,7 @@ tasks:
         ✅ Released in v2.6.2
 
 documentation:
-  design_documents: 30
+  design_documents: 31
   milestone_documents: 12
   pattern_documents: 7
   task_documents: 69
@@ -602,6 +602,23 @@ progress:
   overall: 62%
 
 recent_work:
+  - date: 2026-02-27
+    description: Memory-Level ACL Schema Design + M14 Completion
+    items:
+      - ✅ M14 Memory Collection Pattern v2 COMPLETE (8/8 tasks, v3.7.0)
+      - ✅ Created agent/design/local.memory-acl-schema.md (remember-mcp)
+      - ✅ 4 new Weaviate fields designed (write_mode, overwrite_allowed_ids, last_revised_by, owner_id)
+      - ✅ Three-layer permission resolution algorithm (memory → group credentials → user)
+      - ✅ Space configuration Firestore collection designed
+      - ✅ Null-fallback migration strategy (zero backfill)
+      - ✅ Created local.group-credentials-for-remember-mcp.md (agentbase.me)
+      - ✅ Credentials endpoint extended with group_memberships_v2 (resolved permissions)
+      - ✅ New editor role defined (between admin and member)
+      - ✅ Updated local.v2-api-reference.md with upcoming ACL fields section
+      - ✅ Updated local.collaborative-memory-sync.md with ACL schema cross-references
+      - ✅ Both commits pushed (remember-mcp mainline, agentbase.me dev/prmichaelsen/e1)
+      - 📋 Next: M7 Trust & Permissions (implements the ACL schema)
+
   - date: 2026-02-27
     description: M14 Task 169 - remember_search_space Updated to v2 Architecture
     items:
