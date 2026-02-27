@@ -9,7 +9,7 @@ import {
 } from '../../src/weaviate/client.js';
 
 describe('Weaviate Client', () => {
-  describe('User ID Sanitization', () => {
+  describe('User ID Sanitization (v1 compat, deprecated)', () => {
     it('should sanitize email addresses', () => {
       expect(sanitizeUserId('user@example.com')).toBe('User_example_com');
     });
@@ -27,10 +27,10 @@ describe('Weaviate Client', () => {
     });
   });
 
-  describe('Collection Name Generation', () => {
-    it('should generate memory collection names', () => {
-      expect(getMemoryCollectionName('user123')).toBe('Memory_User123');
-      expect(getMemoryCollectionName('user@test.com')).toBe('Memory_User_test_com');
+  describe('Collection Name Generation (v2)', () => {
+    it('should generate v2 memory collection names with literal userId', () => {
+      expect(getMemoryCollectionName('user123')).toBe('Memory_users_user123');
+      expect(getMemoryCollectionName('user@test.com')).toBe('Memory_users_user@test.com');
     });
 
     it('should generate template collection names', () => {

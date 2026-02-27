@@ -5,7 +5,7 @@
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { Filters } from 'weaviate-client';
-import { getWeaviateClient, sanitizeUserId, fetchMemoryWithAllProperties } from '../weaviate/client.js';
+import { getWeaviateClient, getMemoryCollectionName, fetchMemoryWithAllProperties } from '../weaviate/client.js';
 import { confirmationTokenService } from '../services/confirmation-token.service.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
@@ -68,7 +68,7 @@ export async function handleDeleteMemory(
 
     const { memory_id, reason } = args;
     const client = getWeaviateClient();
-    const collectionName = `Memory_${sanitizeUserId(userId)}`;
+    const collectionName = getMemoryCollectionName(userId);
     const collection = client.collections.get(collectionName);
 
     // Fetch memory to verify ownership and get preview
@@ -97,7 +97,7 @@ export async function handleDeleteMemory(
     const relationshipsResult = await collection.query.fetchObjects({
       filters: Filters.and(
         collection.filter.byProperty('doc_type').equal('relationship'),
-        collection.filter.byProperty('memory_ids').containsAny([memory_id])
+        collection.filter.byProperty('related_memory_ids').containsAny([memory_id])
       ),
       limit: 100,
     });
@@ -140,7 +140,7 @@ export async function handleDeleteMemory(
         preview: {
           memory_id,
           content: memory.properties.content?.substring(0, 200) + (memory.properties.content?.length > 200 ? '...' : ''),
-          type: memory.properties.type,
+          content_type: memory.properties.content_type,
           relationships_count: orphanedRelationships.length,
           will_orphan: orphanedRelationships,
         },

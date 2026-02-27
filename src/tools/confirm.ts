@@ -13,7 +13,7 @@
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { confirmationTokenService, type ConfirmationRequest } from '../services/confirmation-token.service.js';
-import { getWeaviateClient, getMemoryCollectionName, fetchMemoryWithAllProperties, sanitizeUserId } from '../weaviate/client.js';
+import { getWeaviateClient, getMemoryCollectionName, fetchMemoryWithAllProperties } from '../weaviate/client.js';
 import { ensurePublicCollection } from '../weaviate/space-schema.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { logger } from '../utils/logger.js';
@@ -582,7 +582,7 @@ async function executeDeleteMemory(
 
     // Soft delete the memory
     const client = getWeaviateClient();
-    const collectionName = `Memory_${sanitizeUserId(userId)}`;
+    const collectionName = getMemoryCollectionName(userId);
     const collection = client.collections.get(collectionName);
 
     await collection.data.update({

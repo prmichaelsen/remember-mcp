@@ -119,10 +119,10 @@ describe('Space Schema Utilities', () => {
       expect(createCall.vectorizers).toBeDefined();
       expect(createCall.properties).toBeDefined();
       expect(createCall.properties.length).toBeGreaterThan(20); // Should have many properties
-      
+
       // Check for space-specific properties
       const propertyNames = createCall.properties.map((p: any) => p.name);
-      expect(propertyNames).toContain('spaces'); // ✅ Multi-space array field
+      expect(propertyNames).toContain('spaces'); // legacy multi-space array field
       expect(propertyNames).toContain('author_id');
       expect(propertyNames).toContain('ghost_id');
       expect(propertyNames).toContain('published_at');
@@ -135,9 +135,9 @@ describe('Space Schema Utilities', () => {
     });
   });
 
-  describe('Unified Public Collection', () => {
-    it('should create Memory_public collection', async () => {
-      const mockCollection = { name: 'Memory_public' };
+  describe('Unified Public Collection (v2: Memory_spaces_public)', () => {
+    it('should create Memory_spaces_public collection', async () => {
+      const mockCollection = { name: 'Memory_spaces_public' };
       (mockWeaviateClient.collections.exists as jest.Mock).mockResolvedValue(false);
       (mockWeaviateClient.collections.create as jest.Mock).mockResolvedValue(undefined);
       (mockWeaviateClient.collections.get as jest.Mock).mockReturnValue(mockCollection);
@@ -145,25 +145,25 @@ describe('Space Schema Utilities', () => {
       const result = await ensurePublicCollection(mockWeaviateClient);
 
       expect(result).toBe(mockCollection);
-      expect(mockWeaviateClient.collections.exists).toHaveBeenCalledWith('Memory_public');
+      expect(mockWeaviateClient.collections.exists).toHaveBeenCalledWith('Memory_spaces_public');
       expect(mockWeaviateClient.collections.create).toHaveBeenCalled();
-      expect(mockWeaviateClient.collections.get).toHaveBeenCalledWith('Memory_public');
+      expect(mockWeaviateClient.collections.get).toHaveBeenCalledWith('Memory_spaces_public');
     });
 
-    it('should return existing Memory_public if it exists', async () => {
-      const mockCollection = { name: 'Memory_public' };
+    it('should return existing Memory_spaces_public if it exists', async () => {
+      const mockCollection = { name: 'Memory_spaces_public' };
       (mockWeaviateClient.collections.exists as jest.Mock).mockResolvedValue(true);
       (mockWeaviateClient.collections.get as jest.Mock).mockReturnValue(mockCollection);
 
       const result = await ensurePublicCollection(mockWeaviateClient);
 
       expect(result).toBe(mockCollection);
-      expect(mockWeaviateClient.collections.exists).toHaveBeenCalledWith('Memory_public');
-      expect(mockWeaviateClient.collections.get).toHaveBeenCalledWith('Memory_public');
+      expect(mockWeaviateClient.collections.exists).toHaveBeenCalledWith('Memory_spaces_public');
+      expect(mockWeaviateClient.collections.get).toHaveBeenCalledWith('Memory_spaces_public');
       expect(mockWeaviateClient.collections.create).not.toHaveBeenCalled();
     });
 
-    it('should have spaces array field in schema', async () => {
+    it('should use v2 schema with space_ids array field', async () => {
       (mockWeaviateClient.collections.exists as jest.Mock).mockResolvedValue(false);
       (mockWeaviateClient.collections.create as jest.Mock).mockResolvedValue(undefined);
       (mockWeaviateClient.collections.get as jest.Mock).mockReturnValue({});
@@ -171,19 +171,19 @@ describe('Space Schema Utilities', () => {
       await ensurePublicCollection(mockWeaviateClient);
 
       const createCall = (mockWeaviateClient.collections.create as jest.Mock).mock.calls[0][0];
+      expect(createCall.name).toBe('Memory_spaces_public');
+
       const propertyNames = createCall.properties.map((p: any) => p.name);
-      
-      // Verify spaces array field exists
-      expect(propertyNames).toContain('spaces');
-      
-      // Find spaces property and verify it's an array
-      const spacesProperty = createCall.properties.find((p: any) => p.name === 'spaces');
-      expect(spacesProperty).toBeDefined();
-      expect(spacesProperty.dataType).toBe('text[]');
+      // v2 tracking arrays
+      expect(propertyNames).toContain('space_ids');
+      expect(propertyNames).toContain('group_ids');
+      // v2 revision fields
+      expect(propertyNames).toContain('revision_count');
+      expect(propertyNames).toContain('revised_at');
     });
 
-    it('should verify PUBLIC_COLLECTION_NAME constant', () => {
-      expect(PUBLIC_COLLECTION_NAME).toBe('Memory_public');
+    it('should verify PUBLIC_COLLECTION_NAME constant is v2 format', () => {
+      expect(PUBLIC_COLLECTION_NAME).toBe('Memory_spaces_public');
     });
   });
 });

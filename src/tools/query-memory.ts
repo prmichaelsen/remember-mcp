@@ -142,6 +142,7 @@ export interface QueryMemoryArgs {
  */
 export interface RelevantMemory extends Partial<Memory> {
   relevance: number; // 0-1 relevance score
+  content_type?: string; // v2 property name (v1: type)
 }
 
 /**
@@ -235,7 +236,7 @@ export async function handleQueryMemory(
       // Compact format: text summary for easy LLM consumption
       const summaryParts = relevantMemories.map((mem, idx) => {
         const title = mem.title ? `"${mem.title}"` : `Memory ${idx + 1}`;
-        const type = mem.type ? ` [${mem.type}]` : '';
+        const type = mem.content_type ? ` [${mem.content_type}]` : '';
         const relevancePercent = Math.round((mem.relevance ?? 0) * 100);
         const content = mem.content || '(no content)';
         const tags = mem.tags && mem.tags.length > 0 ? `\nTags: ${mem.tags.join(', ')}` : '';

@@ -197,7 +197,7 @@ export async function handleSearchRelationship(
       id: obj.uuid,
       user_id: obj.properties.user_id,
       doc_type: 'relationship',
-      memory_ids: obj.properties.memory_ids || [],
+      memory_ids: obj.properties.related_memory_ids || [],
       relationship_type: obj.properties.relationship_type,
       observation: obj.properties.observation,
       strength: obj.properties.strength,

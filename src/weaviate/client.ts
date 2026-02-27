@@ -104,26 +104,26 @@ export async function testWeaviateConnection(): Promise<boolean> {
 
 /**
  * Sanitize user_id for collection name
- * Weaviate collection names must start with uppercase letter and contain only alphanumeric
+ * @deprecated v2 uses literal userId — no sanitization needed. Kept for migration script only.
  */
 export function sanitizeUserId(userId: string): string {
   // Remove special characters, keep alphanumeric
   let sanitized = userId.replace(/[^a-zA-Z0-9]/g, '_');
-  
+
   // If starts with number, prepend underscore
   if (/^[0-9]/.test(sanitized)) {
     sanitized = '_' + sanitized;
   }
-  
+
   // Ensure starts with uppercase letter
   return sanitized.charAt(0).toUpperCase() + sanitized.slice(1);
 }
 
 /**
- * Get collection name for user's memories
+ * Get collection name for user's memories (v2 format)
  */
 export function getMemoryCollectionName(userId: string): string {
-  return `Memory_${sanitizeUserId(userId)}`;
+  return `Memory_users_${userId}`;
 }
 
 /**
@@ -142,54 +142,67 @@ export function getAuditCollectionName(userId: string): string {
 
 /**
  * List of all memory properties to fetch
- * Centralized to ensure consistency across all tools
- */
-/**
- * List of all memory properties to fetch
- * Matches the actual Weaviate schema properties exactly
+ * Centralized to ensure consistency across all tools.
+ * Includes both v2 canonical names and v1 compat names.
  */
 export const ALL_MEMORY_PROPERTIES = [
   // Core identity
   'user_id',
   'doc_type',
-  
+
   // Memory fields
   'content',
+  'content_type', // v2 canonical
   'title',
   'summary',
-  'type',
-  
+  'type', // v1 compat (v2: content_type)
+
   // Scoring fields
   'weight',
   'base_weight',
-  'trust',
+  'trust_score', // v2 canonical
+  'trust', // v1 compat (v2: trust_score)
   'confidence',
   'computed_weight',
-  
-  // Location fields (flattened)
+
+  // Location fields (v2)
+  'location_name',
+  'location_lat', // v2 canonical
+  'location_lon', // v2 canonical
+  // Location fields (v1 compat)
   'location_gps_lat',
   'location_gps_lng',
   'location_address',
   'location_city',
   'location_country',
   'location_source',
-  
+
   // Locale fields
   'locale_language',
   'locale_timezone',
-  
-  // Context fields (flattened)
+
+  // Context fields
   'context_conversation_id',
   'context_summary',
   'context_timestamp',
-  
-  // Relationships
+  'context_app',
+  'context_url',
+
+  // Relationships (v2)
+  'relationship_ids', // v2 canonical
+  'related_memory_ids', // v2 canonical
+  // Relationships (v1 compat)
   'relationships',
-  
+  'memory_ids',
+  // Common relationship fields
+  'relationship_type',
+  'observation',
+  'strength',
+
   // Access tracking
   'access_count',
   'last_accessed_at',
-  
+
   // Metadata
   'tags',
   'references',
@@ -197,28 +210,30 @@ export const ALL_MEMORY_PROPERTIES = [
   'updated_at',
   'version',
   'template_id',
-  
-  // Relationship-specific fields
-  'memory_ids',
-  'relationship_type',
-  'observation',
-  'strength',
-  
+
+  // Tracking arrays (v2)
+  'space_ids',
+  'group_ids',
+
   // Comment/threading fields
   'parent_id',
   'thread_root_id',
   'moderation_flags',
-  
-  // Space/publishing fields (for Memory_public collection)
-  'spaces',
-  'space_id',
+
+  // Space/publishing fields
+  'spaces', // legacy
+  'space_id', // legacy
   'author_id',
   'ghost_id',
   'attribution',
   'published_at',
   'discovery_count',
-  'space_memory_id',
-  
+  'space_memory_id', // legacy
+  'original_memory_id',
+  'revised_at',
+  'revision_count',
+  'revision_history',
+
   // Soft delete fields
   'deleted_at',
   'deleted_by',

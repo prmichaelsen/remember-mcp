@@ -68,11 +68,11 @@ function buildDocTypeFilters(
   if (docType === 'memory' && filters?.types && filters.types.length > 0) {
     if (filters.types.length === 1) {
       filterList.push(
-        collection.filter.byProperty('type').equal(filters.types[0])
+        collection.filter.byProperty('content_type').equal(filters.types[0])
       );
     } else {
       filterList.push(
-        collection.filter.byProperty('type').containsAny(filters.types)
+        collection.filter.byProperty('content_type').containsAny(filters.types)
       );
     }
   }
@@ -94,14 +94,14 @@ function buildDocTypeFilters(
   // Trust filter (minimum) - applies to both
   if (filters?.trust_min !== undefined) {
     filterList.push(
-      collection.filter.byProperty('trust').greaterThanOrEqual(filters.trust_min)
+      collection.filter.byProperty('trust_score').greaterThanOrEqual(filters.trust_min)
     );
   }
 
   // Trust filter (maximum)
   if (filters?.trust_max !== undefined) {
     filterList.push(
-      collection.filter.byProperty('trust').lessThanOrEqual(filters.trust_max)
+      collection.filter.byProperty('trust_score').lessThanOrEqual(filters.trust_max)
     );
   }
 

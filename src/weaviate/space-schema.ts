@@ -9,11 +9,12 @@ import weaviate, { type WeaviateClient, type Collection } from 'weaviate-client'
 import { config } from '../config.js';
 import { SUPPORTED_SPACES, type SpaceId } from '../types/space-memory.js';
 import { logger } from '../utils/logger.js';
+import { createSpaceCollectionSchema } from '../schema/v2-collections.js';
 
 /**
- * Unified public collection name for all public spaces
+ * Unified public collection name for all public spaces (v2)
  */
-export const PUBLIC_COLLECTION_NAME = 'Memory_public';
+export const PUBLIC_COLLECTION_NAME = 'Memory_spaces_public';
 
 /**
  * Get collection name for a space
@@ -404,11 +405,16 @@ export async function ensurePublicCollection(
 
   // Check if collection exists
   const exists = await client.collections.exists(collectionName);
-  
+
   if (!exists) {
-    // Create with proper vectorizer configuration
-    // Use 'public' as spaceId to trigger PUBLIC_COLLECTION_NAME
-    await createSpaceCollection(client, 'public');
+    // Create using v2 schema
+    const schema = createSpaceCollectionSchema();
+    await client.collections.create(schema);
+
+    logger.info('Public space collection created', {
+      module: 'weaviate-space-schema',
+      collectionName,
+    });
   }
 
   return client.collections.get(collectionName);

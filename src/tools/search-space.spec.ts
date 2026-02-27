@@ -124,7 +124,7 @@ describe('buildBaseFilters', () => {
   it('excludes comments by default (no content_type, no include_comments)', () => {
     const col = makeMockCollection();
     buildBaseFilters(col, { query: 'test' });
-    const commentFilter = col._calls.find(c => c.property === 'type' && c.method === 'notEqual');
+    const commentFilter = col._calls.find(c => c.property === 'content_type' && c.method === 'notEqual');
     expect(commentFilter).toBeDefined();
     expect(commentFilter?.value).toBe('comment');
   });
@@ -132,21 +132,21 @@ describe('buildBaseFilters', () => {
   it('does not exclude comments when include_comments is true', () => {
     const col = makeMockCollection();
     buildBaseFilters(col, { query: 'test', include_comments: true });
-    const commentFilter = col._calls.find(c => c.property === 'type' && c.method === 'notEqual');
+    const commentFilter = col._calls.find(c => c.property === 'content_type' && c.method === 'notEqual');
     expect(commentFilter).toBeUndefined();
   });
 
   it('does not add comment exclusion when content_type is set', () => {
     const col = makeMockCollection();
     buildBaseFilters(col, { query: 'test', content_type: 'note' });
-    const commentFilter = col._calls.find(c => c.property === 'type' && c.method === 'notEqual');
+    const commentFilter = col._calls.find(c => c.property === 'content_type' && c.method === 'notEqual');
     expect(commentFilter).toBeUndefined();
   });
 
   it('adds content_type filter when specified', () => {
     const col = makeMockCollection();
     buildBaseFilters(col, { query: 'test', content_type: 'note' });
-    const typeFilter = col._calls.find(c => c.property === 'type' && c.method === 'equal');
+    const typeFilter = col._calls.find(c => c.property === 'content_type' && c.method === 'equal');
     expect(typeFilter).toBeDefined();
     expect(typeFilter?.value).toBe('note');
   });

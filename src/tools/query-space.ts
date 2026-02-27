@@ -159,14 +159,14 @@ export async function handleQuerySpace(
 
     // Apply content type filter
     if (args.content_type) {
-      filterList.push(publicCollection.filter.byProperty('type').equal(args.content_type));
+      filterList.push(publicCollection.filter.byProperty('content_type').equal(args.content_type));
     }
 
     // Exclude comments by default (unless explicitly included)
     if (!args.include_comments && !args.content_type) {
       // Only exclude comments if not filtering by content_type
       // (if content_type is set, user has explicit control)
-      filterList.push(publicCollection.filter.byProperty('type').notEqual('comment'));
+      filterList.push(publicCollection.filter.byProperty('content_type').notEqual('comment'));
     }
 
     // Apply tags filter

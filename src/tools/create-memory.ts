@@ -143,9 +143,9 @@ export async function handleCreateMemory(
     await ensureMemoryCollection(userId);
     const collection = getMemoryCollection(userId);
 
-    // Build memory object
+    // Build memory object using v2 property names
     const now = new Date().toISOString();
-    const memory: Omit<Memory, 'id'> = {
+    const memory: Record<string, any> = {
       // Core identity
       user_id: userId,
       doc_type: 'memory',
@@ -154,41 +154,23 @@ export async function handleCreateMemory(
       content: args.content,
       title: args.title,
       summary: args.title, // Use title as summary for now
-      type: (args.type && isValidContentType(args.type) ? args.type : DEFAULT_CONTENT_TYPE) as ContentType,
+      content_type: (args.type && isValidContentType(args.type) ? args.type : DEFAULT_CONTENT_TYPE),
 
       // Scoring
       weight: args.weight ?? 0.5,
-      trust: args.trust ?? 0.5,
+      trust_score: args.trust ?? 0.5,
       confidence: 1.0,
 
-      // Location (from context or default)
-      location: {
-        gps: null,
-        address: null,
-        source: 'unavailable',
-        confidence: 0,
-        is_approximate: true,
-      },
-
       // Context
-      context: {
-        timestamp: now,
-        source: {
-          type: 'api',
-          platform: 'mcp',
-        },
-        summary: context?.summary || 'Memory created via MCP',
-        conversation_id: context?.conversation_id,
-        ...context,
-      },
+      context_summary: context?.summary || 'Memory created via MCP',
+      context_conversation_id: context?.conversation_id,
 
       // Relationships
-      relationships: [],
+      relationship_ids: [],
 
       // Access tracking
       access_count: 0,
       last_accessed_at: now,
-      access_frequency: 0,
 
       // Metadata
       created_at: now,
@@ -199,7 +181,6 @@ export async function handleCreateMemory(
 
       // Template
       template_id: args.template_id,
-      structured_content: args.structured_content,
 
       // Computed weight
       base_weight: args.weight ?? 0.5,

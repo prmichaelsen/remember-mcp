@@ -191,8 +191,8 @@ export async function handleUpdateMemory(
       if (!isValidContentType(args.type)) {
         throw new Error(`Invalid content type: ${args.type}`);
       }
-      updates.type = args.type;
-      updatedFields.push('type');
+      updates.content_type = args.type;
+      updatedFields.push('content_type');
     }
 
     // Update scoring fields
@@ -210,8 +210,8 @@ export async function handleUpdateMemory(
       if (args.trust < 0 || args.trust > 1) {
         throw new Error('Trust must be between 0 and 1');
       }
-      updates.trust = args.trust;
-      updatedFields.push('trust');
+      updates.trust_score = args.trust;
+      updatedFields.push('trust_score');
     }
 
     // Update organization fields

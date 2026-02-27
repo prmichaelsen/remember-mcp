@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.8.0] - 2026-02-27
+
+### Changed
+
+**V1 → V2 Collection Migration & Code Switch**
+
+- Collection naming switched to v2 dot-notation: `Memory_{SanitizedUserId}` → `Memory_users_{userId}`, `Memory_public` → `Memory_spaces_public`
+- Drop `sanitizeUserId()` — collection names now use literal userId
+- Property renames across all tool files: `type` → `content_type`, `trust` → `trust_score`, `relationships` → `relationship_ids`, `memory_ids` → `related_memory_ids`, `location_gps_lat/lng` → `location_lat/lon`
+- `createMemoryCollection()` and `ensurePublicCollection()` now use v2 schema from `v2-collections.ts`
+- `ALL_MEMORY_PROPERTIES` updated to include both v1 and v2 property names for backward compatibility
+
+### Added
+
+- `scripts/migrate-v1-to-v2.ts` — CLI migration script with `--dry-run`, `--skip-backup`, `--verify-only`, `--batch-size` flags and YAML state file for resumability
+- Schema reconciliation: 25+ missing v1 properties added to `COMMON_MEMORY_PROPERTIES` in `v2-collections.ts` (superset strategy)
+- Migration convenience scripts in `scripts/package.json`
+
+### Fixed
+
+- `RelevantMemory` interface now includes `content_type` property
+- `search-space.spec.ts` filter expectations updated for v2 property names
+
+---
+
 ## [3.7.1] - 2026-02-27
 
 ### Fixed

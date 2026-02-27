@@ -117,7 +117,7 @@ export async function handleCreateRelationship(
       args.memory_ids.map(async (memoryId) => {
         try {
           const memory = await collection.query.fetchObjectById(memoryId, {
-            returnProperties: ['user_id', 'doc_type', 'relationships', 'deleted_at'],
+            returnProperties: ['user_id', 'doc_type', 'relationship_ids', 'deleted_at'],
           });
           
           if (!memory) {
@@ -159,7 +159,7 @@ export async function handleCreateRelationship(
           return {
             memoryId,
             memory,
-            relationships: (memory.properties.relationships as string[]) || []
+            relationships: (memory.properties.relationship_ids as string[]) || []
           };
         } catch (error) {
           const errorMsg = error instanceof Error ? error.message : String(error);
@@ -192,13 +192,13 @@ export async function handleCreateRelationship(
 
     // Build relationship object
     const now = new Date().toISOString();
-    const relationship: Omit<Relationship, 'id'> = {
+    const relationship: Record<string, any> = {
       // Core identity
       user_id: userId,
       doc_type: 'relationship',
 
       // Connection
-      memory_ids: args.memory_ids,
+      related_memory_ids: args.memory_ids,
       relationship_type: args.relationship_type,
 
       // Observation
@@ -247,7 +247,7 @@ export async function handleCreateRelationship(
           await collection.data.update({
             id: check.memoryId,
             properties: {
-              relationships: updatedRelationships,
+              relationship_ids: updatedRelationships,
               updated_at: now,
             },
           });

@@ -144,12 +144,12 @@ export function buildBaseFilters(collection: any, args: SearchSpaceArgs): any[] 
 
   // Apply content type filter
   if (args.content_type) {
-    filterList.push(collection.filter.byProperty('type').equal(args.content_type));
+    filterList.push(collection.filter.byProperty('content_type').equal(args.content_type));
   }
 
   // Exclude comments by default (unless content_type is explicitly set)
   if (!args.include_comments && !args.content_type) {
-    filterList.push(collection.filter.byProperty('type').notEqual('comment'));
+    filterList.push(collection.filter.byProperty('content_type').notEqual('comment'));
   }
 
   // Apply tags filter (AND semantics: memory must have ALL specified tags)

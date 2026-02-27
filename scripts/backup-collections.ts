@@ -277,15 +277,14 @@ class WeaviateBackup {
         
         // Import schema creation functions from src (tsx will compile on the fly)
         const { createMemoryCollection } = await import('../src/weaviate/schema.js');
-        const { PUBLIC_COLLECTION_NAME, ensurePublicCollection } = await import('../src/weaviate/space-schema.js');
-        
+        const { PUBLIC_COLLECTION_NAME } = await import('../src/weaviate/space-schema.js');
+
         // Create backup by temporarily creating with backup name
         // We'll use the same schema creation logic
-        if (collectionName === PUBLIC_COLLECTION_NAME) {
-          // For Memory_public, we need to create manually since ensurePublicCollection uses fixed name
-          // Just create a collection with the backup name using the same schema structure
-          const publicCollection = this.client.collections.get(PUBLIC_COLLECTION_NAME);
-          const publicSchema = await publicCollection.config.get();
+        if (collectionName === PUBLIC_COLLECTION_NAME || collectionName === 'Memory_public') {
+          // For public collection, create manually with backup name
+          const sourceCollectionRef = this.client.collections.get(collectionName);
+          const publicSchema = await sourceCollectionRef.config.get();
           
           await this.client.collections.create({
             name: backupName,

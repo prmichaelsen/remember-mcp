@@ -64,7 +64,7 @@ export async function handleDeleteRelationship(
 
     // Get relationship to verify ownership and get connected memory IDs
     const relationship = await collection.query.fetchObjectById(args.relationship_id, {
-      returnProperties: ['user_id', 'doc_type', 'memory_ids', 'relationship_type'],
+      returnProperties: ['user_id', 'doc_type', 'related_memory_ids', 'relationship_type'],
     });
 
     if (!relationship) {
@@ -81,7 +81,7 @@ export async function handleDeleteRelationship(
       throw new Error('Cannot delete memories using this tool. Use remember_delete_memory instead.');
     }
 
-    const memoryIds = (relationship.properties.memory_ids as string[]) || [];
+    const memoryIds = (relationship.properties.related_memory_ids as string[]) || [];
     let memoriesUpdated = 0;
 
     // Remove relationship reference from all connected memories
@@ -95,7 +95,7 @@ export async function handleDeleteRelationship(
         try {
           // Get current memory to read relationships array
           const memory = await collection.query.fetchObjectById(memoryId, {
-            returnProperties: ['relationships', 'doc_type'],
+            returnProperties: ['relationship_ids', 'doc_type'],
           });
 
           if (!memory || memory.properties.doc_type !== 'memory') {
@@ -103,7 +103,7 @@ export async function handleDeleteRelationship(
             return { memoryId, success: false };
           }
 
-          const currentRelationships = (memory.properties.relationships as string[]) || [];
+          const currentRelationships = (memory.properties.relationship_ids as string[]) || [];
           const updatedRelationships = currentRelationships.filter(
             (relId) => relId !== args.relationship_id
           );
@@ -113,7 +113,7 @@ export async function handleDeleteRelationship(
             await collection.data.update({
               id: memoryId,
               properties: {
-                relationships: updatedRelationships,
+                relationship_ids: updatedRelationships,
                 updated_at: new Date().toISOString(),
               },
             });

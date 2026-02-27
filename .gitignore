@@ -86,5 +86,10 @@ Thumbs.db
 # MCP specific
 mcp-debug.log
 
+# Migration state files
+.v1-to-v2-migration-state.yaml
+.collection-backup-state.yaml
+
 service-account-key.json
+*-service.json
 .claude

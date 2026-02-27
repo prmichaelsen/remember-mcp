@@ -20,6 +20,9 @@ const COMMON_MEMORY_PROPERTIES = [
   // Core content
   { name: 'content', dataType: configure.dataType.TEXT },
   { name: 'content_type', dataType: configure.dataType.TEXT },
+  { name: 'title', dataType: configure.dataType.TEXT },
+  { name: 'summary', dataType: configure.dataType.TEXT },
+  { name: 'type', dataType: configure.dataType.TEXT }, // v1 compat (v2: content_type)
 
   // Tracking arrays (v2 feature)
   { name: 'space_ids', dataType: configure.dataType.TEXT_ARRAY },
@@ -40,22 +43,51 @@ const COMMON_MEMORY_PROPERTIES = [
   { name: 'tags', dataType: configure.dataType.TEXT_ARRAY },
   { name: 'weight', dataType: configure.dataType.NUMBER },
   { name: 'trust_score', dataType: configure.dataType.NUMBER },
+  { name: 'trust', dataType: configure.dataType.NUMBER }, // v1 compat (v2: trust_score)
+  { name: 'base_weight', dataType: configure.dataType.NUMBER },
+  { name: 'computed_weight', dataType: configure.dataType.NUMBER },
+  { name: 'confidence', dataType: configure.dataType.NUMBER },
+  { name: 'strength', dataType: configure.dataType.NUMBER },
 
-  // Location data
+  // Location data (v2 names)
   { name: 'location_name', dataType: configure.dataType.TEXT },
   { name: 'location_lat', dataType: configure.dataType.NUMBER },
   { name: 'location_lon', dataType: configure.dataType.NUMBER },
+  // Location data (v1 compat)
+  { name: 'location_gps_lat', dataType: configure.dataType.NUMBER },
+  { name: 'location_gps_lng', dataType: configure.dataType.NUMBER },
+  { name: 'location_address', dataType: configure.dataType.TEXT },
+  { name: 'location_city', dataType: configure.dataType.TEXT },
+  { name: 'location_country', dataType: configure.dataType.TEXT },
+  { name: 'location_source', dataType: configure.dataType.TEXT },
+
+  // Locale
+  { name: 'locale_language', dataType: configure.dataType.TEXT },
+  { name: 'locale_timezone', dataType: configure.dataType.TEXT },
 
   // Context
   { name: 'context_app', dataType: configure.dataType.TEXT },
   { name: 'context_url', dataType: configure.dataType.TEXT },
   { name: 'context_conversation_id', dataType: configure.dataType.TEXT },
+  { name: 'context_summary', dataType: configure.dataType.TEXT },
+  { name: 'context_timestamp', dataType: configure.dataType.DATE },
 
-  // Relationships
+  // Relationships (v2 names)
   { name: 'relationship_ids', dataType: configure.dataType.TEXT_ARRAY },
   { name: 'relationship_type', dataType: configure.dataType.TEXT },
   { name: 'related_memory_ids', dataType: configure.dataType.TEXT_ARRAY },
   { name: 'observation', dataType: configure.dataType.TEXT },
+  // Relationships (v1 compat)
+  { name: 'relationships', dataType: configure.dataType.TEXT_ARRAY },
+  { name: 'memory_ids', dataType: configure.dataType.TEXT_ARRAY },
+
+  // Access tracking
+  { name: 'access_count', dataType: configure.dataType.NUMBER },
+  { name: 'last_accessed_at', dataType: configure.dataType.DATE },
+
+  // References & templates
+  { name: 'references', dataType: configure.dataType.TEXT_ARRAY },
+  { name: 'template_id', dataType: configure.dataType.TEXT },
 
   // Comments (Phase 1)
   { name: 'parent_id', dataType: configure.dataType.TEXT },

@@ -9,7 +9,10 @@
     "backup:dry-run": "tsx backup-collections.ts --dry-run",
     "delete": "tsx delete-collection.ts",
     "migrate:recreate": "tsx migrate-recreate-collections.ts",
-    "migrate:recreate:dry-run": "tsx migrate-recreate-collections.ts --dry-run"
+    "migrate:recreate:dry-run": "tsx migrate-recreate-collections.ts --dry-run",
+    "migrate:v1-to-v2": "tsx migrate-v1-to-v2.ts",
+    "migrate:v1-to-v2:dry-run": "tsx migrate-v1-to-v2.ts --dry-run",
+    "migrate:v1-to-v2:verify": "tsx migrate-v1-to-v2.ts --verify-only"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
