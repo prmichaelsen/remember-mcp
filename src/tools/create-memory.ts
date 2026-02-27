@@ -58,7 +58,7 @@ export const createMemoryTool = {
       },
       trust: {
         type: 'number',
-        description: 'Access control level (0-1, default: 0.5)',
+        description: 'Access control level (0-1, default: 0.25)',
         minimum: 0,
         maximum: 1,
       },
@@ -160,7 +160,7 @@ export async function handleCreateMemory(
 
       // Scoring
       weight: args.weight ?? 0.5,
-      trust_score: args.trust ?? 0.5,
+      trust_score: args.trust ?? 0.25,
       confidence: 1.0,
 
       // Context
