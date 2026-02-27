@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.0] - 2026-02-27
+
+### Changed
+
+**Memory Collection Pattern v2 - remember_search_space Updated (Task 169)**
+
+`remember_search_space` now targets the v2 collection architecture, adds group search support, and introduces `search_type` selection.
+
+- **Collection target**: `Memory_public` → `Memory_spaces_public` (via `getCollectionName(CollectionType.SPACES)`)
+- **Field filter**: `spaces` property → `space_ids.containsAny()` (matches v2 published memory schema)
+- **`spaces` parameter**: No longer required — omit to search all public memories
+- **`groups` parameter** (new): Array of group IDs — queries `Memory_groups_{groupId}` for each
+- **`search_type` parameter** (new): `"hybrid"` (default) | `"bm25"` (keyword) | `"semantic"` (vector)
+- **All-public search**: When neither `spaces` nor `groups` is provided, queries all of `Memory_spaces_public`
+- **Multi-source merge**: Results from spaces + groups combined, deduplicated by UUID, sorted by score descending
+- **Soft-delete aware**: Added `deleted_at isNull(true)` filter to all queries (requires `indexNullState: true`)
+- **`buildBaseFilters()` helper**: Extracted as exported pure function for testability
+
+### Added
+
+- **Unit Tests** ([`src/tools/search-space.spec.ts`](src/tools/search-space.spec.ts))
+  - 23 new tests: tool schema (9) + `buildBaseFilters` helper (14)
+  - Total: 179 tests passing
+
+---
+
 ## [3.4.0] - 2026-02-26
 
 ### Added

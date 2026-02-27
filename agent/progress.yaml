@@ -2,11 +2,11 @@
 
 project:
   name: remember-mcp
-  version: 3.4.0
+  version: 3.5.0
   started: 2026-02-11
   status: in_progress
   current_milestone: M14
-  last_updated: 2026-02-26
+  last_updated: 2026-02-27
 
 milestones:
   - id: M1
@@ -209,11 +209,11 @@ milestones:
   - id: M14
     name: Memory Collection Pattern v2
     status: in_progress
-    progress: 50%
+    progress: 62%
     started: 2026-02-26
     completed: null
     estimated_weeks: 2-3
-    tasks_completed: 4
+    tasks_completed: 5
     tasks_total: 8
     notes: |
       Foundation for all social features (People Discovery, Memory Feed API).
@@ -232,7 +232,16 @@ milestones:
          - Updates content + revised_at + revision_count + revision_history (JSON)
          - Handles partial success: each location reported independently
          - 19 new unit tests (revise.spec.ts) — 156 tests total passing
-      📋 Task 169: remember_search_space Tool
+      ✅ Task 169: remember_search_space Tool COMPLETED (2026-02-27)
+         - src/tools/search-space.ts: Updated to Memory Collection Pattern v2
+         - Uses Memory_spaces_public (was Memory_public) via getCollectionName(CollectionType.SPACES)
+         - Filters by space_ids.containsAny() (was spaces field)
+         - spaces now optional (was required); added groups array parameter
+         - Added search_type parameter: hybrid | bm25 | semantic
+         - Multi-source merge + deduplication by UUID + score sort
+         - All-public search when neither spaces nor groups specified
+         - Added deleted_at isNull(true) filter (soft delete aware)
+         - 23 new unit tests (search-space.spec.ts) — 179 tests total passing
       📋 Task 170: remember_create_memory and remember_update_memory
       📋 Task 172: Performance Testing and Optimization
       📋 Task 173: Documentation and Examples
@@ -602,9 +611,25 @@ documentation:
 progress:
   planning: 100%
   implementation: 50%
-  overall: 50%
+  overall: 62%
 
 recent_work:
+  - date: 2026-02-27
+    description: M14 Task 169 - remember_search_space Updated to v2 Architecture
+    items:
+      - ✅ Updated src/tools/search-space.ts for Memory Collection Pattern v2
+      - ✅ Now queries Memory_spaces_public (was Memory_public)
+      - ✅ Filters by space_ids.containsAny() (was spaces field)
+      - ✅ spaces parameter now optional; added groups array parameter
+      - ✅ Added search_type parameter (hybrid | bm25 | semantic)
+      - ✅ Multi-source merge + dedup by UUID + score-sorted results
+      - ✅ All-public fallback when neither spaces nor groups specified
+      - ✅ Soft-delete aware (deleted_at isNull filter)
+      - ✅ Created src/tools/search-space.spec.ts with 23 unit tests
+      - ✅ All 179 tests passing (was 156)
+      - 📋 M14 now 62% complete (5/8 tasks)
+      - 📋 Next: Task 170 - remember_create_memory + remember_update_memory
+
   - date: 2026-02-26
     description: M14 Task 168 - remember_revise Tool Implemented (v3.4.0)
     items:
@@ -1506,21 +1531,21 @@ task_20_completion:
     
     - id: task-168
       name: Implement remember_revise Tool
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-14-memory-collection-v2/task-168-implement-remember-revise.md
       estimated_hours: 6-8
-      actual_hours: null
-      completed_date: null
+      actual_hours: 0.25
+      completed_date: 2026-02-26
       notes: |
         New tool for syncing content across all published copies.
-    
+
     - id: task-169
       name: Implement remember_search_space Tool
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-14-memory-collection-v2/task-169-update-remember-search-space.md
       estimated_hours: 4-6
       actual_hours: null
-      completed_date: null
+      completed_date: 2026-02-27
       notes: |
         Query by space_ids filtering, group searches, deduplication.
     
