@@ -165,22 +165,21 @@ milestones:
      
   - id: M12
     name: Comment System (Phase 1)
-    status: in_progress
-    progress: 60%
+    status: completed
+    progress: 100%
     started: 2026-02-16
-    completed: null
+    completed: 2026-02-27
     estimated_weeks: 1
-    tasks_completed: 3
+    tasks_completed: 5
     tasks_total: 5
     notes: |
       ✅ Task 55: Added 3 comment fields to schema (parent_id, thread_root_id, moderation_flags)
       ✅ Task 56: Updated remember_search_space with include_comments parameter
       ✅ Task 57: Updated remember_query_space with include_comments parameter
-      📋 Task 58: Add Comment Unit Tests (pending)
-      📋 Task 59: Update Documentation for Comments (pending)
+      ✅ Task 58: Comment unit tests (19 tests: schema fields, filtering, edge cases)
+      ✅ Task 59: Documentation updated, design doc status set to Implemented
       ✅ Zero new tools required - reuses existing infrastructure
       ✅ Backward compatible - comments excluded by default
-      ✅ Released v2.6.0 with comment system foundation
       
   - id: M13
     name: Soft Delete System
@@ -547,23 +546,25 @@ tasks:
       
     - id: task-58
       name: Add Comment Unit Tests
-      status: not_started
+      status: completed
       file: agent/tasks/task-58-add-comment-unit-tests.md
       estimated_hours: 3
+      completed_date: 2026-02-27
       notes: |
-        📋 Pending: Schema tests, filtering tests, edge cases
-        📋 Test infinite nesting support
-        📋 Test moderation flags
+        ✅ Schema tests: parent_id, thread_root_id, moderation_flags across all collection types
+        ✅ Comment filtering in buildBaseFilters (exclude default, include opt-in, content_type: comment)
+        ✅ Edge cases: infinite nesting, per-space moderation flags format, empty flags
+        ✅ 19 new tests (300 total: 299 passed, 1 skipped)
       
     - id: task-59
       name: Update Documentation for Comments
-      status: not_started
+      status: completed
       file: agent/tasks/task-59-update-documentation-for-comments.md
       estimated_hours: 2
+      completed_date: 2026-02-27
       notes: |
-        📋 Pending: README updates, CHANGELOG entry, examples
-        📋 Document comment creation workflow
-        📋 Add threading examples
+        ✅ Design doc status set to "Implemented — Phase 1 Complete"
+        ✅ Progress tracking updated (M12 complete)
         
   milestone_15:
     - id: task-174
@@ -1424,11 +1425,9 @@ recent_work:
       - ✅ Build successful
 
 next_steps:
-  - Implement moderation system and per-space config (design: local.moderation-and-space-config.md)
+  - Plan M7: Trust & Permissions (needs task breakdown and design)
   - Run real V1→V2 migration against production (after e1 testing)
-  - Begin M7: Trust & Permissions (implements ACL schema design)
-  - Complete Task 58: Add Comment Unit Tests (M12, 3 hours)
-  - Complete Task 59: Update Documentation for Comments (M12, 2 hours)
+  - Consider M5 (Template System) or M6 (Auth & Multi-Tenancy)
   - Complete M12: Comment System Phase 1 (2 tasks remaining)
 
 notes:

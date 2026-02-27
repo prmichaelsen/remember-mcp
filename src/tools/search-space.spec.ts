@@ -164,6 +164,17 @@ describe('buildBaseFilters', () => {
     expect(typeFilter?.value).toBe('note');
   });
 
+  it('can filter for comments only via content_type: comment', () => {
+    const col = makeMockCollection();
+    buildBaseFilters(col, { query: 'test', content_type: 'comment' });
+    const typeFilter = col._calls.find(c => c.property === 'content_type' && c.method === 'equal');
+    expect(typeFilter).toBeDefined();
+    expect(typeFilter?.value).toBe('comment');
+    // No notEqual filter should be added when content_type is explicitly set
+    const notEqualFilter = col._calls.find(c => c.property === 'content_type' && c.method === 'notEqual');
+    expect(notEqualFilter).toBeUndefined();
+  });
+
   it('adds containsAny filter for each tag', () => {
     const col = makeMockCollection();
     buildBaseFilters(col, { query: 'test', tags: ['cooking', 'recipes'] });

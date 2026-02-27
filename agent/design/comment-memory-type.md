@@ -2,8 +2,8 @@
 
 **Concept**: Use existing `comment` content type for replies, enabling infinitely nested threaded discussions
 **Created**: 2026-02-16
-**Updated**: 2026-02-16
-**Status**: Design Proposal - Zero New Tools Required
+**Updated**: 2026-02-27
+**Status**: Implemented — Phase 1 Complete
 
 ---
 
