@@ -226,10 +226,23 @@ yaml_parse() {
                 prev_indent="$indent"
                 last_key_node="$node_id"
             else
-                # Scalar value
-                local node_id
-                node_id=$(create_node "scalar" "$key" "$value" "$current_parent")
-                add_child "$current_parent" "$node_id"
+                # Check for empty array [] or empty map {}
+                if [ "$value" = "[]" ]; then
+                    # Empty array
+                    local node_id
+                    node_id=$(create_node "array" "$key" "" "$current_parent")
+                    add_child "$current_parent" "$node_id"
+                elif [ "$value" = "{}" ]; then
+                    # Empty map
+                    local node_id
+                    node_id=$(create_node "map" "$key" "" "$current_parent")
+                    add_child "$current_parent" "$node_id"
+                else
+                    # Scalar value
+                    local node_id
+                    node_id=$(create_node "scalar" "$key" "$value" "$current_parent")
+                    add_child "$current_parent" "$node_id"
+                fi
             fi
         fi
     done < "$file"
@@ -445,8 +458,17 @@ yaml_set() {
             if [ -z "$child_node" ]; then
                 # Create missing node
                 if [ "$is_last" -eq 1 ]; then
-                    # Last segment - create scalar with value
-                    child_node=$(create_node_and_link "scalar" "$segment" "$new_value" "$current_node")
+                    # Last segment - check for empty array/map
+                    if [ "$new_value" = "[]" ]; then
+                        # Create empty array
+                        child_node=$(create_node_and_link "array" "$segment" "" "$current_node")
+                    elif [ "$new_value" = "{}" ]; then
+                        # Create empty map
+                        child_node=$(create_node_and_link "map" "$segment" "" "$current_node")
+                    else
+                        # Create scalar with value
+                        child_node=$(create_node_and_link "scalar" "$segment" "$new_value" "$current_node")
+                    fi
                     return 0
                 else
                     # Intermediate segment - create map
@@ -470,10 +492,16 @@ yaml_set() {
     parent=$(echo "$node" | cut -d'|' -f5)
     children=$(echo "$node" | cut -d'|' -f6)
     
-    new_value=$(echo "$new_value" | sed 's/|/\\|/g')
-    
-    local updated="$id|$type|$key|$new_value|$parent|$children"
-    sed -i "$((current_node + 1))s@.*@$updated@" "$AST_FILE"
+    # Check if converting to empty array
+    if [ "$new_value" = "[]" ]; then
+        # Convert node to array type and clear children
+        local updated="$id|array|$key||$parent|"
+        sed -i "$((current_node + 1))s@.*@$updated@" "$AST_FILE"
+    else
+        new_value=$(echo "$new_value" | sed 's/|/\\|/g')
+        local updated="$id|$type|$key|$new_value|$parent|$children"
+        sed -i "$((current_node + 1))s@.*@$updated@" "$AST_FILE"
+    fi
 }
 
 yaml_write() {
@@ -723,6 +751,96 @@ yaml_array_append() {
     add_child "$current_node" "$new_node"
     
     echo "$new_node"
+}
+
+# Delete a node at the specified path
+# Usage: yaml_delete ".path.to.node"
+# Returns: 0 on success, 1 on failure
+yaml_delete() {
+    local path="$1"
+    
+    if [ -z "$path" ]; then
+        echo "Error: Path is required" >&2
+        return 1
+    fi
+    
+    # Remove leading dot
+    path="${path#.}"
+    
+    # Navigate to parent and get the key to delete
+    local parent_path=""
+    local key_to_delete=""
+    
+    # Split path into parent and key
+    if echo "$path" | grep -q '\.'; then
+        parent_path=$(echo "$path" | sed 's/\.[^.]*$//')
+        key_to_delete=$(echo "$path" | sed 's/.*\.//')
+    else
+        parent_path=""
+        key_to_delete="$path"
+    fi
+    
+    # Find parent node
+    local current_node=0
+    if [ -n "$parent_path" ]; then
+        local IFS='.'
+        for segment in $parent_path; do
+            if echo "$segment" | grep -q '\['; then
+                local key index
+                key=$(echo "$segment" | sed 's/\[.*//')
+                index=$(echo "$segment" | sed 's/.*\[\([0-9]*\)\].*/\1/')
+                
+                current_node=$(find_child_by_key "$current_node" "$key")
+                [ -z "$current_node" ] && return 1
+                
+                current_node=$(find_child_by_index "$current_node" "$index")
+                [ -z "$current_node" ] && return 1
+            else
+                current_node=$(find_child_by_key "$current_node" "$segment")
+                [ -z "$current_node" ] && return 1
+            fi
+        done
+    fi
+    
+    # Find the child node to delete
+    local node_to_delete
+    node_to_delete=$(find_child_by_key "$current_node" "$key_to_delete")
+    
+    if [ -z "$node_to_delete" ]; then
+        echo "Error: Node not found: $path" >&2
+        return 1
+    fi
+    
+    # Remove child from parent's children list
+    local parent_node
+    parent_node=$(get_node "$current_node")
+    
+    local id type key value parent children
+    id=$(echo "$parent_node" | cut -d'|' -f1)
+    type=$(echo "$parent_node" | cut -d'|' -f2)
+    key=$(echo "$parent_node" | cut -d'|' -f3)
+    value=$(echo "$parent_node" | cut -d'|' -f4)
+    parent=$(echo "$parent_node" | cut -d'|' -f5)
+    children=$(echo "$parent_node" | cut -d'|' -f6)
+    
+    # Remove node_to_delete from children list
+    local new_children=""
+    local IFS=','
+    for child_id in $children; do
+        if [ "$child_id" != "$node_to_delete" ]; then
+            if [ -z "$new_children" ]; then
+                new_children="$child_id"
+            else
+                new_children="$new_children,$child_id"
+            fi
+        fi
+    done
+    
+    # Update parent node
+    local updated="$id|$type|$key|$value|$parent|$new_children"
+    sed -i "$((current_node + 1))s@.*@$updated@" "$AST_FILE"
+    
+    return 0
 }
 
 # Append object to array
