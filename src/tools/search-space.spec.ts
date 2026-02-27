@@ -6,8 +6,21 @@
  * - buildBaseFilters helper
  */
 
-import { searchSpaceTool, buildBaseFilters } from './search-space.js';
+import { searchSpaceTool, buildBaseFilters, buildModerationFilter } from './search-space.js';
 import { SUPPORTED_SPACES } from '../types/space-memory.js';
+
+// Mock Filters.or/and from weaviate-client while preserving configure for v2-collections
+jest.mock('weaviate-client', () => {
+  const actual = jest.requireActual('weaviate-client');
+  return {
+    ...actual,
+    Filters: {
+      ...actual.Filters,
+      or: jest.fn((...args: any[]) => ({ _type: 'or', args })),
+      and: jest.fn((...args: any[]) => ({ _type: 'and', args })),
+    },
+  };
+});
 
 // ---------------------------------------------------------------------------
 // searchSpaceTool definition
@@ -197,5 +210,107 @@ describe('buildBaseFilters', () => {
     expect(dateFilters).toHaveLength(0);
     const tagFilters = col._calls.filter(c => c.property === 'tags');
     expect(tagFilters).toHaveLength(0);
+  });
+
+  it('adds default moderation filter (approved or null) when no moderation_filter arg', () => {
+    const col = makeMockCollection();
+    buildBaseFilters(col, { query: 'test' });
+    const moderationCalls = col._calls.filter(c => c.property === 'moderation_status');
+    // Should have 2 calls: equal('approved') and isNull(true) combined with Filters.or
+    expect(moderationCalls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('adds specific moderation filter when moderation_filter is "pending"', () => {
+    const col = makeMockCollection();
+    buildBaseFilters(col, { query: 'test', moderation_filter: 'pending' });
+    const moderationFilter = col._calls.find(
+      c => c.property === 'moderation_status' && c.method === 'equal' && c.value === 'pending'
+    );
+    expect(moderationFilter).toBeDefined();
+  });
+
+  it('adds no moderation filter when moderation_filter is "all"', () => {
+    const col = makeMockCollection();
+    buildBaseFilters(col, { query: 'test', moderation_filter: 'all' });
+    const moderationCalls = col._calls.filter(c => c.property === 'moderation_status');
+    expect(moderationCalls).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildModerationFilter helper
+// ---------------------------------------------------------------------------
+
+describe('buildModerationFilter', () => {
+  it('returns null for "all" filter', () => {
+    const col = makeMockCollection();
+    const result = buildModerationFilter(col, 'all');
+    expect(result).toBeNull();
+  });
+
+  it('returns an OR filter for "approved" (approved OR null)', () => {
+    const col = makeMockCollection();
+    const result = buildModerationFilter(col, 'approved');
+    expect(result).toBeDefined();
+    // Checks that moderation_status property was accessed for both equal and isNull
+    const approvedCall = col._calls.find(
+      c => c.property === 'moderation_status' && c.method === 'equal' && c.value === 'approved'
+    );
+    const nullCall = col._calls.find(
+      c => c.property === 'moderation_status' && c.method === 'isNull' && c.value === true
+    );
+    expect(approvedCall).toBeDefined();
+    expect(nullCall).toBeDefined();
+  });
+
+  it('defaults to "approved" when no filter specified', () => {
+    const col = makeMockCollection();
+    const result = buildModerationFilter(col);
+    expect(result).toBeDefined();
+    const approvedCall = col._calls.find(
+      c => c.property === 'moderation_status' && c.method === 'equal' && c.value === 'approved'
+    );
+    expect(approvedCall).toBeDefined();
+  });
+
+  it('returns a direct equal filter for "pending"', () => {
+    const col = makeMockCollection();
+    const result = buildModerationFilter(col, 'pending');
+    expect(result).toBeDefined();
+    const pendingCall = col._calls.find(
+      c => c.property === 'moderation_status' && c.method === 'equal' && c.value === 'pending'
+    );
+    expect(pendingCall).toBeDefined();
+  });
+
+  it('returns a direct equal filter for "rejected"', () => {
+    const col = makeMockCollection();
+    buildModerationFilter(col, 'rejected');
+    const rejectedCall = col._calls.find(
+      c => c.property === 'moderation_status' && c.method === 'equal' && c.value === 'rejected'
+    );
+    expect(rejectedCall).toBeDefined();
+  });
+
+  it('returns a direct equal filter for "removed"', () => {
+    const col = makeMockCollection();
+    buildModerationFilter(col, 'removed');
+    const removedCall = col._calls.find(
+      c => c.property === 'moderation_status' && c.method === 'equal' && c.value === 'removed'
+    );
+    expect(removedCall).toBeDefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// searchSpaceTool schema: moderation_filter property
+// ---------------------------------------------------------------------------
+
+describe('searchSpaceTool moderation_filter schema', () => {
+  it('has moderation_filter property with correct enum', () => {
+    const props = searchSpaceTool.inputSchema.properties as Record<string, any>;
+    expect(props.moderation_filter).toBeDefined();
+    expect(props.moderation_filter.enum).toEqual(['approved', 'pending', 'rejected', 'removed', 'all']);
+    expect(props.moderation_filter.default).toBe('approved');
   });
 });

@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.10.0] - 2026-02-27
+
+### Added
+
+**Moderation System & Per-Space Configuration (M15)**
+
+- `remember_moderate` tool — approve, reject, or remove published memories (requires `can_moderate` permission)
+- `moderation_status`, `moderated_by`, `moderated_at` schema fields on published memory collections
+- `can_moderate` permission added to `GroupPermissions` type
+- Per-space/group configuration via Firestore (`SpaceConfig` service with `require_moderation` and `default_write_mode`)
+- Publish flow sets `moderation_status` based on space/group `require_moderation` config
+- `moderation_filter` parameter on `remember_search_space` and `remember_query_space` tools (default: `approved`)
+- `canModerate` and `canModerateAny` auth helper utilities
+- 20 MCP tools total (was 19)
+- 32 new tests (281 total: 280 passed, 1 skipped)
+
 ## [3.9.0] - 2026-02-27
 
 ### Added

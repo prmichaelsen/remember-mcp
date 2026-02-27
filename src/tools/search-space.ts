@@ -16,6 +16,7 @@ import { createDebugLogger } from '../utils/debug.js';
 import { CollectionType, getCollectionName } from '../collections/dot-notation.js';
 import { logger } from '../utils/logger.js';
 import type { AuthContext } from '../types/auth.js';
+import { canModerate, canModerateAny } from '../utils/auth-helpers.js';
 
 /**
  * Tool definition for remember_search_space
@@ -94,6 +95,12 @@ Let the search algorithm find ALL relevant memories regardless of type unless ex
         type: 'string',
         description: 'Filter memories created before this date (ISO 8601)',
       },
+      moderation_filter: {
+        type: 'string',
+        enum: ['approved', 'pending', 'rejected', 'removed', 'all'],
+        description: 'Filter by moderation status. Default: "approved" (only shows approved/unmoderated). Non-approved filters require moderator permissions.',
+        default: 'approved',
+      },
       include_comments: {
         type: 'boolean',
         description: 'Include comments in search results (default: false)',
@@ -114,6 +121,8 @@ Let the search algorithm find ALL relevant memories regardless of type unless ex
   },
 };
 
+export type ModerationFilter = 'approved' | 'pending' | 'rejected' | 'removed' | 'all';
+
 interface SearchSpaceArgs {
   query: string;
   spaces?: string[];
@@ -125,14 +134,40 @@ interface SearchSpaceArgs {
   max_weight?: number;
   date_from?: string;
   date_to?: string;
+  moderation_filter?: ModerationFilter;
   include_comments?: boolean;
   limit?: number;
   offset?: number;
 }
 
 /**
+ * Build the moderation status filter for a Weaviate collection query.
+ *
+ * - 'approved' (default): matches approved OR null (backward compat for pre-moderation memories)
+ * - 'pending'/'rejected'/'removed': matches that specific status
+ * - 'all': no moderation filter applied
+ */
+export function buildModerationFilter(collection: any, moderationFilter: ModerationFilter = 'approved'): any | null {
+  if (moderationFilter === 'all') {
+    return null;
+  }
+
+  if (moderationFilter === 'approved') {
+    // Approved OR null (backward compat: existing memories without moderation_status are approved)
+    return Filters.or(
+      collection.filter.byProperty('moderation_status').equal('approved'),
+      collection.filter.byProperty('moderation_status').isNull(true)
+    );
+  }
+
+  // Specific non-approved status
+  return collection.filter.byProperty('moderation_status').equal(moderationFilter);
+}
+
+/**
  * Build base filters applied to all space/group collection queries.
  * Excludes soft-deleted memories and optionally filters by content type, tags, weight, and date.
+ * Includes moderation status filter (default: approved/null only).
  */
 export function buildBaseFilters(collection: any, args: SearchSpaceArgs): any[] {
   const filterList: any[] = [];
@@ -142,6 +177,12 @@ export function buildBaseFilters(collection: any, args: SearchSpaceArgs): any[] 
 
   // Only return memories (not relationships)
   filterList.push(collection.filter.byProperty('doc_type').equal('memory'));
+
+  // Moderation status filter
+  const moderationFilter = buildModerationFilter(collection, args.moderation_filter);
+  if (moderationFilter) {
+    filterList.push(moderationFilter);
+  }
 
   // Apply content type filter
   if (args.content_type) {
@@ -260,6 +301,37 @@ export async function handleSearchSpace(
             error: 'Invalid group IDs',
             message: 'Group IDs cannot be empty or contain dots',
             context: { invalid_groups: invalidGroups },
+          },
+          null,
+          2
+        );
+      }
+    }
+
+    // Permission check: non-approved moderation filters require can_moderate
+    const moderationFilter = args.moderation_filter || 'approved';
+    if (moderationFilter !== 'approved') {
+      // For group searches: check can_moderate per group
+      for (const groupId of groups) {
+        if (!canModerate(authContext, groupId)) {
+          return JSON.stringify(
+            {
+              success: false,
+              error: 'Permission denied',
+              message: `Moderator access required to view ${moderationFilter} memories in group ${groupId}`,
+            },
+            null,
+            2
+          );
+        }
+      }
+      // For space searches: check can_moderate on any group
+      if ((spaces.length > 0 || groups.length === 0) && !canModerateAny(authContext)) {
+        return JSON.stringify(
+          {
+            success: false,
+            error: 'Permission denied',
+            message: `Moderator access required to view ${moderationFilter} memories in spaces`,
           },
           null,
           2

@@ -120,6 +120,11 @@ const PUBLISHED_MEMORY_PROPERTIES = [
   { name: 'revision_count', dataType: configure.dataType.INT },
   { name: 'original_memory_id', dataType: configure.dataType.TEXT },
 
+  // Moderation (nullable — null defaults to approved)
+  { name: 'moderation_status', dataType: configure.dataType.TEXT },
+  { name: 'moderated_by', dataType: configure.dataType.TEXT },
+  { name: 'moderated_at', dataType: configure.dataType.DATE },
+
   // Memory-level ACL (nullable — null defaults to owner_only semantics)
   { name: 'write_mode', dataType: configure.dataType.TEXT },
   { name: 'owner_id', dataType: configure.dataType.TEXT },

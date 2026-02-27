@@ -23,6 +23,7 @@ import { generateCompositeId, parseCompositeId } from '../collections/composite-
 import { addToSpaceIds, addToGroupIds, removeFromSpaceIds, removeFromGroupIds, getPublishedLocations } from '../collections/tracking-arrays.js';
 import { parseRevisionHistory, buildRevisionHistory, type RevisionResult } from './revise.js';
 import type { AuthContext } from '../types/auth.js';
+import { getSpaceConfig } from '../services/space-config.service.js';
 
 /**
  * Tool definition for remember_confirm
@@ -317,7 +318,7 @@ async function executePublishMemory(
       });
 
       const publicCollection = await ensurePublicCollection(weaviateClient);
-      
+
       // Check if memory already exists in spaces collection with this composite ID
       let existingSpaceMemory = null;
       try {
@@ -325,10 +326,20 @@ async function executePublishMemory(
       } catch (e) {
         // Memory doesn't exist, which is fine
       }
-      
+
       // Calculate new space_ids array
       const newSpaceIds = [...new Set([...existingSpaceIds, ...spaces])];
-      
+
+      // Determine moderation status: pending if ANY target space requires moderation
+      let spaceModerationStatus = 'approved';
+      for (const spaceId of spaces) {
+        const spaceConfig = await getSpaceConfig(spaceId, 'space');
+        if (spaceConfig.require_moderation) {
+          spaceModerationStatus = 'pending';
+          break;
+        }
+      }
+
       // Create published memory with tracking arrays
       const publishedMemory: Record<string, any> = {
         ...originalMemory.properties,
@@ -344,6 +355,8 @@ async function executePublishMemory(
         published_at: new Date().toISOString(),
         discovery_count: 0,
         attribution: 'user' as const,
+        // Moderation status
+        moderation_status: spaceModerationStatus,
         // Merge tags
         tags: mergedTags,
       };
@@ -395,16 +408,16 @@ async function executePublishMemory(
     // STEP 2: Publish to groups (Memory_groups_{groupId})
     for (const groupId of groups) {
       const groupCollectionName = getCollectionName(CollectionType.GROUPS, groupId);
-      
+
       logger.debug('Publishing to group collection', {
         function: 'executePublishMemory',
         groupId,
         collectionName: groupCollectionName,
       });
-      
+
       try {
         const groupCollection = weaviateClient.collections.get(groupCollectionName);
-        
+
         // Check if memory already exists in this group
         let existingGroupMemory = null;
         try {
@@ -412,10 +425,14 @@ async function executePublishMemory(
         } catch (e) {
           // Memory doesn't exist in this group
         }
-        
+
         // Calculate new group_ids array (for this group publication)
         const newGroupIds = [...new Set([...existingGroupIds, groupId])];
-        
+
+        // Determine moderation status for this group
+        const groupConfig = await getSpaceConfig(groupId, 'group');
+        const groupModerationStatus = groupConfig.require_moderation ? 'pending' : 'approved';
+
         // Create published memory for group
         const groupMemory: Record<string, any> = {
           ...originalMemory.properties,
@@ -429,6 +446,8 @@ async function executePublishMemory(
           published_at: new Date().toISOString(),
           discovery_count: 0,
           attribution: 'user' as const,
+          // Moderation status
+          moderation_status: groupModerationStatus,
           // Merge tags
           tags: mergedTags,
         };

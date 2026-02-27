@@ -15,6 +15,7 @@ export interface GroupPermissions {
   can_retract_own: boolean;
   can_retract_any: boolean;
   can_manage_members: boolean;
+  can_moderate: boolean;
 }
 
 export interface GroupMembership {

@@ -40,6 +40,7 @@ import { confirmTool, handleConfirm } from './tools/confirm.js';
 import { denyTool, handleDeny } from './tools/deny.js';
 import { searchSpaceTool, handleSearchSpace } from './tools/search-space.js';
 import { querySpaceTool, handleQuerySpace } from './tools/query-space.js';
+import { moderateTool, handleModerate } from './tools/moderate.js';
 
 /**
  * Initialize remember-mcp server
@@ -116,6 +117,7 @@ function registerHandlers(server: Server): void {
         denyTool,
         searchSpaceTool,
         querySpaceTool,
+        moderateTool,
       ],
     };
   });
@@ -209,6 +211,10 @@ function registerHandlers(server: Server): void {
 
         case 'remember_query_space':
           result = await handleQuerySpace(args as any, userId, authContext);
+          break;
+
+        case 'remember_moderate':
+          result = await handleModerate(args as any, userId, authContext);
           break;
 
         default:

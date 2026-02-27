@@ -13,6 +13,9 @@ import { SUPPORTED_SPACES } from '../types/space-memory.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
+import type { ModerationFilter } from './search-space.js';
+import { buildModerationFilter } from './search-space.js';
+import { canModerateAny } from '../utils/auth-helpers.js';
 
 /**
  * Tool definition for remember_query_space
@@ -67,6 +70,12 @@ Let the query algorithm find ALL relevant memories regardless of type unless exp
         type: 'string',
         description: 'Filter memories created before this date (ISO 8601)',
       },
+      moderation_filter: {
+        type: 'string',
+        enum: ['approved', 'pending', 'rejected', 'removed', 'all'],
+        description: 'Filter by moderation status. Default: "approved" (only shows approved/unmoderated). Non-approved filters require moderator permissions.',
+        default: 'approved',
+      },
       include_comments: {
         type: 'boolean',
         description: 'Include comments in query results (default: false)',
@@ -96,6 +105,7 @@ interface QuerySpaceArgs {
   min_weight?: number;
   date_from?: string;
   date_to?: string;
+  moderation_filter?: ModerationFilter;
   include_comments?: boolean;
   limit?: number;
   format?: 'detailed' | 'compact';
@@ -147,6 +157,20 @@ export async function handleQuerySpace(
       );
     }
 
+    // Permission check: non-approved moderation filters require moderator access
+    const moderationFilterValue = args.moderation_filter || 'approved';
+    if (moderationFilterValue !== 'approved' && !canModerateAny(authContext)) {
+      return JSON.stringify(
+        {
+          success: false,
+          error: 'Permission denied',
+          message: `Moderator access required to view ${moderationFilterValue} memories in spaces`,
+        },
+        null,
+        2
+      );
+    }
+
     const weaviateClient = getWeaviateClient();
     const publicCollection = await ensurePublicCollection(weaviateClient);
 
@@ -158,6 +182,12 @@ export async function handleQuerySpace(
 
     // Filter by doc_type (memory) - space_memory concept was removed
     filterList.push(publicCollection.filter.byProperty('doc_type').equal('memory'));
+
+    // Moderation status filter
+    const moderationFilter = buildModerationFilter(publicCollection, args.moderation_filter);
+    if (moderationFilter) {
+      filterList.push(moderationFilter);
+    }
 
     // Apply content type filter
     if (args.content_type) {

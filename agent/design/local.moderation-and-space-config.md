@@ -2,7 +2,7 @@
 
 **Concept**: Content moderation workflow with per-space/group behavioral config, owned by remember-mcp
 **Created**: 2026-02-27
-**Status**: Proposal
+**Status**: Implemented
 
 ---
 
