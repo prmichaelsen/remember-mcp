@@ -6,6 +6,7 @@
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
+import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 
 /**
@@ -59,7 +60,12 @@ export async function handleDeleteRelationship(
   userId: string,
   authContext?: AuthContext
 ): Promise<string> {
+  const debug = createDebugLogger({ tool: 'remember_delete_relationship', userId, operation: 'delete relationship' });
+
   try {
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { args });
+
     logger.info('Deleting relationship', { userId, relationshipId: args.relationship_id });
 
     const collection = getMemoryCollection(userId);
@@ -157,6 +163,7 @@ export async function handleDeleteRelationship(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
+    debug.error('Tool failed', { error: error instanceof Error ? error.message : String(error) });
     handleToolError(error, {
       toolName: 'remember_delete_relationship',
       operation: 'delete relationship',

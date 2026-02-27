@@ -6,6 +6,7 @@
 import { PreferencesDatabaseService } from '../services/preferences-database.service.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
+import { createDebugLogger } from '../utils/debug.js';
 import {
   UserPreferences,
   PreferenceCategory,
@@ -65,7 +66,12 @@ export async function handleGetPreferences(
   userId: string,
   authContext?: AuthContext
 ): Promise<string> {
+  const debug = createDebugLogger({ tool: 'remember_get_preferences', userId, operation: 'get preferences' });
+
   try {
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { args });
+
     const { category } = args;
 
     logger.info('Getting preferences', { userId, category });
@@ -108,6 +114,7 @@ export async function handleGetPreferences(
 
     return JSON.stringify(response, null, 2);
   } catch (error) {
+    debug.error('Tool failed', { error: error instanceof Error ? error.message : String(error) });
     handleToolError(error, {
       toolName: 'remember_get_preferences',
       operation: 'get preferences',

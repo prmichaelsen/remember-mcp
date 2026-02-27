@@ -9,6 +9,7 @@ import { fetchMemoryWithAllProperties } from '../weaviate/client.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError, withErrorHandling } from '../utils/error-handler.js';
 import { isValidContentType } from '../constants/content-types.js';
+import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 
 /**
@@ -128,7 +129,10 @@ export async function handleUpdateMemory(
   userId: string,
   authContext?: AuthContext
 ): Promise<string> {
+  const debug = createDebugLogger({ tool: 'remember_update_memory', userId, operation: 'update memory' });
   try {
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { args });
     logger.info('Updating memory', { userId, memoryId: args.memory_id });
 
     const collection = getMemoryCollection(userId);
@@ -320,6 +324,7 @@ export async function handleUpdateMemory(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
+    debug.error('Tool failed', { error: error instanceof Error ? error.message : String(error) });
     handleToolError(error, {
       toolName: 'remember_update_memory',
       operation: 'update memory',

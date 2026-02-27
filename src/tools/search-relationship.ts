@@ -8,6 +8,7 @@ import type { Relationship, DeletedFilter } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
+import { createDebugLogger } from '../utils/debug.js';
 import { buildDeletedFilter, combineFiltersWithAnd } from '../utils/weaviate-filters.js';
 import type { AuthContext } from '../types/auth.js';
 
@@ -111,7 +112,12 @@ export async function handleSearchRelationship(
   userId: string,
   authContext?: AuthContext
 ): Promise<string> {
+  const debug = createDebugLogger({ tool: 'remember_search_relationship', userId, operation: 'search relationship' });
+
   try {
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { args });
+
     logger.info('Searching relationships', {
       userId,
       query: args.query,
@@ -230,6 +236,7 @@ export async function handleSearchRelationship(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
+    debug.error('Tool failed', { error: error instanceof Error ? error.message : String(error) });
     handleToolError(error, {
       toolName: 'remember_search_relationship',
       operation: 'search relationships',

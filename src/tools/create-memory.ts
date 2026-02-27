@@ -8,6 +8,7 @@ import { ensureMemoryCollection, getMemoryCollection } from '../weaviate/schema.
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { DEFAULT_CONTENT_TYPE, getContentTypeDescription, isValidContentType } from '../constants/content-types.js';
+import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 
 /**
@@ -138,7 +139,10 @@ export async function handleCreateMemory(
   authContext?: AuthContext,
   context?: Partial<MemoryContext>
 ): Promise<string> {
+  const debug = createDebugLogger({ tool: 'remember_create_memory', userId, operation: 'create memory' });
   try {
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { args });
     logger.info('Creating memory', { userId, type: args.type });
 
     // Ensure collection exists
@@ -215,6 +219,7 @@ export async function handleCreateMemory(
 
     return JSON.stringify(response, null, 2);
   } catch (error) {
+    debug.error('Tool failed', { error: error instanceof Error ? error.message : String(error) });
     handleToolError(error, {
       toolName: 'remember_create_memory',
       operation: 'create memory',

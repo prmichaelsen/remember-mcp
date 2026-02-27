@@ -20,6 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dependency injection: `GhostConfigProvider` and `EscalationStore` interfaces with in-memory stubs (Firestore in M16)
 - 89 new tests (389 total: 388 passed, 1 skipped)
 
+**Comprehensive Tool Debugging (M8 Task 69)**
+
+- Debug logging integrated into all 18 MCP tools + Weaviate client
+- Pattern: `debug.info` at entry, `debug.trace` for args, `debug.error` in catch blocks
+- 13 remaining tools integrated: create-memory, search-memory, delete-memory, update-memory, find-similar, query-memory, deny, create-relationship, update-relationship, search-relationship, delete-relationship, set-preference, get-preferences
+- 394 tests (393 passed, 1 skipped)
+
 ## [3.10.0] - 2026-02-27
 
 ### Added

@@ -8,6 +8,7 @@ import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { buildCombinedSearchFilters, buildMemoryOnlyFilters, buildDeletedFilter, combineFiltersWithAnd } from '../utils/weaviate-filters.js';
+import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 
 /**
@@ -131,14 +132,17 @@ export async function handleSearchMemory(
   userId: string,
   authContext?: AuthContext
 ): Promise<string> {
+  const debug = createDebugLogger({ tool: 'remember_search_memory', userId, operation: 'search memory' });
   try {
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { args });
     // Validate query is not empty
     if (!args.query || args.query.trim() === '') {
       throw new Error('Query cannot be empty');
     }
 
     const includeRelationships = args.include_relationships !== false; // Default true
-    
+
     logger.info('Searching memories and relationships', {
       userId,
       query: args.query,
@@ -223,6 +227,7 @@ export async function handleSearchMemory(
 
     return JSON.stringify(searchResult, null, 2);
   } catch (error) {
+    debug.error('Tool failed', { error: error instanceof Error ? error.message : String(error) });
     handleToolError(error, {
       toolName: 'remember_search_memory',
       operation: 'search memories',

@@ -7,6 +7,7 @@ import type { RelationshipUpdate } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
+import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 
 /**
@@ -93,7 +94,12 @@ export async function handleUpdateRelationship(
   userId: string,
   authContext?: AuthContext
 ): Promise<string> {
+  const debug = createDebugLogger({ tool: 'remember_update_relationship', userId, operation: 'update relationship' });
+
   try {
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { args });
+
     logger.info('Updating relationship', { userId, relationshipId: args.relationship_id });
 
     const collection = getMemoryCollection(userId);
@@ -186,6 +192,7 @@ export async function handleUpdateRelationship(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
+    debug.error('Tool failed', { error: error instanceof Error ? error.message : String(error) });
     handleToolError(error, {
       toolName: 'remember_update_relationship',
       operation: 'update relationship',

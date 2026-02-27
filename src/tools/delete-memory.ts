@@ -9,6 +9,7 @@ import { getWeaviateClient, getMemoryCollectionName, fetchMemoryWithAllPropertie
 import { confirmationTokenService } from '../services/confirmation-token.service.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
+import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 
 /**
@@ -61,8 +62,11 @@ export async function handleDeleteMemory(
   userId: string,
   authContext?: AuthContext
 ): Promise<string> {
+  const debug = createDebugLogger({ tool: 'remember_delete_memory', userId, operation: 'delete memory' });
   try {
-    logger.info('Requesting memory deletion', { 
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { args });
+    logger.info('Requesting memory deletion', {
       userId, 
       memoryId: args.memory_id,
       hasReason: !!args.reason,
@@ -152,6 +156,7 @@ export async function handleDeleteMemory(
       2
     );
   } catch (error) {
+    debug.error('Tool failed', { error: error instanceof Error ? error.message : String(error) });
     handleToolError(error, {
       toolName: 'remember_delete_memory',
       userId,

@@ -7,6 +7,7 @@
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { confirmationTokenService } from '../services/confirmation-token.service.js';
 import { handleToolError } from '../utils/error-handler.js';
+import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 
 /**
@@ -61,7 +62,10 @@ export async function handleDeny(
   userId: string,
   authContext?: AuthContext
 ): Promise<string> {
+  const debug = createDebugLogger({ tool: 'remember_deny', userId, operation: 'deny action' });
   try {
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { args });
     const success = await confirmationTokenService.denyRequest(userId, args.token);
 
     if (!success) {
@@ -84,6 +88,7 @@ export async function handleDeny(
       2
     );
   } catch (error) {
+    debug.error('Tool failed', { error: error instanceof Error ? error.message : String(error) });
     handleToolError(error, {
       toolName: 'remember_deny',
       userId,

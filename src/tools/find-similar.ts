@@ -8,6 +8,7 @@ import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { buildDeletedFilter } from '../utils/weaviate-filters.js';
+import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 
 /**
@@ -106,7 +107,10 @@ export async function handleFindSimilar(
   userId: string,
   authContext?: AuthContext
 ): Promise<string> {
+  const debug = createDebugLogger({ tool: 'remember_find_similar', userId, operation: 'find similar' });
   try {
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { args });
     logger.info('Finding similar memories', { userId, memoryId: args.memory_id, hasText: !!args.text });
 
     // Validate input
@@ -221,6 +225,7 @@ export async function handleFindSimilar(
 
     return JSON.stringify(result, null, 2);
   } catch (error) {
+    debug.error('Tool failed', { error: error instanceof Error ? error.message : String(error) });
     handleToolError(error, {
       toolName: 'remember_find_similar',
       operation: 'find similar memories',

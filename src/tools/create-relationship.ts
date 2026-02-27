@@ -7,6 +7,7 @@ import type { Relationship, MemoryContext } from '../types/memory.js';
 import { ensureMemoryCollection, getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
+import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 
 /**
@@ -96,11 +97,16 @@ export async function handleCreateRelationship(
   authContext?: AuthContext,
   context?: Partial<MemoryContext>
 ): Promise<string> {
+  const debug = createDebugLogger({ tool: 'remember_create_relationship', userId, operation: 'create relationship' });
+
   try {
-    logger.info('Creating relationship', { 
-      userId, 
+    debug.info('Tool invoked');
+    debug.trace('Arguments', { args });
+
+    logger.info('Creating relationship', {
+      userId,
       type: args.relationship_type,
-      memoryCount: args.memory_ids.length 
+      memoryCount: args.memory_ids.length
     });
 
     // Validate memory_ids count
@@ -284,6 +290,7 @@ export async function handleCreateRelationship(
 
     return JSON.stringify(response, null, 2);
   } catch (error) {
+    debug.error('Tool failed', { error: error instanceof Error ? error.message : String(error) });
     handleToolError(error, {
       toolName: 'remember_create_relationship',
       operation: 'create relationship',
