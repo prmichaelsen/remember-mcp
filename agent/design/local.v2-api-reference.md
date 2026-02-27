@@ -588,8 +588,34 @@ Collection types: `USERS`, `SPACES`, `GROUPS`
 
 ---
 
+---
+
+## Upcoming: Memory-Level ACL Fields
+
+Four new fields will be added to `PUBLISHED_MEMORY_PROPERTIES` to support collaborative editing and group-based permissions:
+
+| Field | Type | Default | Purpose |
+|-------|------|---------|---------|
+| `write_mode` | text | `null` (→ `"owner_only"`) | Controls who can revise: `"owner_only"` / `"group_editors"` / `"anyone"` |
+| `overwrite_allowed_ids` | text[] | `[]` | Per-memory explicit overwrite grants (user IDs) |
+| `last_revised_by` | text | `null` | User ID of last reviser — enables conflict detection |
+| `owner_id` | text | `null` (→ `author_id`) | Supports ownership transfer |
+
+All fields are nullable with zero-migration deployment. Existing memories continue to work unchanged (`write_mode: null` → `"owner_only"` semantics).
+
+**Impact on existing tools**:
+- `remember_publish` — can optionally set `write_mode` and `owner_id`
+- `remember_revise` — sets `last_revised_by`, checks write permissions
+- `remember_overwrite` — checks overwrite permissions via `overwrite_allowed_ids` and group credentials
+- `remember_sync` — uses `last_revised_by` for conflict detection
+
+See [Memory ACL Schema](local.memory-acl-schema.md) for full specification.
+
+---
+
 **Status**: Implemented (v3.1.0–v3.7.0), with 2 proposed tools (remember_sync, remember_overwrite)
 **Recommendation**: Reference this document when integrating with remember-mcp v2 tools
 **Related Documents**:
 - [Memory Collection Pattern v2](local.memory-collection-pattern-v2.md) — Architecture and design rationale
 - [Collaborative Memory Sync](local.collaborative-memory-sync.md) — Design proposal for remember_sync and remember_overwrite
+- [Memory ACL Schema](local.memory-acl-schema.md) — Memory-level access control fields and permission resolution

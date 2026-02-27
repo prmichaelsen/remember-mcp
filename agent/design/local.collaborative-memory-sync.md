@@ -169,7 +169,7 @@ Alternative (with permission):
 
 ### Schema Additions
 
-Published memories need additional fields for conflict tracking:
+Published memories need additional fields for conflict tracking and collaborative access control. The full ACL schema is specified in [Memory ACL Schema](local.memory-acl-schema.md). The fields most relevant to sync/overwrite:
 
 ```typescript
 {
@@ -178,10 +178,17 @@ Published memories need additional fields for conflict tracking:
   revision_count: number,
   revision_history: string,  // JSON
 
-  // New fields for collaborative sync
-  last_revised_by: string,   // userId of last reviser
+  // New fields (see local.memory-acl-schema.md for complete list)
+  write_mode: string,              // "owner_only" | "group_editors" | "anyone"
+  overwrite_allowed_ids: string[], // per-memory overwrite grants
+  last_revised_by: string,         // userId of last reviser
+  owner_id: string,                // supports ownership transfer
 }
 ```
+
+**Permission checks**: `remember_overwrite` validates via a three-layer resolution algorithm (memory-level → group-level credentials API → user-level). See [Memory ACL Schema](local.memory-acl-schema.md) for the full permission resolution flow.
+
+**Revision history format**: Entries now include `revised_by` alongside `content` and `revised_at` to track which user made each historical revision.
 
 ---
 
@@ -254,4 +261,5 @@ Published memories need additional fields for conflict tracking:
 **Related Documents**:
 - [Memory Collection Pattern v2](local.memory-collection-pattern-v2.md) — Foundation architecture
 - [v2 API Reference](local.v2-api-reference.md) — Current tool documentation
+- [Memory ACL Schema](local.memory-acl-schema.md) — Memory-level ACL fields and permission resolution
 - [Trust System Implementation](trust-system-implementation.md) — Permission model
