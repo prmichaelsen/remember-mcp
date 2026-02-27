@@ -8,7 +8,7 @@
 
 ## Overview
 
-This document provides complete API reference for the 6 tools updated or introduced in Memory Collection Pattern v2. Each tool listing includes input schema, output format, error cases, and usage examples.
+This document provides complete API reference for the 6 implemented tools and 2 proposed tools in Memory Collection Pattern v2. Each tool listing includes input schema, output format, error cases, and usage examples.
 
 All tools operate on the three-tier collection structure:
 - `Memory_users_{userId}` — Private user memories (simple IDs)
@@ -393,6 +393,150 @@ remember_search_space({
 
 ---
 
+### remember_sync *(Proposed)*
+
+Detects conflicts between a source memory and its published copies. Call before `remember_revise` in shared-editing contexts to check for divergent content.
+
+**Status**: Proposal — depends on shared write permission system (M7 Trust & Permissions)
+
+**Input Schema**:
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `memory_id` | string | Yes | — | Source memory ID from personal collection |
+| `location` | string | No | — | Specific location to sync (omit for all published locations) |
+
+**Output — Clean** (no conflicts):
+```json
+{
+  "status": "clean",
+  "message": "Published copies are in sync. Safe to remember_revise.",
+  "locations_checked": 3
+}
+```
+
+**Output — Conflict detected**:
+```json
+{
+  "status": "conflict",
+  "message": "Published copy has been modified since your last revision.",
+  "conflicts": [
+    {
+      "location": "Memory_spaces_public",
+      "local_content": "Your version...",
+      "remote_content": "Published version (modified by user456)...",
+      "local_updated_at": "2026-02-27T10:00:00Z",
+      "remote_revised_at": "2026-02-27T11:30:00Z",
+      "remote_revised_by": "user456"
+    }
+  ],
+  "merge_options": ["keep_local", "keep_remote", "manual"]
+}
+```
+
+**Conflict Detection Logic**:
+- If published `revised_at` > source `updated_at` → **CONFLICT** (someone else revised the published copy)
+- If source content === published content → **CLEAN** (already in sync)
+- If source `updated_at` > published `revised_at` and content differs → **CLEAN** (user's own changes pending)
+
+**Merge Strategies**:
+- `keep_local` — Use source memory content, discard remote changes, then call `remember_revise`
+- `keep_remote` — Update source memory from published copy content (no revise needed)
+- `manual` — User edits source memory to reconcile, then calls `remember_revise`
+
+**Validation**:
+- Source memory must exist and be owned by user
+- Memory must be published to at least one location
+
+**Error Cases**:
+- `Memory not found` — Invalid memory_id
+- `Ownership verification failed` — User doesn't own this memory
+- `Not published` — Memory has no published copies to sync
+
+**Example**:
+```
+// Check for conflicts before revising
+remember_sync({ memory_id: "my-recipe" })
+// → { status: "clean", locations_checked: 2 }
+
+// Safe to revise
+remember_revise({ memory_id: "my-recipe" })
+
+// Or if conflict detected:
+remember_sync({ memory_id: "my-recipe" })
+// → { status: "conflict", conflicts: [...], merge_options: [...] }
+// User resolves conflict, then revises
+```
+
+---
+
+### remember_overwrite *(Proposed)*
+
+Force-replaces published copies with source memory content, bypassing conflict detection. Requires overwrite permission on the target document. Uses two-phase confirmation flow.
+
+**Status**: Proposal — depends on shared write permission system (M7 Trust & Permissions)
+
+**Input Schema**:
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `memory_id` | string | Yes | — | Source memory ID from personal collection |
+| `locations` | object | No | — | Specific locations to overwrite (omit for all) |
+| `locations.spaces` | string[] | No | — | Spaces to overwrite |
+| `locations.groups` | string[] | No | — | Groups to overwrite |
+
+**Confirmation Flow**: Returns a token that must be confirmed via `remember_confirm` before the overwrite executes.
+
+**Output** (token generation):
+```json
+{
+  "success": true,
+  "token": "<confirmation_token>",
+  "message": "Overwrite request created. This will replace published content unconditionally.",
+  "action": "overwrite_memory",
+  "memory_id": "my-recipe",
+  "warning": "This will discard any remote changes made by other users.",
+  "confirmation_required": true
+}
+```
+
+**What happens on confirmation**:
+1. Source memory content replaces published copy content unconditionally
+2. Old published content preserved in `revision_history` (max 10 entries)
+3. `revision_count` incremented, `revised_at` updated
+4. `last_revised_by` set to overwriting user's ID
+
+**Permission Model**: Overwrite permission is a document-level flag. Only the original author or users with explicit overwrite access can use this tool.
+
+**Validation**:
+- Source memory must exist and be owned by user
+- Memory must be published to at least one location
+- User must have overwrite permission on the target document
+
+**Error Cases**:
+- `Memory not found` — Invalid memory_id
+- `Ownership verification failed` — User doesn't own this memory
+- `Not published` — Memory has no published copies
+- `Permission denied` — User lacks overwrite permission on target
+
+**Example**:
+```
+// Force-replace all published copies
+remember_overwrite({ memory_id: "my-recipe" })
+// → { success: true, token: "tok_xyz", warning: "..." }
+
+remember_confirm({ token: "tok_xyz" })
+// → Published copies replaced unconditionally
+
+// Overwrite specific locations only
+remember_overwrite({
+  memory_id: "my-recipe",
+  locations: { spaces: ["cooking"] }
+})
+```
+
+---
+
 ## Utility Modules
 
 ### Composite IDs (`src/collections/composite-ids.ts`)
@@ -444,7 +588,8 @@ Collection types: `USERS`, `SPACES`, `GROUPS`
 
 ---
 
-**Status**: Implemented (v3.1.0–v3.6.0)
+**Status**: Implemented (v3.1.0–v3.7.0), with 2 proposed tools (remember_sync, remember_overwrite)
 **Recommendation**: Reference this document when integrating with remember-mcp v2 tools
 **Related Documents**:
 - [Memory Collection Pattern v2](local.memory-collection-pattern-v2.md) — Architecture and design rationale
+- [Collaborative Memory Sync](local.collaborative-memory-sync.md) — Design proposal for remember_sync and remember_overwrite
