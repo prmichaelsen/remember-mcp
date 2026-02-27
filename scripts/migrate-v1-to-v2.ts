@@ -737,6 +737,14 @@ class V1ToV2Migration {
 
   async verify(collections: CollectionClassification[]): Promise<boolean> {
     console.log('Step 7: Verifying migration...');
+
+    if (this.config.options.dryRun) {
+      console.log('  [dry-run] Skipping verification — v2 collections were not created');
+      this.state.addStep('verify', 'skipped');
+      await this.state.save();
+      return true;
+    }
+
     this.state.addStep('verify', 'in_progress');
     this.state.setStatus('verifying');
     await this.state.save();
