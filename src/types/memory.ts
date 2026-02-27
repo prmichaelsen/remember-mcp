@@ -201,6 +201,11 @@ export interface Memory {
   deleted_at?: Date | null; // Timestamp when memory was soft-deleted (null = not deleted)
   deleted_by?: string; // User ID who deleted the memory
   deletion_reason?: string; // Optional reason for deletion
+
+  // Publication Tracking (Memory Collection Pattern v2)
+  // Managed by remember_publish / remember_retract — do NOT modify directly
+  space_ids?: string[]; // Spaces this memory has been published to
+  group_ids?: string[]; // Groups this memory has been published to
 }
 
 /**

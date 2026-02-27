@@ -2,7 +2,7 @@
 
 project:
   name: remember-mcp
-  version: 3.5.0
+  version: 3.6.0
   started: 2026-02-11
   status: in_progress
   current_milestone: M14
@@ -209,11 +209,11 @@ milestones:
   - id: M14
     name: Memory Collection Pattern v2
     status: in_progress
-    progress: 62%
+    progress: 75%
     started: 2026-02-26
     completed: null
     estimated_weeks: 2-3
-    tasks_completed: 5
+    tasks_completed: 6
     tasks_total: 8
     notes: |
       Foundation for all social features (People Discovery, Memory Feed API).
@@ -242,7 +242,11 @@ milestones:
          - All-public search when neither spaces nor groups specified
          - Added deleted_at isNull(true) filter (soft delete aware)
          - 23 new unit tests (search-space.spec.ts) — 179 tests total passing
-      📋 Task 170: remember_create_memory and remember_update_memory
+      ✅ Task 170: remember_create_memory and remember_update_memory COMPLETED (2026-02-27)
+         - src/types/memory.ts: Added space_ids?: string[] and group_ids?: string[] to Memory interface
+         - src/tools/create-memory.ts: Initializes space_ids: [] and group_ids: [] on every new memory
+         - src/tools/update-memory.ts: Tracking arrays preserved via spread; explicitly excluded from UpdateMemoryArgs
+         - src/tools/create-memory.spec.ts: 19 new unit tests for both tool schemas — 198 tests total passing
       📋 Task 172: Performance Testing and Optimization
       📋 Task 173: Documentation and Examples
 

@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.0] - 2026-02-27
+
+### Added
+
+**Memory Collection Pattern v2 - Tracking Array Initialization (Task 170)**
+
+New memories now initialize `space_ids` and `group_ids` arrays, enabling publication tracking from the moment of creation.
+
+- **`space_ids: []`** initialized on every new memory (managed by `remember_publish` / `remember_retract`)
+- **`group_ids: []`** initialized on every new memory (managed by `remember_publish` / `remember_retract`)
+- **`Memory` interface**: Added `space_ids?: string[]` and `group_ids?: string[]` fields to `src/types/memory.ts`
+- **`remember_update_memory`**: Tracking arrays preserved via spread pattern; explicitly excluded from `UpdateMemoryArgs` to prevent direct modification
+- **Unit Tests** ([`src/tools/create-memory.spec.ts`](src/tools/create-memory.spec.ts))
+  - 19 new tests: `createMemoryTool` schema (8) + `updateMemoryTool` schema (11)
+  - Asserts `space_ids`/`group_ids` are not user-settable via either tool's input schema
+  - Total: 198 tests passing (197 passing, 1 skipped)
+
 ## [3.5.0] - 2026-02-27
 
 ### Changed

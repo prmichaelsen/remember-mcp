@@ -209,6 +209,11 @@ export async function handleCreateMemory(
       parent_id: args.parent_id ?? null,
       thread_root_id: args.thread_root_id ?? null,
       moderation_flags: args.moderation_flags ?? [],
+
+      // Publication tracking arrays (Memory Collection Pattern v2)
+      // Managed by remember_publish / remember_retract — always start empty
+      space_ids: [],
+      group_ids: [],
     };
 
     // Insert into Weaviate v3 API

@@ -231,6 +231,10 @@ export async function handleUpdateMemory(
       updatedFields.push('structured_content');
     }
 
+    // NOTE: space_ids and group_ids (publication tracking arrays) are intentionally
+    // NOT exposed in UpdateMemoryArgs — they are managed exclusively by
+    // remember_publish and remember_retract. The spread below preserves them.
+
     // Update comment/threading fields
     if (args.parent_id !== undefined) {
       updates.parent_id = args.parent_id;
