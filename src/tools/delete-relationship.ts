@@ -6,6 +6,7 @@
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_delete_relationship
@@ -55,7 +56,8 @@ export interface DeleteRelationshipResult {
  */
 export async function handleDeleteRelationship(
   args: DeleteRelationshipArgs,
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   try {
     logger.info('Deleting relationship', { userId, relationshipId: args.relationship_id });

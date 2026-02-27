@@ -19,6 +19,7 @@ import { handleToolError } from '../utils/error-handler.js';
 import { SUPPORTED_SPACES } from '../types/space-memory.js';
 import { logger } from '../utils/logger.js';
 import { createDebugLogger } from '../utils/debug.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_publish
@@ -79,7 +80,8 @@ interface PublishArgs {
  */
 export async function handlePublish(
   args: PublishArgs,
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   const debug = createDebugLogger({
     tool: 'remember_publish',

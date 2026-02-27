@@ -20,6 +20,7 @@ import { logger } from '../utils/logger.js';
 import { createDebugLogger } from '../utils/debug.js';
 import { CollectionType, getCollectionName } from '../collections/dot-notation.js';
 import { generateCompositeId } from '../collections/composite-ids.js';
+import type { AuthContext } from '../types/auth.js';
 
 /** Maximum number of revision history entries to retain */
 const MAX_REVISION_HISTORY = 10;
@@ -114,7 +115,8 @@ export function buildRevisionHistory(
  */
 export async function handleRevise(
   args: ReviseArgs,
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   const debug = createDebugLogger({
     tool: 'remember_revise',

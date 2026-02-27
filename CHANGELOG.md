@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.9.0] - 2026-02-27
+
+### Added
+
+**Auth Context & Credentials Provider Foundations**
+
+- `src/types/auth.ts` — `AuthContext`, `UserCredentials`, `GroupMembership`, `GroupPermissions`, `CredentialsProvider`, `WriteMode` types
+- `src/services/credentials-provider.ts` — `StubCredentialsProvider` with `createCredentialsProvider()` factory and singleton export
+- 4 ACL schema fields on `PUBLISHED_MEMORY_PROPERTIES`: `write_mode`, `owner_id`, `overwrite_allowed_ids`, `last_revised_by`
+- `authContext?: AuthContext` parameter threaded through all 19 tool handler signatures
+- `server-factory.ts` resolves credentials per request and passes `AuthContext` to all handlers
+- `server.ts` passes null `AuthContext` in standalone mode
+- 3 new tests for `StubCredentialsProvider` (236 total: 235 passed, 1 skipped)
+
 ## [3.8.0] - 2026-02-27
 
 ### Changed

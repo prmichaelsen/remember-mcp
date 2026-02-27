@@ -9,6 +9,7 @@ import { getWeaviateClient, getMemoryCollectionName, fetchMemoryWithAllPropertie
 import { confirmationTokenService } from '../services/confirmation-token.service.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_delete_memory
@@ -57,7 +58,8 @@ export interface DeleteMemoryArgs {
  */
 export async function handleDeleteMemory(
   args: DeleteMemoryArgs,
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   try {
     logger.info('Requesting memory deletion', { 

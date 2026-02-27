@@ -8,6 +8,7 @@ import { ensureMemoryCollection, getMemoryCollection } from '../weaviate/schema.
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { DEFAULT_CONTENT_TYPE, getContentTypeDescription, isValidContentType } from '../constants/content-types.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_create_memory
@@ -134,6 +135,7 @@ export interface CreateMemoryResult {
 export async function handleCreateMemory(
   args: CreateMemoryArgs,
   userId: string,
+  authContext?: AuthContext,
   context?: Partial<MemoryContext>
 ): Promise<string> {
   try {

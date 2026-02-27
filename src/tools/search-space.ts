@@ -15,6 +15,7 @@ import { handleToolError } from '../utils/error-handler.js';
 import { createDebugLogger } from '../utils/debug.js';
 import { CollectionType, getCollectionName } from '../collections/dot-notation.js';
 import { logger } from '../utils/logger.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_search_space
@@ -209,7 +210,8 @@ async function executeSearch(
  */
 export async function handleSearchSpace(
   args: SearchSpaceArgs,
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   const debug = createDebugLogger({
     tool: 'remember_search_space',

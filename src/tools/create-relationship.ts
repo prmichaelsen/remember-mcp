@@ -7,6 +7,7 @@ import type { Relationship, MemoryContext } from '../types/memory.js';
 import { ensureMemoryCollection, getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_create_relationship
@@ -92,6 +93,7 @@ export interface CreateRelationshipResult {
 export async function handleCreateRelationship(
   args: CreateRelationshipArgs,
   userId: string,
+  authContext?: AuthContext,
   context?: Partial<MemoryContext>
 ): Promise<string> {
   try {

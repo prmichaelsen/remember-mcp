@@ -9,6 +9,7 @@ import { fetchMemoryWithAllProperties } from '../weaviate/client.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError, withErrorHandling } from '../utils/error-handler.js';
 import { isValidContentType } from '../constants/content-types.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_update_memory
@@ -124,7 +125,8 @@ export interface UpdateMemoryResult {
  */
 export async function handleUpdateMemory(
   args: UpdateMemoryArgs,
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   try {
     logger.info('Updating memory', { userId, memoryId: args.memory_id });

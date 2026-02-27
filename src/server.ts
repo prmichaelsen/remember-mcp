@@ -12,6 +12,7 @@ import { config, validateConfig } from './config.js';
 import { initWeaviateClient, testWeaviateConnection, getWeaviateClient } from './weaviate/client.js';
 import { initFirestore, testFirestoreConnection } from './firestore/init.js';
 import { logger } from './utils/logger.js';
+import type { AuthContext } from './types/auth.js';
 
 // Import memory tools
 import { createMemoryTool, handleCreateMemory } from './tools/create-memory.js';
@@ -130,81 +131,84 @@ function registerHandlers(server: Server): void {
       // TODO: Get userId from authentication context in M6
       const userId = (args as any).user_id || 'default_user';
 
+      // Standalone mode: no access token or credentials
+      const authContext: AuthContext = { accessToken: null, credentials: null };
+
       switch (name) {
         case 'remember_create_memory':
-          result = await handleCreateMemory(args as any, userId);
+          result = await handleCreateMemory(args as any, userId, authContext);
           break;
 
         case 'remember_search_memory':
-          result = await handleSearchMemory(args as any, userId);
+          result = await handleSearchMemory(args as any, userId, authContext);
           break;
 
         case 'remember_delete_memory':
-          result = await handleDeleteMemory(args as any, userId);
+          result = await handleDeleteMemory(args as any, userId, authContext);
           break;
 
         case 'remember_update_memory':
-          result = await handleUpdateMemory(args as any, userId);
+          result = await handleUpdateMemory(args as any, userId, authContext);
           break;
 
         case 'remember_find_similar':
-          result = await handleFindSimilar(args as any, userId);
+          result = await handleFindSimilar(args as any, userId, authContext);
           break;
 
         case 'remember_query_memory':
-          result = await handleQueryMemory(args as any, userId);
+          result = await handleQueryMemory(args as any, userId, authContext);
           break;
 
         case 'remember_create_relationship':
-          result = await handleCreateRelationship(args as any, userId);
+          result = await handleCreateRelationship(args as any, userId, authContext);
           break;
 
         case 'remember_update_relationship':
-          result = await handleUpdateRelationship(args as any, userId);
+          result = await handleUpdateRelationship(args as any, userId, authContext);
           break;
 
         case 'remember_search_relationship':
-          result = await handleSearchRelationship(args as any, userId);
+          result = await handleSearchRelationship(args as any, userId, authContext);
           break;
 
         case 'remember_delete_relationship':
-          result = await handleDeleteRelationship(args as any, userId);
+          result = await handleDeleteRelationship(args as any, userId, authContext);
           break;
 
         case 'remember_set_preference':
-          result = await handleSetPreference(args as any, userId);
+          result = await handleSetPreference(args as any, userId, authContext);
           break;
 
         case 'remember_get_preferences':
-          result = await handleGetPreferences(args as any, userId);
+          result = await handleGetPreferences(args as any, userId, authContext);
           break;
 
         case 'remember_publish':
-          result = await handlePublish(args as any, userId);
+          result = await handlePublish(args as any, userId, authContext);
           break;
 
         case 'remember_retract':
-          result = await handleRetract(args as any, userId);
+          result = await handleRetract(args as any, userId, authContext);
           break;
 
         case 'remember_revise':
-          result = await handleRevise(args as any, userId);
+          result = await handleRevise(args as any, userId, authContext);
           break;
 
         case 'remember_confirm':
-          result = await handleConfirm(args as any, userId);
+          result = await handleConfirm(args as any, userId, authContext);
           break;
 
         case 'remember_deny':
-          result = await handleDeny(args as any, userId);
+          result = await handleDeny(args as any, userId, authContext);
           break;
 
         case 'remember_search_space':
-          result = await handleSearchSpace(args as any, userId);
+          result = await handleSearchSpace(args as any, userId, authContext);
           break;
 
         case 'remember_query_space':
-          result = await handleQuerySpace(args as any, userId);
+          result = await handleQuerySpace(args as any, userId, authContext);
           break;
 
         default:

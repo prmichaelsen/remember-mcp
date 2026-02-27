@@ -12,6 +12,7 @@ import { ensurePublicCollection, isValidSpaceId } from '../weaviate/space-schema
 import { SUPPORTED_SPACES } from '../types/space-memory.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { createDebugLogger } from '../utils/debug.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_query_space
@@ -105,7 +106,8 @@ interface QuerySpaceArgs {
  */
 export async function handleQuerySpace(
   args: QuerySpaceArgs,
-  userId: string  // May be used for private spaces in future
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   const debug = createDebugLogger({
     tool: 'remember_query_space',

@@ -12,6 +12,7 @@ import {
   PREFERENCE_CATEGORIES,
   getPreferenceDescription,
 } from '../types/preferences.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_get_preferences
@@ -61,7 +62,8 @@ export interface GetPreferencesResult {
  */
 export async function handleGetPreferences(
   args: GetPreferencesArgs,
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   try {
     const { category } = args;

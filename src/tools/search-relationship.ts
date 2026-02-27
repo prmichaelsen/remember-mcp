@@ -9,6 +9,7 @@ import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { buildDeletedFilter, combineFiltersWithAnd } from '../utils/weaviate-filters.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_search_relationship
@@ -107,7 +108,8 @@ export interface SearchRelationshipResult {
  */
 export async function handleSearchRelationship(
   args: SearchRelationshipArgs,
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   try {
     logger.info('Searching relationships', {

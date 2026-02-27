@@ -17,6 +17,7 @@ import { getWeaviateClient, getMemoryCollectionName, fetchMemoryWithAllPropertie
 import { handleToolError } from '../utils/error-handler.js';
 import { logger } from '../utils/logger.js';
 import { createDebugLogger } from '../utils/debug.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_retract
@@ -69,7 +70,8 @@ interface RetractArgs {
  */
 export async function handleRetract(
   args: RetractArgs,
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   const debug = createDebugLogger({
     tool: 'remember_retract',

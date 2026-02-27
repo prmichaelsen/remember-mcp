@@ -8,6 +8,7 @@ import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { buildCombinedSearchFilters, buildDeletedFilter, combineFiltersWithAnd } from '../utils/weaviate-filters.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_query_memory
@@ -161,7 +162,8 @@ export interface QueryMemoryResult {
  */
 export async function handleQueryMemory(
   args: QueryMemoryArgs,
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   try {
     // Validate query is not empty

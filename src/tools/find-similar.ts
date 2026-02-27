@@ -8,6 +8,7 @@ import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { buildDeletedFilter } from '../utils/weaviate-filters.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_find_similar
@@ -102,7 +103,8 @@ export interface FindSimilarResult {
  */
 export async function handleFindSimilar(
   args: FindSimilarArgs,
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   try {
     logger.info('Finding similar memories', { userId, memoryId: args.memory_id, hasText: !!args.text });

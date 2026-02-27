@@ -22,6 +22,7 @@ import { CollectionType, getCollectionName } from '../collections/dot-notation.j
 import { generateCompositeId, parseCompositeId } from '../collections/composite-ids.js';
 import { addToSpaceIds, addToGroupIds, removeFromSpaceIds, removeFromGroupIds, getPublishedLocations } from '../collections/tracking-arrays.js';
 import { parseRevisionHistory, buildRevisionHistory, type RevisionResult } from './revise.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_confirm
@@ -72,7 +73,8 @@ interface ConfirmArgs {
  */
 export async function handleConfirm(
   args: ConfirmArgs,
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   const debug = createDebugLogger({
     tool: 'remember_confirm',
@@ -171,7 +173,8 @@ export async function handleConfirm(
  */
 async function executePublishMemory(
   request: ConfirmationRequest & { request_id: string },
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   const debug = createDebugLogger({
     tool: 'remember_confirm',
@@ -568,7 +571,8 @@ async function executePublishMemory(
  */
 async function executeDeleteMemory(
   request: ConfirmationRequest & { request_id: string },
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   try {
     logger.info('Executing delete memory action', {
@@ -633,7 +637,8 @@ async function executeDeleteMemory(
  */
 async function executeRetractMemory(
   request: ConfirmationRequest & { request_id: string },
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   const debug = createDebugLogger({
     tool: 'remember_confirm',
@@ -935,7 +940,8 @@ async function executeRetractMemory(
  */
 async function executeReviseMemory(
   request: ConfirmationRequest & { request_id: string },
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   const debug = createDebugLogger({
     tool: 'remember_confirm',

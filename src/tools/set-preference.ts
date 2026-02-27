@@ -11,6 +11,7 @@ import {
   getPreferenceDescription,
   getPreferencesSchema,
 } from '../types/preferences.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_set_preference
@@ -115,7 +116,8 @@ function formatPreferenceChangeMessage(updates: Partial<UserPreferences>): strin
  */
 export async function handleSetPreference(
   args: SetPreferenceArgs,
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   try {
     const { preferences } = args;

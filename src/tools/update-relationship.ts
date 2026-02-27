@@ -7,6 +7,7 @@ import type { RelationshipUpdate } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
+import type { AuthContext } from '../types/auth.js';
 
 /**
  * Tool definition for remember_update_relationship
@@ -89,7 +90,8 @@ export interface UpdateRelationshipResult {
  */
 export async function handleUpdateRelationship(
   args: UpdateRelationshipArgs,
-  userId: string
+  userId: string,
+  authContext?: AuthContext
 ): Promise<string> {
   try {
     logger.info('Updating relationship', { userId, relationshipId: args.relationship_id });
