@@ -242,6 +242,26 @@ milestones:
       - Revision support: remember_revise updates published memories in-place
       - Orphan strategy: retracted memories preserved for historical reference
      
+  - id: M15
+    name: Moderation & Space Config
+    status: not_started
+    progress: 0%
+    started: null
+    completed: null
+    estimated_weeks: 2
+    tasks_completed: 0
+    tasks_total: 6
+    notes: |
+      Content moderation lifecycle and per-space/group behavioral config.
+      Design: agent/design/local.moderation-and-space-config.md
+      Builds on v3.9.0 AuthContext foundations.
+      📋 Task 174: Add moderation schema fields (2-3h)
+      📋 Task 175: Create SpaceConfig service (3-4h)
+      📋 Task 176: Wire moderation into publish flow (3-4h)
+      📋 Task 177: Add moderation filters to search tools (4-6h)
+      📋 Task 178: Create remember_moderate tool (4-6h)
+      📋 Task 179: Documentation and integration tests (2-3h)
+
   - id: M7
     name: Trust & Permissions
     status: not_started
@@ -544,6 +564,65 @@ tasks:
         📋 Document comment creation workflow
         📋 Add threading examples
         
+  milestone_15:
+    - id: task-174
+      name: Add Moderation Schema Fields
+      status: not_started
+      file: agent/tasks/milestone-15-moderation-space-config/task-174-add-moderation-schema-fields.md
+      estimated_hours: 2-3
+      notes: |
+        📋 Add moderation_status, moderated_by, moderated_at to PUBLISHED_MEMORY_PROPERTIES
+        📋 Add can_moderate to GroupPermissions
+
+    - id: task-175
+      name: Create SpaceConfig Service
+      status: not_started
+      file: agent/tasks/milestone-15-moderation-space-config/task-175-create-space-config-service.md
+      estimated_hours: 3-4
+      notes: |
+        📋 Firestore-backed per-space/group config with defaults
+        📋 getSpaceConfig() and setSpaceConfig()
+
+    - id: task-176
+      name: Wire Moderation into Publish Flow
+      status: not_started
+      file: agent/tasks/milestone-15-moderation-space-config/task-176-wire-moderation-publish-flow.md
+      estimated_hours: 3-4
+      dependencies: [task-174, task-175]
+      notes: |
+        📋 Set moderation_status during executePublishMemory()
+        📋 Read space/group config to determine initial status
+
+    - id: task-177
+      name: Add Moderation Filters to Search Tools
+      status: not_started
+      file: agent/tasks/milestone-15-moderation-space-config/task-177-add-moderation-search-filters.md
+      estimated_hours: 4-6
+      dependencies: [task-174]
+      notes: |
+        📋 Default search: approved/null only
+        📋 moderation_filter param with can_moderate permission check
+
+    - id: task-178
+      name: Create remember_moderate Tool
+      status: not_started
+      file: agent/tasks/milestone-15-moderation-space-config/task-178-create-remember-moderate-tool.md
+      estimated_hours: 4-6
+      dependencies: [task-174, task-177]
+      notes: |
+        📋 New MCP tool: approve/reject/remove published memories
+        📋 Permission-gated via authContext.can_moderate
+
+    - id: task-179
+      name: Documentation and Integration Tests
+      status: not_started
+      file: agent/tasks/milestone-15-moderation-space-config/task-179-documentation-integration-tests.md
+      estimated_hours: 2-3
+      dependencies: [task-174, task-175, task-176, task-177, task-178]
+      notes: |
+        📋 CHANGELOG, README, design doc status update
+        📋 Verify all tests pass
+
   milestone_8:
     - id: task-69
       name: Add Comprehensive Tool Debugging
@@ -1339,6 +1418,7 @@ recent_work:
       - ✅ Build successful
 
 next_steps:
+  - Implement moderation system and per-space config (design: local.moderation-and-space-config.md)
   - Run real V1→V2 migration against production (after e1 testing)
   - Begin M7: Trust & Permissions (implements ACL schema design)
   - Complete Task 58: Add Comment Unit Tests (M12, 3 hours)
