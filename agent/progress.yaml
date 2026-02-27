@@ -264,9 +264,21 @@ milestones:
 
   - id: M7
     name: Trust & Permissions
-    status: not_started
+    status: in_progress
     progress: 0%
     estimated_weeks: 2
+    tasks_completed: 0
+    tasks_total: 5
+    notes: |
+      Task breakdown created (tasks 180-183, 186):
+      ⏳ Task 180: Access Result & Permission types
+      ⏳ Task 181: Firestore permissions & access logs
+      ⏳ Task 182: Trust enforcement service
+      ⏳ Task 183: Access control service
+      🔜 Task 184: DEFERRED — Permission tools (ghost/persona model replaces direct access)
+      🔜 Task 185: DEFERRED — Wire trust into search (ghost handles this)
+      ⏳ Task 186: Documentation & verification
+      See: agent/clarifications/clarification-2-cross-user-access-model.md
     
   - id: M8
     name: Testing & Quality
@@ -629,6 +641,76 @@ tasks:
       notes: |
         ✅ CHANGELOG, design doc status, version bump 3.9.0→3.10.0
         📋 Verify all tests pass
+
+  milestone_7:
+    - id: task-180
+      name: Access Result & Permission Types
+      status: pending
+      file: agent/tasks/milestone-7-trust-permissions/task-180-access-result-permission-types.md
+      estimated_hours: 2-3
+      notes: |
+        📋 AccessResult discriminated union type
+        📋 UserPermission interface for Firestore
+
+    - id: task-181
+      name: Firestore Permissions & Access Logs
+      status: pending
+      file: agent/tasks/milestone-7-trust-permissions/task-181-firestore-permissions-access-logs.md
+      estimated_hours: 4-6
+      dependencies: [task-180]
+      notes: |
+        📋 Permission CRUD, access logging, memory block operations
+        📋 Uses existing Firestore paths from paths.ts
+
+    - id: task-182
+      name: Trust Enforcement Service
+      status: pending
+      file: agent/tasks/milestone-7-trust-permissions/task-182-trust-enforcement-service.md
+      estimated_hours: 3-4
+      dependencies: [task-180]
+      notes: |
+        📋 formatMemoryForPrompt() for 5 trust levels
+        📋 Trust validator and level suggestions
+
+    - id: task-183
+      name: Access Control Service
+      status: pending
+      file: agent/tasks/milestone-7-trust-permissions/task-183-access-control-service.md
+      estimated_hours: 4-6
+      dependencies: [task-180, task-181, task-182]
+      notes: |
+        📋 checkMemoryAccess() → AccessResult
+        📋 Trust escalation prevention (-0.1/attempt, block after 3)
+
+    - id: task-184
+      name: Permission Tools (5 tools)
+      status: deferred
+      file: agent/tasks/milestone-7-trust-permissions/task-184-permission-tools.md
+      estimated_hours: 6-8
+      dependencies: [task-181, task-183]
+      notes: |
+        🔜 DEFERRED: Ghost/persona model replaces direct permission tools
+        📋 See clarification-2-cross-user-access-model.md
+
+    - id: task-185
+      name: Wire Trust into Search/Query Tools
+      status: deferred
+      file: agent/tasks/milestone-7-trust-permissions/task-185-wire-trust-into-search-query.md
+      estimated_hours: 4-6
+      dependencies: [task-182, task-183]
+      notes: |
+        🔜 DEFERRED: Ghost/persona handles trust-filtered responses
+        📋 See clarification-2-cross-user-access-model.md
+
+    - id: task-186
+      name: Documentation & Verification
+      status: pending
+      file: agent/tasks/milestone-7-trust-permissions/task-186-documentation-verification.md
+      estimated_hours: 2-3
+      dependencies: [task-180, task-181, task-182, task-183, task-184, task-185]
+      notes: |
+        📋 CHANGELOG, version bump, design doc status updates
+        📋 All tests pass, build succeeds
 
   milestone_8:
     - id: task-69
@@ -1425,16 +1507,18 @@ recent_work:
       - ✅ Build successful
 
 next_steps:
-  - Plan M7: Trust & Permissions (needs task breakdown and design)
+  - Execute M7 Task 180: Access Result & Permission types
+  - Execute M7 Task 181: Firestore permissions & access logs
+  - Execute M7 Task 182: Trust enforcement service
   - Run real V1→V2 migration against production (after e1 testing)
-  - Consider M5 (Template System) or M6 (Auth & Multi-Tenancy)
-  - Complete M12: Comment System Phase 1 (2 tasks remaining)
 
 notes:
   - ✅ V1→V2 Collection Migration code switch COMPLETE (v3.8.0)
   - ⏳ V1→V2 data migration pending (dry run tested, ~6,596 docs)
   - ✅ Milestone 14 (Memory Collection Pattern v2) COMPLETE (8/8 tasks)
-  - 🚀 Milestone 12 (Comment System Phase 1) IN PROGRESS - 60% complete!
+  - ✅ Milestone 15 (Moderation & Space Config) COMPLETE (6/6 tasks)
+  - ✅ Milestone 12 (Comment System Phase 1) COMPLETE (5/5 tasks)
+  - 🚀 Milestone 7 (Trust & Permissions) IN PROGRESS - task breakdown complete (0/7)
   - 🎉 Milestone 11 (Unified Public Collection) COMPLETED!
   - 🎉 Milestone 10 (Shared Spaces & Confirmation Flow) COMPLETED!
   - 🎉 Milestone 4 (User Preferences) COMPLETED!
@@ -1442,17 +1526,16 @@ notes:
   - 🎉 Milestone 2 (Core Memory System) COMPLETED!
   - 🎉 Milestone 1 (Project Foundation) COMPLETED!
   - ✅ All 29 design documents complete and comprehensive
-  - ✅ All 11 milestones defined with clear deliverables
   - ✅ M1: 7 tasks complete (Tasks 1-5, 9 complete; Tasks 6-7 deferred)
   - ✅ M2: 6/6 memory tools complete (100% progress)
   - ✅ M3: 4/4 relationship tools complete (100% progress)
   - ✅ M4: 2/2 preference tools complete (100% progress)
   - ✅ M10: 10/10 shared space tools complete (100% progress)
   - ✅ M11: 9/9 multi-space architecture tasks complete (100% progress)
-  - 🚀 M12: 3/5 comment system tasks complete (60% progress)
-  - ✅ Comment system foundation implemented (v2.6.0)
-  - ✅ Structured logging standardized (v2.6.1)
-  - ✅ Confirmation tool safety enhanced (v2.6.2)
+  - ✅ M12: 5/5 comment system tasks complete (100% progress)
+  - ✅ M13: Soft delete system complete
+  - ✅ M14: Memory Collection v2 complete (8/8 tasks)
+  - ✅ M15: Moderation & Space Config complete (6/6 tasks)
   - ✅ Complete memory CRUD operations (create, read, update, delete)
   - ✅ Complete relationship CRUD operations (create, read, update, delete)
   - ✅ Advanced search capabilities (hybrid, similarity, RAG queries)
