@@ -189,9 +189,12 @@ export function buildBaseFilters(collection: any, args: SearchSpaceArgs): any[] 
     filterList.push(collection.filter.byProperty('content_type').equal(args.content_type));
   }
 
-  // Exclude comments by default (unless content_type is explicitly set)
+  // Exclude comments and ghost memories by default (unless content_type is explicitly set)
   if (!args.include_comments && !args.content_type) {
     filterList.push(collection.filter.byProperty('content_type').notEqual('comment'));
+  }
+  if (!args.content_type) {
+    filterList.push(collection.filter.byProperty('content_type').notEqual('ghost'));
   }
 
   // Apply tags filter (AND semantics: memory must have ALL specified tags)

@@ -7,7 +7,7 @@ import type { Memory, DeletedFilter } from '../types/memory.js';
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
-import { buildDeletedFilter } from '../utils/weaviate-filters.js';
+import { buildDeletedFilter, combineFiltersWithAnd } from '../utils/weaviate-filters.js';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 
@@ -129,6 +129,12 @@ export async function handleFindSimilar(
     // Build deleted filter
     const deletedFilter = buildDeletedFilter(collection, args.deleted_filter || 'exclude');
 
+    // Exclude ghost memories by default
+    const ghostExclusionFilter = collection.filter.byProperty('content_type').notEqual('ghost');
+
+    // Combine filters
+    const baseFilter = combineFiltersWithAnd([deletedFilter, ghostExclusionFilter].filter(f => f !== null));
+
     let results: any;
 
     if (args.memory_id) {
@@ -159,9 +165,9 @@ export async function handleFindSimilar(
         returnMetadata: ['distance'],
       };
 
-      // Add deleted filter if present
-      if (deletedFilter) {
-        searchOptions.filters = deletedFilter;
+      // Add filters if present
+      if (baseFilter) {
+        searchOptions.filters = baseFilter;
       }
 
       results = await collection.query.nearObject(args.memory_id, searchOptions);
@@ -176,9 +182,9 @@ export async function handleFindSimilar(
         returnMetadata: ['distance'],
       };
 
-      // Add deleted filter if present
-      if (deletedFilter) {
-        searchOptions.filters = deletedFilter;
+      // Add filters if present
+      if (baseFilter) {
+        searchOptions.filters = baseFilter;
       }
 
       results = await collection.query.nearText(args.text!, searchOptions);

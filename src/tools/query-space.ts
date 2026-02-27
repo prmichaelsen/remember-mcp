@@ -194,11 +194,14 @@ export async function handleQuerySpace(
       filterList.push(publicCollection.filter.byProperty('content_type').equal(args.content_type));
     }
 
-    // Exclude comments by default (unless explicitly included)
+    // Exclude comments and ghost memories by default (unless explicitly included)
     if (!args.include_comments && !args.content_type) {
       // Only exclude comments if not filtering by content_type
       // (if content_type is set, user has explicit control)
       filterList.push(publicCollection.filter.byProperty('content_type').notEqual('comment'));
+    }
+    if (!args.content_type) {
+      filterList.push(publicCollection.filter.byProperty('content_type').notEqual('ghost'));
     }
 
     // Apply tags filter

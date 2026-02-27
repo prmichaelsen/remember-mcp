@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.12.0] - 2026-02-27
+
+### Added
+
+**Ghost System (M16)**
+
+- `remember_ghost_config` tool — manage ghost/persona settings (enable/disable, trust levels, block/unblock users)
+- `src/services/ghost-config.service.ts` — GhostConfig Firestore CRUD (get, set, setUserTrust, blockUser, etc.)
+- `FirestoreGhostConfigProvider` — production GhostConfigProvider implementation
+- `src/services/escalation.service.ts` — `FirestoreEscalationStore` for persistent trust escalation tracking
+- Ghost memory filtering — `content_type: 'ghost'` excluded from default searches (search-memory, query-memory, find-similar, search-space, query-space)
+- `ghost_context` parameter on `remember_search_memory` and `remember_query_memory` — enables trust-filtered cross-user searches
+- `buildTrustFilter` wired into search/query tools when ghost_context present
+- 21 MCP tools total (was 20)
+- 57 new tests (454 total: 453 passed, 1 skipped)
+
 ## [3.11.0] - 2026-02-27
 
 ### Added

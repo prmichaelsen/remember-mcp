@@ -145,15 +145,29 @@ describe('buildBaseFilters', () => {
   it('does not exclude comments when include_comments is true', () => {
     const col = makeMockCollection();
     buildBaseFilters(col, { query: 'test', include_comments: true });
-    const commentFilter = col._calls.find(c => c.property === 'content_type' && c.method === 'notEqual');
+    const commentFilter = col._calls.find(c => c.property === 'content_type' && c.method === 'notEqual' && c.value === 'comment');
     expect(commentFilter).toBeUndefined();
   });
 
-  it('does not add comment exclusion when content_type is set', () => {
+  it('excludes ghost memories by default', () => {
+    const col = makeMockCollection();
+    buildBaseFilters(col, { query: 'test' });
+    const ghostFilter = col._calls.find(c => c.property === 'content_type' && c.method === 'notEqual' && c.value === 'ghost');
+    expect(ghostFilter).toBeDefined();
+  });
+
+  it('does not exclude ghost when content_type is explicitly set', () => {
+    const col = makeMockCollection();
+    buildBaseFilters(col, { query: 'test', content_type: 'ghost' });
+    const ghostFilter = col._calls.find(c => c.property === 'content_type' && c.method === 'notEqual' && c.value === 'ghost');
+    expect(ghostFilter).toBeUndefined();
+  });
+
+  it('does not add comment or ghost exclusion when content_type is set', () => {
     const col = makeMockCollection();
     buildBaseFilters(col, { query: 'test', content_type: 'note' });
-    const commentFilter = col._calls.find(c => c.property === 'content_type' && c.method === 'notEqual');
-    expect(commentFilter).toBeUndefined();
+    const exclusionFilters = col._calls.filter(c => c.property === 'content_type' && c.method === 'notEqual');
+    expect(exclusionFilters).toHaveLength(0);
   });
 
   it('adds content_type filter when specified', () => {

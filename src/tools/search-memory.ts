@@ -8,8 +8,16 @@ import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { buildCombinedSearchFilters, buildMemoryOnlyFilters, buildDeletedFilter, combineFiltersWithAnd } from '../utils/weaviate-filters.js';
+import { buildTrustFilter } from '../services/trust-enforcement.js';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
+
+/** Ghost conversation context for trust-filtered cross-user searches */
+export interface GhostContext {
+  owner_user_id: string;
+  accessor_user_id: string;
+  accessor_trust_level: number;
+}
 
 /**
  * Tool definition for remember_search_memory
@@ -119,6 +127,15 @@ export const searchMemoryTool = {
         default: 'exclude',
         description: 'Filter deleted memories: "exclude" (default, hide deleted), "include" (show all), "only" (show only deleted)',
       },
+      ghost_context: {
+        type: 'object',
+        description: 'Ghost conversation context (injected by system, not user-facing). When present, applies trust filtering.',
+        properties: {
+          owner_user_id: { type: 'string', description: 'Ghost owner user ID (whose memories to search)' },
+          accessor_user_id: { type: 'string', description: 'User chatting with the ghost' },
+          accessor_trust_level: { type: 'number', description: 'Trust level of accessor (0-1)' },
+        },
+      },
     },
     required: ['query'],
   },
@@ -128,14 +145,17 @@ export const searchMemoryTool = {
  * Handle remember_search_memory tool
  */
 export async function handleSearchMemory(
-  args: SearchOptions,
+  args: SearchOptions & { ghost_context?: GhostContext },
   userId: string,
   authContext?: AuthContext
 ): Promise<string> {
-  const debug = createDebugLogger({ tool: 'remember_search_memory', userId, operation: 'search memory' });
+  const ghostContext = args.ghost_context;
+  // In ghost mode, search the ghost owner's collection instead of the caller's
+  const searchUserId = ghostContext?.owner_user_id ?? userId;
+  const debug = createDebugLogger({ tool: 'remember_search_memory', userId: searchUserId, operation: ghostContext ? 'ghost search' : 'search memory' });
   try {
     debug.info('Tool invoked');
-    debug.trace('Arguments', { args });
+    debug.trace('Arguments', { args, ghostMode: !!ghostContext });
     // Validate query is not empty
     if (!args.query || args.query.trim() === '') {
       throw new Error('Query cannot be empty');
@@ -144,12 +164,13 @@ export async function handleSearchMemory(
     const includeRelationships = args.include_relationships !== false; // Default true
 
     logger.info('Searching memories and relationships', {
-      userId,
+      userId: searchUserId,
       query: args.query,
-      includeRelationships
+      includeRelationships,
+      ghostMode: !!ghostContext,
     });
 
-    const collection = getMemoryCollection(userId);
+    const collection = getMemoryCollection(searchUserId);
     const alpha = args.alpha ?? 0.7;
     const limit = args.limit ?? 10;
     const offset = args.offset ?? 0;
@@ -157,14 +178,25 @@ export async function handleSearchMemory(
     // Build deleted filter
     const deletedFilter = buildDeletedFilter(collection, args.deleted_filter || 'exclude');
 
+    // Build trust filter for ghost mode
+    const trustFilter = ghostContext
+      ? buildTrustFilter(collection, ghostContext.accessor_trust_level)
+      : null;
+
     // Build filters using v3 API
     // Use OR logic to search both memories and relationships
     const searchFilters = includeRelationships
       ? buildCombinedSearchFilters(collection, args.filters)
       : buildMemoryOnlyFilters(collection, args.filters);
 
-    // Combine deleted filter with search filters
-    const combinedFilters = combineFiltersWithAnd([deletedFilter, searchFilters].filter(f => f !== null));
+    // Exclude ghost memories by default (unless explicitly searching for them)
+    const hasExplicitTypeFilter = args.filters?.types && args.filters.types.length > 0;
+    const ghostExclusionFilter = !hasExplicitTypeFilter
+      ? collection.filter.byProperty('content_type').notEqual('ghost')
+      : null;
+
+    // Combine deleted filter, trust filter, ghost exclusion, and search filters
+    const combinedFilters = combineFiltersWithAnd([deletedFilter, trustFilter, ghostExclusionFilter, searchFilters].filter(f => f !== null));
 
     // Build search options
     const searchOptions: any = {

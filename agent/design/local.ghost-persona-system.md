@@ -261,8 +261,8 @@ If {accessor_name} repeatedly asks about topics you can't share:
 
 ---
 
-**Status**: Design Specification
-**Recommendation**: Implement M7 trust foundations first, then M16 ghost system
+**Status**: Implemented (v3.12.0)
+**Note**: M7 trust foundations + M16 ghost system both complete
 **Related Documents**:
 - [clarification-2: Cross-User Access Model](../clarifications/clarification-2-cross-user-access-model.md)
 - [clarification-3: Ghost System Deep Dive](../clarifications/clarification-3-ghost-system-deep-dive.md)

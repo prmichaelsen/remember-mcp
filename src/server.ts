@@ -41,6 +41,7 @@ import { denyTool, handleDeny } from './tools/deny.js';
 import { searchSpaceTool, handleSearchSpace } from './tools/search-space.js';
 import { querySpaceTool, handleQuerySpace } from './tools/query-space.js';
 import { moderateTool, handleModerate } from './tools/moderate.js';
+import { ghostConfigTool, handleGhostConfig } from './tools/ghost-config.js';
 
 /**
  * Initialize remember-mcp server
@@ -118,6 +119,7 @@ function registerHandlers(server: Server): void {
         searchSpaceTool,
         querySpaceTool,
         moderateTool,
+        ghostConfigTool,
       ],
     };
   });
@@ -215,6 +217,10 @@ function registerHandlers(server: Server): void {
 
         case 'remember_moderate':
           result = await handleModerate(args as any, userId, authContext);
+          break;
+
+        case 'remember_ghost_config':
+          result = await handleGhostConfig(args as any, userId, authContext);
           break;
 
         default:

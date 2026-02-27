@@ -2,10 +2,10 @@
 
 project:
   name: remember-mcp
-  version: 3.11.0
+  version: 3.12.0
   started: 2026-02-11
   status: in_progress
-  current_milestone: M8
+  current_milestone: M16
   last_updated: 2026-02-27
 
 milestones:
@@ -299,6 +299,26 @@ milestones:
       ✅ Performance timing on all database operations
       ✅ 394 tests (393 passed, 1 skipped)
     
+  - id: M16
+    name: Ghost System
+    status: in_progress
+    progress: 100%
+    estimated_weeks: 2
+    started: 2026-02-27
+    completed: 2026-02-27
+    tasks_completed: 6
+    tasks_total: 6
+    notes: |
+      🎉 MILESTONE COMPLETE! Ghost/persona system for cross-user memory access.
+      See: agent/design/local.ghost-persona-system.md
+      ✅ Task 187: GhostConfig Firestore CRUD (v3.12.0)
+      ✅ Task 188: Trust filter integration into search/query
+      ✅ Task 189: Ghost memory content type filtering
+      ✅ Task 190: Ghost configuration MCP tools (remember_ghost_config)
+      ✅ Task 191: Escalation store Firestore implementation
+      ✅ Task 192: Documentation & verification
+      ✅ 21 MCP tools, 454 tests (453 passed, 1 skipped)
+
   - id: M9
     name: Deployment & Documentation
     status: not_started
@@ -774,11 +794,96 @@ tasks:
         ✅ Visual indicators (⚠️) for critical requirements
         ✅ Released in v2.6.2
 
+  milestone_16:
+    - id: task-187
+      name: GhostConfig Firestore CRUD
+      status: completed
+      file: agent/tasks/milestone-16-ghost-system/task-187-ghost-config-firestore.md
+      estimated_hours: 3
+      actual_hours: 0.5
+      completed_date: 2026-02-27
+      notes: |
+        ✅ Created src/services/ghost-config.service.ts
+        ✅ GhostConfig CRUD: getGhostConfig, setGhostConfigFields, setUserTrust, removeUserTrust, blockUser, unblockUser, isGhostEnabled
+        ✅ validateGhostConfigUpdate for input validation
+        ✅ FirestoreGhostConfigProvider implements GhostConfigProvider interface
+        ✅ 30 unit tests passing
+
+    - id: task-188
+      name: Trust Filter Integration into Search/Query
+      status: completed
+      file: agent/tasks/milestone-16-ghost-system/task-188-trust-filter-integration.md
+      estimated_hours: 4
+      actual_hours: 0.5
+      completed_date: 2026-02-27
+      notes: |
+        ✅ Added ghost_context parameter to search-memory and query-memory tools
+        ✅ GhostContext type exported from search-memory.ts
+        ✅ buildTrustFilter applied when ghost_context present
+        ✅ Ghost mode searches owner's collection (not caller's)
+        ✅ Self-access unchanged (no ghost_context = no trust filter)
+        ✅ 454 tests passing, typecheck clean
+
+    - id: task-189
+      name: Ghost Memory Content Type Filtering
+      status: completed
+      file: agent/tasks/milestone-16-ghost-system/task-189-ghost-memory-filtering.md
+      estimated_hours: 3
+      actual_hours: 0.5
+      completed_date: 2026-02-27
+      notes: |
+        ✅ Ghost memories excluded from default searches (search-memory, query-memory, find-similar)
+        ✅ Ghost memories excluded from space searches (search-space, query-space)
+        ✅ Explicit content_type filter bypasses ghost exclusion
+        ✅ Follows comment exclusion pattern
+        ✅ 3 new tests in search-space.spec.ts
+        ✅ 427 tests passing
+
+    - id: task-190
+      name: Ghost Configuration MCP Tools
+      status: completed
+      file: agent/tasks/milestone-16-ghost-system/task-190-ghost-config-tools.md
+      estimated_hours: 4
+      actual_hours: 0.5
+      completed_date: 2026-02-27
+      notes: |
+        ✅ Created src/tools/ghost-config.ts — remember_ghost_config tool
+        ✅ 6 actions: get, set, set_trust, remove_trust, block, unblock
+        ✅ Registered in server.ts and server-factory.ts
+        ✅ 16 unit tests passing
+        ✅ 21 MCP tools total
+
+    - id: task-191
+      name: Escalation Store Firestore Implementation
+      status: completed
+      file: agent/tasks/milestone-16-ghost-system/task-191-escalation-firestore.md
+      estimated_hours: 2
+      actual_hours: 0.5
+      completed_date: 2026-02-27
+      notes: |
+        ✅ Created src/services/escalation.service.ts
+        ✅ FirestoreEscalationStore implements EscalationStore interface
+        ✅ Firestore path: {BASE}.users/{ownerUserId}/ghost_escalation/{accessorUserId}:{memoryId}
+        ✅ 11 unit tests passing
+
+    - id: task-192
+      name: M16 Documentation & Verification
+      status: completed
+      file: agent/tasks/milestone-16-ghost-system/task-192-documentation-verification.md
+      estimated_hours: 1
+      actual_hours: 0.5
+      completed_date: 2026-02-27
+      notes: |
+        ✅ CHANGELOG.md updated with v3.12.0 entry
+        ✅ package.json version bump to 3.12.0
+        ✅ Design doc status updated to Implemented
+        ✅ 454 tests passing, typecheck clean, build clean
+
 documentation:
   design_documents: 31
   milestone_documents: 12
   pattern_documents: 7
-  task_documents: 69
+  task_documents: 75
 
 progress:
   planning: 100%
@@ -786,6 +891,19 @@ progress:
   overall: 75%
 
 recent_work:
+  - date: 2026-02-27
+    description: M16 Ghost System COMPLETE (v3.12.0)
+    items:
+      - ✅ GhostConfig Firestore CRUD service (get, set, setUserTrust, blockUser, etc.)
+      - ✅ FirestoreGhostConfigProvider replaces StubGhostConfigProvider for production
+      - ✅ FirestoreEscalationStore for persistent trust escalation tracking
+      - ✅ Ghost memory filtering — excluded from all default searches
+      - ✅ ghost_context parameter on search-memory and query-memory tools
+      - ✅ buildTrustFilter wired for cross-user ghost searches
+      - ✅ remember_ghost_config tool — 6 actions (get, set, set_trust, remove_trust, block, unblock)
+      - ✅ 21 MCP tools, 454 tests (453 passed, 1 skipped)
+      - ✅ Version 3.12.0 released
+
   - date: 2026-02-27
     description: M8 Complete — Task 69 Comprehensive Tool Debugging
     items:
