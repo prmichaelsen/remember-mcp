@@ -53,6 +53,7 @@
     "@prmichaelsen/remember-core": "^0.16.0",
     "@prmichaelsen/remember-mcp": "^2.7.3",
     "dotenv": "^16.4.5",
+    "uuid": "^13.0.0",
     "weaviate-client": "^3.2.0"
   },
   "devDependencies": {

@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.14.0] - 2026-02-28
+
+### Changed
+
+**remember-core Migration (M17)**
+
+- Migrate 18 tool handlers to `@prmichaelsen/remember-core` service layer — tools are now thin adapters delegating to core services
+- Replace local services (ConfirmationTokenService, PreferencesDatabaseService, SpaceConfigService) with remember-core equivalents
+- Replace local utilities (dot-notation, composite-ids, tracking-arrays, content-types) with remember-core exports
+
+### Removed
+
+- `src/services/confirmation-token.service.ts` — now provided by remember-core
+- `src/services/preferences-database.service.ts` — now provided by remember-core
+- `src/services/space-config.service.ts` — now provided by remember-core
+- `src/constants/content-types.ts` — now provided by remember-core
+- `src/collections/` directory (dot-notation, composite-ids, tracking-arrays) — now provided by remember-core
+
+### Fixed
+
+- Add `uuid` as direct dependency to resolve esbuild bundling error from remember-core transitive dependency
+
 ## [3.13.0] - 2026-02-28
 
 ### Changed
