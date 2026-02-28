@@ -4,12 +4,11 @@
  */
 
 import type { Memory, ContentType, Location, MemoryContext } from '../types/memory.js';
-import { ensureMemoryCollection, getMemoryCollection } from '../weaviate/schema.js';
-import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
-import { DEFAULT_CONTENT_TYPE, getContentTypeDescription, isValidContentType } from '../constants/content-types.js';
+import { DEFAULT_CONTENT_TYPE, getContentTypeDescription } from '@prmichaelsen/remember-core';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
+import { createCoreServices } from '../core-services.js';
 
 /**
  * Tool definition for remember_create_memory
@@ -143,78 +142,28 @@ export async function handleCreateMemory(
   try {
     debug.info('Tool invoked');
     debug.trace('Arguments', { args });
-    logger.info('Creating memory', { userId, type: args.type });
 
-    // Ensure collection exists
-    await ensureMemoryCollection(userId);
-    const collection = getMemoryCollection(userId);
-
-    // Build memory object using v2 property names
-    const now = new Date().toISOString();
-    const memory: Record<string, any> = {
-      // Core identity
-      user_id: userId,
-      doc_type: 'memory',
-
-      // Content
+    const { memory } = createCoreServices(userId);
+    const result = await memory.create({
       content: args.content,
       title: args.title,
-      summary: args.title, // Use title as summary for now
-      content_type: (args.type && isValidContentType(args.type) ? args.type : DEFAULT_CONTENT_TYPE),
-
-      // Scoring
-      weight: args.weight ?? 0.5,
-      trust_score: args.trust ?? 0.25,
-      confidence: 1.0,
-
-      // Context
+      type: args.type,
+      weight: args.weight,
+      trust: args.trust,
+      tags: args.tags,
+      references: args.references,
+      template_id: args.template_id,
+      parent_id: args.parent_id,
+      thread_root_id: args.thread_root_id,
+      moderation_flags: args.moderation_flags,
       context_summary: context?.summary || 'Memory created via MCP',
       context_conversation_id: context?.conversation_id,
-
-      // Relationships
-      relationship_ids: [],
-
-      // Access tracking
-      access_count: 0,
-      last_accessed_at: now,
-
-      // Metadata
-      created_at: now,
-      updated_at: now,
-      version: 1,
-      tags: args.tags || [],
-      references: args.references || [],
-
-      // Template
-      template_id: args.template_id,
-
-      // Computed weight
-      base_weight: args.weight ?? 0.5,
-      computed_weight: args.weight ?? 0.5,
-
-      // Comment/threading fields (initialize to defaults)
-      parent_id: args.parent_id ?? null,
-      thread_root_id: args.thread_root_id ?? null,
-      moderation_flags: args.moderation_flags ?? [],
-
-      // Publication tracking arrays (Memory Collection Pattern v2)
-      // Managed by remember_publish / remember_retract — always start empty
-      space_ids: [],
-      group_ids: [],
-    };
-
-    // Insert into Weaviate v3 API
-    // v3 expects: { properties: {...} }
-    const result = await collection.data.insert({
-      properties: memory as any,
     });
 
-    logger.info('Memory created successfully', { memoryId: result, userId });
-
     const response: CreateMemoryResult = {
-      memory_id: result,
-      created_at: now,
-      message: `Memory created successfully with ID: ${result}`,
+      memory_id: result.memory_id,
+      created_at: result.created_at,
+      message: `Memory created successfully with ID: ${result.memory_id}`,
     };
 
     return JSON.stringify(response, null, 2);

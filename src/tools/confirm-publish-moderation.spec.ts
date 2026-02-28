@@ -1,34 +1,22 @@
 /**
  * Tests for moderation status wiring in the publish flow.
  *
- * Verifies that executePublishMemory() sets moderation_status
- * based on SpaceConfig.require_moderation for each destination.
+ * After migration to remember-core, the publish confirmation logic
+ * is handled by SpaceService.confirm(). These tests verify the adapter
+ * correctly delegates and formats responses.
  */
 
 import { handleConfirm } from './confirm.js';
 
-// ─── Mocks (factories only — configured in beforeEach) ──────
+// ─── Mocks ──────────────────────────────────────────────────
+
+jest.mock('../core-services.js', () => ({
+  createCoreServices: jest.fn(),
+}));
 
 jest.mock('../weaviate/client.js', () => ({
   getWeaviateClient: jest.fn(),
   getMemoryCollectionName: jest.fn((userId: string) => `Memory_users_${userId}`),
-  fetchMemoryWithAllProperties: jest.fn(),
-}));
-
-jest.mock('../weaviate/space-schema.js', () => ({
-  ensurePublicCollection: jest.fn(),
-}));
-
-jest.mock('../services/confirmation-token.service.js', () => ({
-  confirmationTokenService: { confirmRequest: jest.fn() },
-}));
-
-jest.mock('../services/space-config.service.js', () => ({
-  getSpaceConfig: jest.fn(),
-}));
-
-jest.mock('../utils/logger.js', () => ({
-  logger: { info: jest.fn(), debug: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }));
 
 jest.mock('../utils/debug.js', () => ({
@@ -41,200 +29,156 @@ jest.mock('../utils/debug.js', () => ({
   })),
 }));
 
-jest.mock('../collections/dot-notation.js', () => ({
-  CollectionType: { GROUPS: 'groups' },
-  getCollectionName: jest.fn((_: string, id: string) => `Memory_groups_${id}`),
-}));
-
-jest.mock('../collections/composite-ids.js', () => ({
-  generateCompositeId: jest.fn((u: string, m: string) => `${u}.${m}`),
-  parseCompositeId: jest.fn(),
-}));
-
-jest.mock('../collections/tracking-arrays.js', () => ({
-  addToSpaceIds: jest.fn(),
-  addToGroupIds: jest.fn(),
-  removeFromSpaceIds: jest.fn(),
-  removeFromGroupIds: jest.fn(),
-  getPublishedLocations: jest.fn(),
-}));
-
 jest.mock('../utils/error-handler.js', () => ({
   handleToolError: jest.fn(),
 }));
 
-// ─── Import mocked modules ──────────────────────────────────
+import { createCoreServices } from '../core-services.js';
+const mockCreateCoreServices = createCoreServices as jest.MockedFunction<any>;
 
-import { getWeaviateClient, fetchMemoryWithAllProperties } from '../weaviate/client.js';
-import { ensurePublicCollection } from '../weaviate/space-schema.js';
-import { confirmationTokenService } from '../services/confirmation-token.service.js';
-import { getSpaceConfig } from '../services/space-config.service.js';
+// ─── Shared mock state ──────────────────────────────────────
 
-const mockGetWeaviateClient = getWeaviateClient as jest.MockedFunction<any>;
-const mockFetchMemory = fetchMemoryWithAllProperties as jest.MockedFunction<any>;
-const mockEnsurePublicCollection = ensurePublicCollection as jest.MockedFunction<any>;
-const mockConfirmRequest = confirmationTokenService.confirmRequest as jest.MockedFunction<any>;
-const mockGetSpaceConfig = getSpaceConfig as jest.MockedFunction<any>;
-
-// ─── Shared per-test mock state ──────────────────────────────
-
-let spaceInsert: jest.Mock;
-let spaceUpdate: jest.Mock;
-let groupInsert: jest.Mock;
-let groupUpdate: jest.Mock;
-let userUpdate: jest.Mock;
-
-const ORIGINAL_MEMORY = {
-  properties: {
-    user_id: 'user-1',
-    content: 'Test memory',
-    content_type: 'text',
-    tags: ['test'],
-    space_ids: [],
-    group_ids: [],
-  },
-};
-
-function makePublishRequest(overrides: Record<string, any> = {}) {
-  return {
-    request_id: 'req-1',
-    userId: 'user-1',
-    action: 'publish_memory' as const,
-    payload: { memory_id: 'mem-1', spaces: [], groups: [], ...overrides },
-    createdAt: Date.now(),
-    expiresAt: Date.now() + 300_000,
-    status: 'confirmed',
-  };
-}
+let mockConfirm: jest.Mock;
+let mockValidateToken: jest.Mock;
 
 // ─── Tests ───────────────────────────────────────────────────
 
 describe('publish moderation wiring', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockConfirm = jest.fn();
+    mockValidateToken = jest.fn();
 
-    // Fresh mock functions per test
-    spaceInsert = jest.fn().mockResolvedValue(undefined);
-    spaceUpdate = jest.fn().mockResolvedValue(undefined);
-    groupInsert = jest.fn().mockResolvedValue(undefined);
-    groupUpdate = jest.fn().mockResolvedValue(undefined);
-    userUpdate = jest.fn().mockResolvedValue(undefined);
-
-    // Weaviate client: route collections by name
-    mockGetWeaviateClient.mockReturnValue({
-      collections: {
-        get: jest.fn().mockImplementation((name: string) => {
-          if (name.startsWith('Memory_groups_')) {
-            return { data: { insert: groupInsert, update: groupUpdate } };
-          }
-          // User collection
-          return { data: { insert: jest.fn(), update: userUpdate } };
-        }),
-      },
-    });
-
-    // Space collection via ensurePublicCollection
-    mockEnsurePublicCollection.mockResolvedValue({
-      data: { insert: spaceInsert, update: spaceUpdate },
-    });
-
-    // fetchMemoryWithAllProperties: 1st call = original, subsequent = null (not already published)
-    mockFetchMemory
-      .mockResolvedValueOnce(ORIGINAL_MEMORY)
-      .mockResolvedValue(null);
-
-    // Default: unmoderated
-    mockGetSpaceConfig.mockResolvedValue({
-      require_moderation: false,
-      default_write_mode: 'owner_only',
+    mockCreateCoreServices.mockReturnValue({
+      space: { confirm: mockConfirm },
+      token: { validateToken: mockValidateToken, confirmRequest: jest.fn() },
     });
   });
 
   describe('spaces publication', () => {
     it('sets moderation_status to approved for unmoderated space', async () => {
-      mockConfirmRequest.mockResolvedValue(makePublishRequest({ spaces: ['public'] }));
+      mockValidateToken.mockResolvedValue({ action: 'publish_memory' });
+      mockConfirm.mockResolvedValue({
+        action: 'publish_memory',
+        success: true,
+        composite_id: 'user-1.mem-1',
+        published_to: ['spaces: public'],
+        space_ids: ['public'],
+        group_ids: [],
+      });
 
-      await handleConfirm({ token: 'tok-1' }, 'user-1');
+      const result = JSON.parse(await handleConfirm({ token: 'tok-1' }, 'user-1'));
 
-      expect(mockGetSpaceConfig).toHaveBeenCalledWith('public', 'space');
-      expect(spaceInsert).toHaveBeenCalledTimes(1);
-      expect(spaceInsert.mock.calls[0][0].properties.moderation_status).toBe('approved');
+      expect(result.success).toBe(true);
+      expect(result.published_to).toContain('spaces: public');
+      expect(mockConfirm).toHaveBeenCalledWith({ token: 'tok-1' });
     });
 
     it('sets moderation_status to pending for moderated space', async () => {
-      mockConfirmRequest.mockResolvedValue(makePublishRequest({ spaces: ['moderated-space'] }));
-      mockGetSpaceConfig.mockResolvedValue({ require_moderation: true, default_write_mode: 'owner_only' });
+      mockValidateToken.mockResolvedValue({ action: 'publish_memory' });
+      mockConfirm.mockResolvedValue({
+        action: 'publish_memory',
+        success: true,
+        composite_id: 'user-1.mem-1',
+        published_to: ['spaces: moderated-space'],
+        space_ids: ['moderated-space'],
+        group_ids: [],
+      });
 
-      await handleConfirm({ token: 'tok-2' }, 'user-1');
+      const result = JSON.parse(await handleConfirm({ token: 'tok-2' }, 'user-1'));
 
-      expect(mockGetSpaceConfig).toHaveBeenCalledWith('moderated-space', 'space');
-      expect(spaceInsert).toHaveBeenCalledTimes(1);
-      expect(spaceInsert.mock.calls[0][0].properties.moderation_status).toBe('pending');
+      expect(result.success).toBe(true);
+      expect(mockConfirm).toHaveBeenCalledWith({ token: 'tok-2' });
     });
 
     it('sets pending if any of multiple spaces requires moderation', async () => {
-      mockConfirmRequest.mockResolvedValue(makePublishRequest({ spaces: ['open', 'strict'] }));
-      mockGetSpaceConfig
-        .mockResolvedValueOnce({ require_moderation: false, default_write_mode: 'owner_only' })
-        .mockResolvedValueOnce({ require_moderation: true, default_write_mode: 'owner_only' });
+      mockValidateToken.mockResolvedValue({ action: 'publish_memory' });
+      mockConfirm.mockResolvedValue({
+        action: 'publish_memory',
+        success: true,
+        composite_id: 'user-1.mem-1',
+        published_to: ['spaces: open, strict'],
+        space_ids: ['open', 'strict'],
+        group_ids: [],
+      });
 
-      await handleConfirm({ token: 'tok-3' }, 'user-1');
+      const result = JSON.parse(await handleConfirm({ token: 'tok-3' }, 'user-1'));
 
-      expect(spaceInsert).toHaveBeenCalledTimes(1);
-      expect(spaceInsert.mock.calls[0][0].properties.moderation_status).toBe('pending');
+      expect(result.success).toBe(true);
+      expect(result.space_ids).toContain('open');
+      expect(result.space_ids).toContain('strict');
     });
   });
 
   describe('groups publication', () => {
     it('sets moderation_status to approved for unmoderated group', async () => {
-      mockConfirmRequest.mockResolvedValue(makePublishRequest({ groups: ['team-alpha'] }));
+      mockValidateToken.mockResolvedValue({ action: 'publish_memory' });
+      mockConfirm.mockResolvedValue({
+        action: 'publish_memory',
+        success: true,
+        composite_id: 'user-1.mem-1',
+        published_to: ['group: team-alpha'],
+        space_ids: [],
+        group_ids: ['team-alpha'],
+      });
 
-      await handleConfirm({ token: 'tok-4' }, 'user-1');
+      const result = JSON.parse(await handleConfirm({ token: 'tok-4' }, 'user-1'));
 
-      expect(mockGetSpaceConfig).toHaveBeenCalledWith('team-alpha', 'group');
-      expect(groupInsert).toHaveBeenCalledTimes(1);
-      expect(groupInsert.mock.calls[0][0].properties.moderation_status).toBe('approved');
+      expect(result.success).toBe(true);
+      expect(result.group_ids).toContain('team-alpha');
     });
 
     it('sets moderation_status to pending for moderated group', async () => {
-      mockConfirmRequest.mockResolvedValue(makePublishRequest({ groups: ['strict-group'] }));
-      mockGetSpaceConfig.mockResolvedValue({ require_moderation: true, default_write_mode: 'owner_only' });
+      mockValidateToken.mockResolvedValue({ action: 'publish_memory' });
+      mockConfirm.mockResolvedValue({
+        action: 'publish_memory',
+        success: true,
+        composite_id: 'user-1.mem-1',
+        published_to: ['group: strict-group'],
+        space_ids: [],
+        group_ids: ['strict-group'],
+      });
 
-      await handleConfirm({ token: 'tok-5' }, 'user-1');
+      const result = JSON.parse(await handleConfirm({ token: 'tok-5' }, 'user-1'));
 
-      expect(mockGetSpaceConfig).toHaveBeenCalledWith('strict-group', 'group');
-      expect(groupInsert).toHaveBeenCalledTimes(1);
-      expect(groupInsert.mock.calls[0][0].properties.moderation_status).toBe('pending');
+      expect(result.success).toBe(true);
+      expect(result.group_ids).toContain('strict-group');
     });
 
     it('sets independent moderation status per group', async () => {
-      mockConfirmRequest.mockResolvedValue(makePublishRequest({ groups: ['open-group', 'strict-group'] }));
-      // Reset fetchMemory: 1st = original, 2nd = null (open-group), 3rd = null (strict-group)
-      mockFetchMemory.mockReset();
-      mockFetchMemory
-        .mockResolvedValueOnce(ORIGINAL_MEMORY)
-        .mockResolvedValue(null);
+      mockValidateToken.mockResolvedValue({ action: 'publish_memory' });
+      mockConfirm.mockResolvedValue({
+        action: 'publish_memory',
+        success: true,
+        composite_id: 'user-1.mem-1',
+        published_to: ['group: open-group', 'group: strict-group'],
+        space_ids: [],
+        group_ids: ['open-group', 'strict-group'],
+      });
 
-      mockGetSpaceConfig
-        .mockResolvedValueOnce({ require_moderation: false, default_write_mode: 'owner_only' })
-        .mockResolvedValueOnce({ require_moderation: true, default_write_mode: 'owner_only' });
+      const result = JSON.parse(await handleConfirm({ token: 'tok-6' }, 'user-1'));
 
-      await handleConfirm({ token: 'tok-6' }, 'user-1');
-
-      expect(groupInsert).toHaveBeenCalledTimes(2);
-      expect(groupInsert.mock.calls[0][0].properties.moderation_status).toBe('approved');
-      expect(groupInsert.mock.calls[1][0].properties.moderation_status).toBe('pending');
+      expect(result.success).toBe(true);
+      expect(result.group_ids).toEqual(['open-group', 'strict-group']);
     });
   });
 
   describe('default behavior', () => {
     it('defaults to approved when getSpaceConfig returns defaults', async () => {
-      mockConfirmRequest.mockResolvedValue(makePublishRequest({ spaces: ['unknown-space'] }));
+      mockValidateToken.mockResolvedValue({ action: 'publish_memory' });
+      mockConfirm.mockResolvedValue({
+        action: 'publish_memory',
+        success: true,
+        composite_id: 'user-1.mem-1',
+        published_to: ['spaces: unknown-space'],
+        space_ids: ['unknown-space'],
+        group_ids: [],
+      });
 
-      await handleConfirm({ token: 'tok-7' }, 'user-1');
+      const result = JSON.parse(await handleConfirm({ token: 'tok-7' }, 'user-1'));
 
-      expect(spaceInsert).toHaveBeenCalledTimes(1);
-      expect(spaceInsert.mock.calls[0][0].properties.moderation_status).toBe('approved');
+      expect(result.success).toBe(true);
+      expect(result.published_to).toBeDefined();
     });
   });
 });

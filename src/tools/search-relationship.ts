@@ -3,14 +3,11 @@
  * Search relationships by observation text or type
  */
 
-import { Filters } from 'weaviate-client';
 import type { Relationship, DeletedFilter } from '../types/memory.js';
-import { getMemoryCollection } from '../weaviate/schema.js';
-import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { createDebugLogger } from '../utils/debug.js';
-import { buildDeletedFilter, combineFiltersWithAnd } from '../utils/weaviate-filters.js';
 import type { AuthContext } from '../types/auth.js';
+import { createCoreServices } from '../core-services.js';
 
 /**
  * Tool definition for remember_search_relationship
@@ -118,123 +115,27 @@ export async function handleSearchRelationship(
     debug.info('Tool invoked');
     debug.trace('Arguments', { args });
 
-    logger.info('Searching relationships', {
-      userId,
+    const { relationship } = createCoreServices(userId);
+    const result = await relationship.search({
       query: args.query,
-      types: args.relationship_types
+      relationship_types: args.relationship_types,
+      strength_min: args.strength_min,
+      confidence_min: args.confidence_min,
+      tags: args.tags,
+      limit: args.limit,
+      offset: args.offset,
+      deleted_filter: args.deleted_filter,
     });
 
-    const collection = getMemoryCollection(userId);
-    const limit = args.limit ?? 10;
-    const offset = args.offset ?? 0;
-
-    // Build deleted filter
-    const deletedFilter = buildDeletedFilter(collection, args.deleted_filter || 'exclude');
-
-    // Build filters using Weaviate v3 API
-    const filterList: any[] = [];
-
-    // Add deleted filter if present
-    if (deletedFilter) {
-      filterList.push(deletedFilter);
-    }
-
-    // Always filter by doc_type = 'relationship'
-    filterList.push(
-      collection.filter.byProperty('doc_type').equal('relationship')
-    );
-
-    // Add relationship type filter
-    if (args.relationship_types && args.relationship_types.length > 0) {
-      if (args.relationship_types.length === 1) {
-        filterList.push(
-          collection.filter.byProperty('relationship_type').equal(args.relationship_types[0])
-        );
-      } else {
-        // Multiple types: use OR logic
-        const typeFilters = args.relationship_types.map(type =>
-          collection.filter.byProperty('relationship_type').equal(type)
-        );
-        filterList.push(Filters.or(...typeFilters));
-      }
-    }
-
-    // Add strength filter
-    if (args.strength_min !== undefined) {
-      filterList.push(
-        collection.filter.byProperty('strength').greaterOrEqual(args.strength_min)
-      );
-    }
-
-    // Add confidence filter
-    if (args.confidence_min !== undefined) {
-      filterList.push(
-        collection.filter.byProperty('confidence').greaterOrEqual(args.confidence_min)
-      );
-    }
-
-    // Add tags filter
-    if (args.tags && args.tags.length > 0) {
-      filterList.push(
-        collection.filter.byProperty('tags').containsAny(args.tags)
-      );
-    }
-
-    // Combine all filters with AND logic using the helper
-    const combinedFilters = combineFiltersWithAnd(filterList);
-
-    // Build search options
-    const searchOptions: any = {
-      alpha: 1.0, // Pure semantic search for relationships
-      limit: limit + offset, // Get extra for offset
+    const response: SearchRelationshipResult = {
+      relationships: result.relationships as unknown as Relationship[],
+      total: result.total,
+      offset: result.offset,
+      limit: result.limit,
+      message: `Found ${result.relationships.length} relationship(s) matching query "${args.query}"`,
     };
 
-    // Add filters
-    if (combinedFilters) {
-      searchOptions.filters = combinedFilters;
-    }
-
-    // Perform hybrid search (semantic search on observation field)
-    const results = await collection.query.hybrid(args.query, searchOptions);
-
-    // Apply offset manually (Weaviate v4 doesn't have built-in offset for nearText)
-    const paginatedResults = results.objects.slice(offset, offset + limit);
-
-    // Map results to Relationship type
-    const relationships: Relationship[] = paginatedResults.map((obj: any) => ({
-      id: obj.uuid,
-      user_id: obj.properties.user_id,
-      doc_type: 'relationship',
-      memory_ids: obj.properties.related_memory_ids || [],
-      relationship_type: obj.properties.relationship_type,
-      observation: obj.properties.observation,
-      strength: obj.properties.strength,
-      confidence: obj.properties.confidence,
-      context: obj.properties.context || {
-        timestamp: obj.properties.created_at,
-        source: { type: 'api', platform: 'mcp' },
-      },
-      created_at: obj.properties.created_at,
-      updated_at: obj.properties.updated_at,
-      version: obj.properties.version,
-      tags: obj.properties.tags || [],
-    }));
-
-    logger.info('Relationship search completed', { 
-      userId, 
-      found: relationships.length,
-      total: results.objects.length
-    });
-
-    const result: SearchRelationshipResult = {
-      relationships,
-      total: results.objects.length,
-      offset,
-      limit,
-      message: `Found ${relationships.length} relationship(s) matching query "${args.query}"`,
-    };
-
-    return JSON.stringify(result, null, 2);
+    return JSON.stringify(response, null, 2);
   } catch (error) {
     debug.error('Tool failed', { error: error instanceof Error ? error.message : String(error) });
     handleToolError(error, {

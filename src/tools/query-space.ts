@@ -6,16 +6,13 @@
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { Filters } from 'weaviate-client';
-import { getWeaviateClient } from '../weaviate/client.js';
-import { ensurePublicCollection, isValidSpaceId } from '../weaviate/space-schema.js';
 import { SUPPORTED_SPACES } from '../types/space-memory.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
-import type { ModerationFilter } from './search-space.js';
-import { buildModerationFilter } from './search-space.js';
-import { canModerateAny } from '../utils/auth-helpers.js';
+import { createCoreServices } from '../core-services.js';
+
+export type ModerationFilter = 'approved' | 'pending' | 'rejected' | 'removed' | 'all';
 
 /**
  * Tool definition for remember_query_space
@@ -128,164 +125,55 @@ export async function handleQuerySpace(
   try {
     debug.info('Tool invoked');
     debug.trace('Arguments', { args });
-    
-    // Validate all space IDs
-    debug.debug('Validating space IDs', { spaces: args.spaces });
-    const invalidSpaces = args.spaces.filter(s => !isValidSpaceId(s));
-    if (invalidSpaces.length > 0) {
-      return JSON.stringify(
-        {
-          success: false,
-          error: 'Invalid space IDs',
-          message: `Invalid spaces: ${invalidSpaces.join(', ')}. Supported spaces: ${SUPPORTED_SPACES.join(', ')}`,
-        },
-        null,
-        2
-      );
-    }
-    
-    // Validate not empty
-    if (args.spaces.length === 0) {
-      return JSON.stringify(
-        {
-          success: false,
-          error: 'Empty spaces array',
-          message: 'Must specify at least one space to query',
-        },
-        null,
-        2
-      );
-    }
 
-    // Permission check: non-approved moderation filters require moderator access
-    const moderationFilterValue = args.moderation_filter || 'approved';
-    if (moderationFilterValue !== 'approved' && !canModerateAny(authContext)) {
-      return JSON.stringify(
-        {
-          success: false,
-          error: 'Permission denied',
-          message: `Moderator access required to view ${moderationFilterValue} memories in spaces`,
-        },
-        null,
-        2
-      );
-    }
-
-    const weaviateClient = getWeaviateClient();
-    const publicCollection = await ensurePublicCollection(weaviateClient);
-
-    // Build filters
-    const filterList: any[] = [];
-
-    // Filter by spaces array (memory must be in at least one requested space)
-    filterList.push(publicCollection.filter.byProperty('spaces').containsAny(args.spaces));
-
-    // Filter by doc_type (memory) - space_memory concept was removed
-    filterList.push(publicCollection.filter.byProperty('doc_type').equal('memory'));
-
-    // Moderation status filter
-    const moderationFilter = buildModerationFilter(publicCollection, args.moderation_filter);
-    if (moderationFilter) {
-      filterList.push(moderationFilter);
-    }
-
-    // Apply content type filter
-    if (args.content_type) {
-      filterList.push(publicCollection.filter.byProperty('content_type').equal(args.content_type));
-    }
-
-    // Exclude comments and ghost memories by default (unless explicitly included)
-    if (!args.include_comments && !args.content_type) {
-      // Only exclude comments if not filtering by content_type
-      // (if content_type is set, user has explicit control)
-      filterList.push(publicCollection.filter.byProperty('content_type').notEqual('comment'));
-    }
-    if (!args.content_type) {
-      filterList.push(publicCollection.filter.byProperty('content_type').notEqual('ghost'));
-    }
-
-    // Apply tags filter
-    if (args.tags && args.tags.length > 0) {
-      args.tags.forEach(tag => {
-        filterList.push(publicCollection.filter.byProperty('tags').containsAny([tag]));
-      });
-    }
-
-    // Apply weight filter
-    if (args.min_weight !== undefined) {
-      filterList.push(publicCollection.filter.byProperty('weight').greaterOrEqual(args.min_weight));
-    }
-
-    // Apply date filters
-    if (args.date_from) {
-      filterList.push(publicCollection.filter.byProperty('created_at').greaterOrEqual(new Date(args.date_from)));
-    }
-
-    if (args.date_to) {
-      filterList.push(publicCollection.filter.byProperty('created_at').lessOrEqual(new Date(args.date_to)));
-    }
-
-    const whereFilter = filterList.length > 0 ? Filters.and(...filterList) : undefined;
-
-    debug.debug('Executing semantic query', {
-      question: args.question,
-      filterCount: filterList.length,
-      limit: args.limit || 10,
-    });
-
-    // Execute semantic search using nearText
-    const searchResults = await debug.time('Semantic query', async () => {
-      return await publicCollection.query.nearText(args.question, {
-        limit: args.limit || 10,
-        ...(whereFilter && { where: whereFilter }),
-      });
-    });
-    
-    debug.debug('Query completed', {
-      resultCount: searchResults.objects.length,
-      format: args.format || 'detailed',
-    });
+    const { space } = createCoreServices(userId);
+    const coreResult = await space.query(
+      {
+        question: args.question,
+        spaces: args.spaces,
+        content_type: args.content_type,
+        tags: args.tags,
+        min_weight: args.min_weight,
+        date_from: args.date_from,
+        date_to: args.date_to,
+        moderation_filter: args.moderation_filter as any,
+        include_comments: args.include_comments,
+        limit: args.limit,
+      },
+      authContext as any
+    );
 
     // Format results based on requested format
     const format = args.format || 'detailed';
 
     if (format === 'compact') {
-      // Compact format: text summary for LLM context
-      const summaries = searchResults.objects.map((obj: any, idx: number) => {
-        const props = obj.properties;
-        return `${idx + 1}. ${props.title || props.content?.substring(0, 100) || 'Untitled'}`;
+      const summaries = coreResult.memories.map((mem: any, idx: number) => {
+        return `${idx + 1}. ${mem.title || mem.content?.substring(0, 100) || 'Untitled'}`;
       });
 
       const result = {
         question: args.question,
-        spaces_queried: args.spaces,
+        spaces_queried: coreResult.spaces_queried,
         format: 'compact',
         summary: summaries.join('\n'),
-        count: searchResults.objects.length,
+        count: coreResult.memories.length,
       };
 
       return JSON.stringify(result, null, 2);
     } else {
-      // Detailed format: full objects
-      const memories = searchResults.objects.map((obj: any) => ({
-        id: obj.uuid,
-        ...obj.properties,
-        _distance: obj.metadata?.distance,
-      }));
-
       const result = {
         question: args.question,
-        spaces_queried: args.spaces,
+        spaces_queried: coreResult.spaces_queried,
         format: 'detailed',
-        memories,
-        total: memories.length,
+        memories: coreResult.memories,
+        total: coreResult.total,
       };
 
       debug.info('Tool completed successfully', {
-        resultCount: memories.length,
+        resultCount: coreResult.total,
         format: 'detailed',
       });
-      
+
       return JSON.stringify(result, null, 2);
     }
   } catch (error) {

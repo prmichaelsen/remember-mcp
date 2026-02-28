@@ -9,18 +9,10 @@
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
-import {
-  getWeaviateClient,
-  getMemoryCollectionName,
-  fetchMemoryWithAllProperties,
-} from '../weaviate/client.js';
-import { confirmationTokenService } from '../services/confirmation-token.service.js';
 import { handleToolError } from '../utils/error-handler.js';
-import { logger } from '../utils/logger.js';
 import { createDebugLogger } from '../utils/debug.js';
-import { CollectionType, getCollectionName } from '../collections/dot-notation.js';
-import { generateCompositeId } from '../collections/composite-ids.js';
 import type { AuthContext } from '../types/auth.js';
+import { createCoreServices } from '../core-services.js';
 
 /** Maximum number of revision history entries to retain */
 const MAX_REVISION_HISTORY = 10;
@@ -128,141 +120,17 @@ export async function handleRevise(
     debug.info('Tool invoked');
     debug.trace('Arguments', { args });
 
-    logger.info('Starting revise request', {
-      tool: 'remember_revise',
-      userId,
-      memoryId: args.memory_id,
-    });
-
-    // Load source memory from user's personal collection
-    const weaviateClient = getWeaviateClient();
-    const userCollectionName = getMemoryCollectionName(userId);
-    const userCollection = weaviateClient.collections.get(userCollectionName);
-
-    const sourceMemory = await fetchMemoryWithAllProperties(
-      userCollection,
-      args.memory_id
-    );
-
-    if (!sourceMemory) {
-      logger.info('Source memory not found', {
-        tool: 'remember_revise',
-        memoryId: args.memory_id,
-      });
-      return JSON.stringify(
-        {
-          success: false,
-          error: 'Memory not found',
-          message: `Memory ${args.memory_id} does not exist`,
-        },
-        null,
-        2
-      );
-    }
-
-    // Verify ownership
-    if (sourceMemory.properties.user_id !== userId) {
-      logger.warn('Permission denied', {
-        tool: 'remember_revise',
-        memoryId: args.memory_id,
-        memoryOwner: sourceMemory.properties.user_id,
-        requestingUser: userId,
-      });
-      return JSON.stringify(
-        {
-          success: false,
-          error: 'Permission denied',
-          message: 'You can only revise your own memories',
-        },
-        null,
-        2
-      );
-    }
-
-    // Get tracking arrays
-    const spaceIds: string[] = Array.isArray(sourceMemory.properties.space_ids)
-      ? sourceMemory.properties.space_ids
-      : [];
-    const groupIds: string[] = Array.isArray(sourceMemory.properties.group_ids)
-      ? sourceMemory.properties.group_ids
-      : [];
-
-    // Validate the memory is published somewhere
-    if (spaceIds.length === 0 && groupIds.length === 0) {
-      logger.info('Memory has no published copies', {
-        tool: 'remember_revise',
-        memoryId: args.memory_id,
-      });
-      return JSON.stringify(
-        {
-          success: false,
-          error: 'Not published',
-          message:
-            'Memory has no published copies to revise. Publish first with remember_publish.',
-          context: {
-            memory_id: args.memory_id,
-            space_ids: [],
-            group_ids: [],
-          },
-        },
-        null,
-        2
-      );
-    }
-
-    // Create payload for confirmation token
-    const payload = {
+    const { space } = createCoreServices(userId);
+    const result = await space.revise({
       memory_id: args.memory_id,
-      space_ids: spaceIds,
-      group_ids: groupIds,
-    };
-
-    logger.info('Generating confirmation token for revise', {
-      tool: 'remember_revise',
-      userId,
-      memoryId: args.memory_id,
-      spaceIds,
-      groupIds,
     });
-
-    // Generate confirmation token
-    const { requestId, token } = await confirmationTokenService.createRequest(
-      userId,
-      'revise_memory',
-      payload
-    );
-
-    logger.info('Confirmation token generated for revise', {
-      tool: 'remember_revise',
-      requestId,
-      token,
-      action: 'revise_memory',
-      spaceIds,
-      groupIds,
-    });
-
-    // Build destination summary for user
-    const destinations: string[] = [];
-    if (spaceIds.length > 0) {
-      destinations.push(`spaces: ${spaceIds.join(', ')}`);
-    }
-    if (groupIds.length > 0) {
-      destinations.push(`groups: ${groupIds.join(', ')}`);
-    }
 
     return JSON.stringify(
       {
         success: true,
-        token,
-        message: 'Revision request created. Please confirm to sync content to all published copies.',
+        token: result.token,
         action: 'revise_memory',
         memory_id: args.memory_id,
-        destinations: destinations.join('; '),
-        revision_details: {
-          space_ids: spaceIds,
-          group_ids: groupIds,
-          total_locations: (spaceIds.length > 0 ? 1 : 0) + groupIds.length,
-        },
         confirmation_required: true,
       },
       null,

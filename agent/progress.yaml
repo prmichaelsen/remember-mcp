@@ -327,14 +327,17 @@ milestones:
 
   - id: M17
     name: remember-core Migration
-    status: not_started
-    progress: 0%
+    status: completed
+    progress: 100%
     estimated_weeks: 2-3
-    tasks_completed: 0
+    tasks_completed: 8
     tasks_total: 8
+    completed: 2026-02-28
     notes: |
-      Migrate 18 of 21 tool handlers from inline business logic to remember-core service calls.
-      Each handler becomes a thin 10-20 line adapter calling core services.
+      ✅ All 18 tool handlers migrated from inline business logic to remember-core service calls.
+      ✅ Each handler is now a thin 10-20 line adapter calling core services.
+      ✅ 10 duplicated source files removed (services, constants, collections).
+      ✅ Build passing, 390 tests (389 passed, 1 skipped). 64 tests removed (now in core).
       3 tools deferred (search_memory, query_memory, ghost_config) — require core ghost/trust support.
       See: agent/milestones/milestone-17-remember-core-migration.md
 
@@ -895,16 +898,19 @@ tasks:
   milestone_17:
     - id: task-193
       name: Foundation Setup
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-17-remember-core-migration/task-193-foundation-setup.md
       estimated_hours: 2-3
+      completed_date: 2026-02-28
       notes: |
-        Install @prmichaelsen/remember-core, create src/core-services.ts,
-        wire core services into server-factory.ts and server.ts.
+        ✅ Installed @prmichaelsen/remember-core v0.12.0
+        ✅ Created src/core-services.ts (bridge module)
+        ✅ Build passing, 454 tests (453 passed, 1 skipped)
 
     - id: task-194
       name: Migrate Relationship Tools
-      status: not_started
+      status: completed
+      completed_date: 2026-02-28
       file: agent/tasks/milestone-17-remember-core-migration/task-194-migrate-relationship-tools.md
       estimated_hours: 3-4
       dependencies: [task-193]
@@ -913,7 +919,8 @@ tasks:
 
     - id: task-195
       name: Migrate Preference Tools
-      status: not_started
+      status: completed
+      completed_date: 2026-02-28
       file: agent/tasks/milestone-17-remember-core-migration/task-195-migrate-preference-tools.md
       estimated_hours: 2-3
       dependencies: [task-193]
@@ -922,53 +929,62 @@ tasks:
 
     - id: task-196
       name: Migrate Memory Tools
-      status: not_started
+      status: completed
+      completed_date: 2026-02-28
       file: agent/tasks/milestone-17-remember-core-migration/task-196-migrate-memory-tools.md
       estimated_hours: 3-4
       dependencies: [task-193]
       notes: |
-        3 tools → MemoryService: create, update, find_similar.
+        ✅ 3 tools → MemoryService: create, update, find_similar.
+        ✅ Ghost exclusion post-filter in find-similar adapter.
         search_memory and query_memory deferred (ghost-dependent).
 
     - id: task-197
       name: Migrate Space Confirmation Tools
-      status: not_started
+      status: completed
+      completed_date: 2026-02-28
       file: agent/tasks/milestone-17-remember-core-migration/task-197-migrate-space-confirmation-tools.md
       estimated_hours: 6-8
       dependencies: [task-193]
       notes: |
-        5 tools → SpaceService: publish, retract, revise, confirm, deny.
-        confirm.ts is 1180 lines with 4 action branches — most complex migration.
+        ✅ 5 tools → SpaceService: publish, retract, revise, confirm, deny.
+        ✅ confirm.ts: 1180→120 lines. delete_memory handled inline, rest delegates to core.
 
     - id: task-198
       name: Migrate Space Search/Moderate Tools
-      status: not_started
+      status: completed
+      completed_date: 2026-02-28
       file: agent/tasks/milestone-17-remember-core-migration/task-198-migrate-space-search-moderate.md
       estimated_hours: 4-6
       dependencies: [task-193]
       notes: |
-        3 tools → SpaceService: search_space, query_space, moderate.
-        query_space format options stay in adapter.
+        ✅ 3 tools → SpaceService: search_space, query_space, moderate.
+        ✅ query_space format options stay in adapter.
+        ✅ Deprecated buildBaseFilters/buildModerationFilter kept for test compat.
 
     - id: task-199
       name: Migrate delete_memory Tool
-      status: not_started
+      status: completed
+      completed_date: 2026-02-28
       file: agent/tasks/milestone-17-remember-core-migration/task-199-migrate-delete-memory.md
       estimated_hours: 2-3
       dependencies: [task-193, task-197]
       notes: |
-        1 tool → MemoryService + ConfirmationTokenService.
-        Preserves two-phase confirmation flow.
+        ✅ 1 tool → ConfirmationTokenService.createRequest().
+        ✅ Memory validation deferred to confirm phase.
 
     - id: task-200
       name: Code Cleanup & Verification
-      status: not_started
+      status: completed
+      completed_date: 2026-02-28
       file: agent/tasks/milestone-17-remember-core-migration/task-200-code-cleanup-verification.md
       estimated_hours: 3-4
       dependencies: [task-194, task-195, task-196, task-197, task-198, task-199]
       notes: |
-        Remove 9 duplicated source files now provided by core.
-        Update all imports. Full regression test.
+        ✅ Removed 10 duplicated files (3 services, 1 constant, 3 collections, 3 specs).
+        ✅ Updated imports in create-memory.ts and v2-smoke.e2e.ts to use @prmichaelsen/remember-core.
+        ✅ Removed empty src/constants/ and src/collections/ directories.
+        ✅ Build passing, 390 tests (389 passed, 1 skipped).
 
 documentation:
   design_documents: 31
@@ -978,15 +994,17 @@ documentation:
 
 progress:
   planning: 100%
-  implementation: 70%
-  overall: 75%
+  implementation: 80%
+  overall: 85%
 
 recent_work:
   - date: 2026-02-28
-    description: M17 remember-core Migration PLANNED
+    description: M17 remember-core Migration COMPLETED
     items:
-      - 📋 Created M17 milestone with 8 tasks (task-193 through task-200)
-      - 📋 Migrates 18 of 21 tool handlers to remember-core service calls
+      - ✅ All 8 tasks completed (task-193 through task-200)
+      - ✅ 18 tool handlers migrated to thin adapters calling core services
+      - ✅ 10 duplicated files removed, 2 imports updated to use core
+      - ✅ Build passing, 390 tests (389 passed, 1 skipped)
       - 📋 3 tools deferred (search_memory, query_memory, ghost_config)
       - 📋 Phased approach: foundation → relationships → preferences → memory → space → cleanup
 

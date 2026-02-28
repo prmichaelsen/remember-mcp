@@ -3,12 +3,10 @@
  * Update an existing relationship with partial updates
  */
 
-import type { RelationshipUpdate } from '../types/memory.js';
-import { getMemoryCollection } from '../weaviate/schema.js';
-import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
+import { createCoreServices } from '../core-services.js';
 
 /**
  * Tool definition for remember_update_relationship
@@ -100,97 +98,25 @@ export async function handleUpdateRelationship(
     debug.info('Tool invoked');
     debug.trace('Arguments', { args });
 
-    logger.info('Updating relationship', { userId, relationshipId: args.relationship_id });
-
-    const collection = getMemoryCollection(userId);
-
-    // Get existing relationship to verify ownership and get current version
-    const existingRelationship = await collection.query.fetchObjectById(args.relationship_id, {
-      returnProperties: ['user_id', 'doc_type', 'version', 'relationship_type', 'strength', 'confidence'],
-    });
-
-    if (!existingRelationship) {
-      throw new Error(`Relationship not found: ${args.relationship_id}`);
-    }
-
-    // Verify ownership
-    if (existingRelationship.properties.user_id !== userId) {
-      throw new Error('Unauthorized: Cannot update another user\'s relationship');
-    }
-
-    // Verify it's a relationship (not a memory)
-    if (existingRelationship.properties.doc_type !== 'relationship') {
-      throw new Error('Cannot update memories using this tool. Use remember_update_memory instead.');
-    }
-
-    // Build update object with only provided fields
-    const updates: Record<string, any> = {};
-    const updatedFields: string[] = [];
-
-    // Update relationship fields
-    if (args.relationship_type !== undefined) {
-      updates.relationship_type = args.relationship_type;
-      updatedFields.push('relationship_type');
-    }
-
-    if (args.observation !== undefined) {
-      updates.observation = args.observation;
-      updatedFields.push('observation');
-    }
-
-    if (args.strength !== undefined) {
-      if (args.strength < 0 || args.strength > 1) {
-        throw new Error('Strength must be between 0 and 1');
-      }
-      updates.strength = args.strength;
-      updatedFields.push('strength');
-    }
-
-    if (args.confidence !== undefined) {
-      if (args.confidence < 0 || args.confidence > 1) {
-        throw new Error('Confidence must be between 0 and 1');
-      }
-      updates.confidence = args.confidence;
-      updatedFields.push('confidence');
-    }
-
-    if (args.tags !== undefined) {
-      updates.tags = args.tags;
-      updatedFields.push('tags');
-    }
-
-    // Check if any fields were provided
-    if (updatedFields.length === 0) {
-      throw new Error('No fields provided for update. At least one field must be specified.');
-    }
-
-    // Update metadata
-    const now = new Date().toISOString();
-    updates.updated_at = now;
-    updates.version = (existingRelationship.properties.version as number) + 1;
-
-    // Perform update in Weaviate
-    await collection.data.update({
-      id: args.relationship_id,
-      properties: updates,
-    });
-
-    logger.info('Relationship updated successfully', {
-      userId,
-      relationshipId: args.relationship_id,
-      version: updates.version,
-      updatedFields,
-    });
-
-    const result: UpdateRelationshipResult = {
+    const { relationship } = createCoreServices(userId);
+    const result = await relationship.update({
       relationship_id: args.relationship_id,
-      updated_at: now,
-      version: updates.version,
-      updated_fields: updatedFields,
-      message: `Relationship updated successfully. Updated fields: ${updatedFields.join(', ')}`,
+      relationship_type: args.relationship_type,
+      observation: args.observation,
+      strength: args.strength,
+      confidence: args.confidence,
+      tags: args.tags,
+    });
+
+    const response: UpdateRelationshipResult = {
+      relationship_id: result.relationship_id,
+      updated_at: result.updated_at,
+      version: result.version,
+      updated_fields: result.updated_fields,
+      message: `Relationship updated successfully. Updated fields: ${result.updated_fields.join(', ')}`,
     };
 
-    return JSON.stringify(result, null, 2);
+    return JSON.stringify(response, null, 2);
   } catch (error) {
     debug.error('Tool failed', { error: error instanceof Error ? error.message : String(error) });
     handleToolError(error, {

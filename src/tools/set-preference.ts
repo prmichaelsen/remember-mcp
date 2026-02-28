@@ -3,8 +3,6 @@
  * Update user preferences through natural conversation
  */
 
-import { PreferencesDatabaseService } from '../services/preferences-database.service.js';
-import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { createDebugLogger } from '../utils/debug.js';
 import {
@@ -13,6 +11,7 @@ import {
   getPreferencesSchema,
 } from '../types/preferences.js';
 import type { AuthContext } from '../types/auth.js';
+import { createCoreServices } from '../core-services.js';
 
 /**
  * Tool definition for remember_set_preference
@@ -128,10 +127,8 @@ export async function handleSetPreference(
 
     const { preferences } = args;
 
-    logger.info('Setting preferences', { userId, updates: Object.keys(preferences) });
-
-    // Update preferences using service layer
-    const updatedPreferences = await PreferencesDatabaseService.updatePreferences(
+    const { preferences: preferencesService } = createCoreServices(userId);
+    const updatedPreferences = await preferencesService.updatePreferences(
       userId,
       preferences
     );
@@ -143,8 +140,6 @@ export async function handleSetPreference(
       updated_preferences: updatedPreferences,
       message,
     };
-
-    logger.info('Preferences set successfully', { userId });
 
     return JSON.stringify(result, null, 2);
   } catch (error) {

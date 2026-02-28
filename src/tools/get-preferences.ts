@@ -3,8 +3,6 @@
  * Retrieve user preferences with defaults
  */
 
-import { PreferencesDatabaseService } from '../services/preferences-database.service.js';
-import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { createDebugLogger } from '../utils/debug.js';
 import {
@@ -14,6 +12,7 @@ import {
   getPreferenceDescription,
 } from '../types/preferences.js';
 import type { AuthContext } from '../types/auth.js';
+import { createCoreServices } from '../core-services.js';
 
 /**
  * Tool definition for remember_get_preferences
@@ -74,10 +73,8 @@ export async function handleGetPreferences(
 
     const { category } = args;
 
-    logger.info('Getting preferences', { userId, category });
-
-    // Get preferences using service layer
-    const preferences = await PreferencesDatabaseService.getPreferences(userId);
+    const { preferences: preferencesService } = createCoreServices(userId);
+    const preferences = await preferencesService.getPreferences(userId);
 
     // Check if these are defaults (no created_at means they were just generated)
     const isDefault = !preferences.created_at || preferences.created_at === preferences.updated_at;
@@ -109,8 +106,6 @@ export async function handleGetPreferences(
       is_default: isDefault,
       message,
     };
-
-    logger.info('Preferences retrieved successfully', { userId, category, isDefault });
 
     return JSON.stringify(response, null, 2);
   } catch (error) {

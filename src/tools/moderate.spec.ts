@@ -7,25 +7,8 @@ import type { AuthContext, GroupPermissions } from '../types/auth.js';
 
 // ─── Mocks ───────────────────────────────────────────────────
 
-const mockUpdate = jest.fn().mockResolvedValue(undefined);
-
-jest.mock('../weaviate/client.js', () => ({
-  getWeaviateClient: jest.fn(() => ({
-    collections: {
-      get: jest.fn().mockReturnValue({
-        data: { update: jest.fn().mockResolvedValue(undefined) },
-      }),
-    },
-  })),
-  fetchMemoryWithAllProperties: jest.fn(),
-}));
-
-jest.mock('../weaviate/space-schema.js', () => ({
-  ensurePublicCollection: jest.fn(),
-}));
-
-jest.mock('../utils/logger.js', () => ({
-  logger: { info: jest.fn(), debug: jest.fn(), warn: jest.fn(), error: jest.fn() },
+jest.mock('../core-services.js', () => ({
+  createCoreServices: jest.fn(),
 }));
 
 jest.mock('../utils/debug.js', () => ({
@@ -38,21 +21,12 @@ jest.mock('../utils/debug.js', () => ({
   })),
 }));
 
-jest.mock('../collections/dot-notation.js', () => ({
-  CollectionType: { GROUPS: 'groups' },
-  getCollectionName: jest.fn((_: string, id: string) => `Memory_groups_${id}`),
-}));
-
 jest.mock('../utils/error-handler.js', () => ({
   handleToolError: jest.fn(() => '{"success":false,"error":"internal"}'),
 }));
 
-import { getWeaviateClient, fetchMemoryWithAllProperties } from '../weaviate/client.js';
-import { ensurePublicCollection } from '../weaviate/space-schema.js';
-
-const mockFetchMemory = fetchMemoryWithAllProperties as jest.MockedFunction<any>;
-const mockGetWeaviateClient = getWeaviateClient as jest.MockedFunction<any>;
-const mockEnsurePublicCollection = ensurePublicCollection as jest.MockedFunction<any>;
+import { createCoreServices } from '../core-services.js';
+const mockCreateCoreServices = createCoreServices as jest.MockedFunction<any>;
 
 // ─── Helpers ─────────────────────────────────────────────────
 
@@ -95,14 +69,6 @@ function makeNonModeratorAuth(): AuthContext {
   };
 }
 
-const PUBLISHED_MEMORY = {
-  properties: {
-    content: 'Published memory',
-    moderation_status: 'pending',
-    author_id: 'author-1',
-  },
-};
-
 // ─── Tests ───────────────────────────────────────────────────
 
 describe('moderateTool definition', () => {
@@ -121,39 +87,28 @@ describe('moderateTool definition', () => {
 });
 
 describe('handleModerate', () => {
-  let groupUpdate: jest.Mock;
-  let spaceUpdate: jest.Mock;
+  let mockModerate: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    groupUpdate = jest.fn().mockResolvedValue(undefined);
-    spaceUpdate = jest.fn().mockResolvedValue(undefined);
-
-    mockGetWeaviateClient.mockReturnValue({
-      collections: {
-        get: jest.fn().mockReturnValue({
-          data: { update: groupUpdate },
-        }),
-      },
+    mockModerate = jest.fn();
+    mockCreateCoreServices.mockReturnValue({
+      space: { moderate: mockModerate },
     });
-
-    mockEnsurePublicCollection.mockResolvedValue({
-      data: { update: spaceUpdate },
-    });
-
-    mockFetchMemory.mockResolvedValue(PUBLISHED_MEMORY);
   });
 
-  it('returns error when no space_id or group_id provided', async () => {
+  it('returns error when core throws for missing destination', async () => {
+    mockModerate.mockRejectedValue(new Error('Must specify either space_id or group_id'));
+
     const result = JSON.parse(
       await handleModerate({ memory_id: 'mem-1', action: 'approve' }, 'mod-1', makeModeratorAuth('g1'))
     );
     expect(result.success).toBe(false);
-    expect(result.error).toBe('Missing destination');
   });
 
-  it('returns permission error for non-moderator on group', async () => {
+  it('returns error when core throws for non-moderator on group', async () => {
+    mockModerate.mockRejectedValue(new Error('Permission denied'));
+
     const result = JSON.parse(
       await handleModerate(
         { memory_id: 'mem-1', action: 'approve', group_id: 'team-1' },
@@ -162,10 +117,11 @@ describe('handleModerate', () => {
       )
     );
     expect(result.success).toBe(false);
-    expect(result.error).toBe('Permission denied');
   });
 
-  it('returns permission error for non-moderator on space', async () => {
+  it('returns error when core throws for non-moderator on space', async () => {
+    mockModerate.mockRejectedValue(new Error('Permission denied'));
+
     const result = JSON.parse(
       await handleModerate(
         { memory_id: 'mem-1', action: 'approve', space_id: 'public' },
@@ -174,11 +130,10 @@ describe('handleModerate', () => {
       )
     );
     expect(result.success).toBe(false);
-    expect(result.error).toBe('Permission denied');
   });
 
-  it('returns error when memory not found', async () => {
-    mockFetchMemory.mockResolvedValue(null);
+  it('returns error when core throws for memory not found', async () => {
+    mockModerate.mockRejectedValue(new Error('Memory not found'));
 
     const result = JSON.parse(
       await handleModerate(
@@ -188,10 +143,18 @@ describe('handleModerate', () => {
       )
     );
     expect(result.success).toBe(false);
-    expect(result.error).toBe('Memory not found');
   });
 
   it('approves a memory in a group', async () => {
+    mockModerate.mockResolvedValue({
+      memory_id: 'mem-1',
+      action: 'approve',
+      moderation_status: 'approved',
+      moderated_by: 'mod-1',
+      moderated_at: new Date().toISOString(),
+      location: 'group:g1',
+    });
+
     const result = JSON.parse(
       await handleModerate(
         { memory_id: 'mem-1', action: 'approve', group_id: 'g1' },
@@ -203,17 +166,18 @@ describe('handleModerate', () => {
     expect(result.moderation_status).toBe('approved');
     expect(result.moderated_by).toBe('mod-1');
     expect(result.moderated_at).toBeDefined();
-
-    expect(groupUpdate).toHaveBeenCalledWith({
-      id: 'mem-1',
-      properties: expect.objectContaining({
-        moderation_status: 'approved',
-        moderated_by: 'mod-1',
-      }),
-    });
   });
 
   it('rejects a memory in a group', async () => {
+    mockModerate.mockResolvedValue({
+      memory_id: 'mem-1',
+      action: 'reject',
+      moderation_status: 'rejected',
+      moderated_by: 'mod-1',
+      moderated_at: new Date().toISOString(),
+      location: 'group:g1',
+    });
+
     const result = JSON.parse(
       await handleModerate(
         { memory_id: 'mem-1', action: 'reject', group_id: 'g1', reason: 'Spam' },
@@ -227,6 +191,15 @@ describe('handleModerate', () => {
   });
 
   it('removes a memory in a group', async () => {
+    mockModerate.mockResolvedValue({
+      memory_id: 'mem-1',
+      action: 'remove',
+      moderation_status: 'removed',
+      moderated_by: 'mod-1',
+      moderated_at: new Date().toISOString(),
+      location: 'group:g1',
+    });
+
     const result = JSON.parse(
       await handleModerate(
         { memory_id: 'mem-1', action: 'remove', group_id: 'g1' },
@@ -239,6 +212,15 @@ describe('handleModerate', () => {
   });
 
   it('moderates a memory in a space', async () => {
+    mockModerate.mockResolvedValue({
+      memory_id: 'mem-1',
+      action: 'approve',
+      moderation_status: 'approved',
+      moderated_by: 'mod-1',
+      moderated_at: new Date().toISOString(),
+      location: 'space:public',
+    });
+
     const result = JSON.parse(
       await handleModerate(
         { memory_id: 'mem-1', action: 'approve', space_id: 'public' },
@@ -249,18 +231,20 @@ describe('handleModerate', () => {
     expect(result.success).toBe(true);
     expect(result.moderation_status).toBe('approved');
     expect(result.location).toBe('space:public');
-
-    expect(spaceUpdate).toHaveBeenCalledWith({
-      id: 'mem-1',
-      properties: expect.objectContaining({
-        moderation_status: 'approved',
-        moderated_by: 'mod-1',
-      }),
-    });
   });
 
   it('sets moderated_at to a valid ISO date', async () => {
     const before = new Date().toISOString();
+    const moderatedAt = new Date().toISOString();
+
+    mockModerate.mockResolvedValue({
+      memory_id: 'mem-1',
+      action: 'approve',
+      moderation_status: 'approved',
+      moderated_by: 'mod-1',
+      moderated_at: moderatedAt,
+      location: 'group:g1',
+    });
 
     const result = JSON.parse(
       await handleModerate(

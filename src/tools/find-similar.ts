@@ -4,12 +4,10 @@
  */
 
 import type { Memory, DeletedFilter } from '../types/memory.js';
-import { getMemoryCollection } from '../weaviate/schema.js';
-import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
-import { buildDeletedFilter, combineFiltersWithAnd } from '../utils/weaviate-filters.js';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
+import { createCoreServices } from '../core-services.js';
 
 /**
  * Tool definition for remember_find_similar
@@ -111,122 +109,30 @@ export async function handleFindSimilar(
   try {
     debug.info('Tool invoked');
     debug.trace('Arguments', { args });
-    logger.info('Finding similar memories', { userId, memoryId: args.memory_id, hasText: !!args.text });
 
-    // Validate input
-    if (!args.memory_id && !args.text) {
-      throw new Error('Either memory_id or text must be provided');
-    }
-
-    if (args.memory_id && args.text) {
-      throw new Error('Provide either memory_id or text, not both');
-    }
-
-    const collection = getMemoryCollection(userId);
-    const limit = args.limit ?? 10;
-    const minSimilarity = args.min_similarity ?? 0.7;
-
-    // Build deleted filter
-    const deletedFilter = buildDeletedFilter(collection, args.deleted_filter || 'exclude');
-
-    // Exclude ghost memories by default
-    const ghostExclusionFilter = collection.filter.byProperty('content_type').notEqual('ghost');
-
-    // Combine filters
-    const baseFilter = combineFiltersWithAnd([deletedFilter, ghostExclusionFilter].filter(f => f !== null));
-
-    let results: any;
-
-    if (args.memory_id) {
-      // Find similar to existing memory
-      // First get the memory to verify ownership
-      const memory = await collection.query.fetchObjectById(args.memory_id, {
-        returnProperties: ['user_id', 'doc_type', 'content'],
-      });
-
-      if (!memory) {
-        throw new Error(`Memory not found: ${args.memory_id}`);
-      }
-
-      // Verify ownership
-      if (memory.properties.user_id !== userId) {
-        throw new Error('Unauthorized: Cannot access another user\'s memory');
-      }
-
-      // Verify it's a memory
-      if (memory.properties.doc_type !== 'memory') {
-        throw new Error('Can only find similar memories for memory documents, not relationships');
-      }
-
-      // Find similar using nearObject
-      const searchOptions: any = {
-        limit: limit + 1, // +1 to exclude the source memory itself
-        distance: 1 - minSimilarity, // Convert similarity to distance
-        returnMetadata: ['distance'],
-      };
-
-      // Add filters if present
-      if (baseFilter) {
-        searchOptions.filters = baseFilter;
-      }
-
-      results = await collection.query.nearObject(args.memory_id, searchOptions);
-
-      // Filter out the source memory
-      results.objects = results.objects.filter((obj: any) => obj.uuid !== args.memory_id);
-    } else {
-      // Find similar to text
-      const searchOptions: any = {
-        limit: limit,
-        distance: 1 - minSimilarity,
-        returnMetadata: ['distance'],
-      };
-
-      // Add filters if present
-      if (baseFilter) {
-        searchOptions.filters = baseFilter;
-      }
-
-      results = await collection.query.nearText(args.text!, searchOptions);
-    }
-
-    // Filter to only memories (not relationships) unless requested
-    if (!args.include_relationships) {
-      results.objects = results.objects.filter(
-        (obj: any) => obj.properties.doc_type === 'memory'
-      );
-    }
-
-    // Format results with similarity scores
-    const similarMemories: SimilarMemory[] = results.objects.map((obj: any) => {
-      const similarity = 1 - (obj.metadata?.distance ?? 0); // Convert distance back to similarity
-      return {
-        id: obj.uuid,
-        ...obj.properties,
-        similarity: Math.max(0, Math.min(1, similarity)), // Clamp to [0, 1]
-      };
+    const { memory } = createCoreServices(userId);
+    const coreResult = await memory.findSimilar({
+      memory_id: args.memory_id,
+      text: args.text,
+      limit: args.limit,
+      min_similarity: args.min_similarity,
+      include_relationships: args.include_relationships,
+      deleted_filter: args.deleted_filter,
     });
 
-    // Sort by similarity (highest first)
-    similarMemories.sort((a, b) => (b.similarity ?? 0) - (a.similarity ?? 0));
-
-    // Limit results
-    const limitedResults = similarMemories.slice(0, limit);
-
-    logger.info('Similar memories found', {
-      userId,
-      query: args.memory_id || args.text,
-      results: limitedResults.length,
-    });
+    // Post-filter ghost content (core doesn't exclude ghosts)
+    const filteredMemories = coreResult.similar_memories.filter(
+      (m: any) => m.content_type !== 'ghost'
+    );
 
     const result: FindSimilarResult = {
       query: {
         memory_id: args.memory_id,
         text: args.text,
       },
-      similar_memories: limitedResults,
-      total: limitedResults.length,
-      min_similarity: minSimilarity,
+      similar_memories: filteredMemories as unknown as SimilarMemory[],
+      total: filteredMemories.length,
+      min_similarity: args.min_similarity ?? 0.7,
     };
 
     return JSON.stringify(result, null, 2);

@@ -17,13 +17,14 @@ dotenv.config({ path: process.env.DOTENV_CONFIG_PATH || '.env.e1.local', overrid
 
 import weaviate, { WeaviateClient, configure } from 'weaviate-client';
 import { config } from './config.js';
-import { generateCompositeId, parseCompositeId } from './collections/composite-ids.js';
 import {
+  generateCompositeId,
+  parseCompositeId,
   addToSpaceIds,
   addToGroupIds,
   isPublishedToSpace,
   getPublishedLocations,
-} from './collections/tracking-arrays.js';
+} from '@prmichaelsen/remember-core';
 
 // ---------------------------------------------------------------------------
 // Test constants

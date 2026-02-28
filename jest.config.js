@@ -19,9 +19,20 @@ export default {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^(\\.{1,2}/.*)\\.js$': '$1',
+    '^@prmichaelsen/remember-core$': '<rootDir>/node_modules/@prmichaelsen/remember-core/dist/index.js',
+    '^@prmichaelsen/remember-core/(.*)$': '<rootDir>/node_modules/@prmichaelsen/remember-core/dist/$1/index.js',
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(@prmichaelsen/remember-core)/)',
+  ],
   transform: {
     '^.+\\.ts$': [
+      'ts-jest',
+      {
+        useESM: true,
+      },
+    ],
+    'node_modules/@prmichaelsen/remember-core/.+\\.js$': [
       'ts-jest',
       {
         useESM: true,

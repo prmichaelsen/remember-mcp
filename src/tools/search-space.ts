@@ -8,15 +8,11 @@
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { Filters } from 'weaviate-client';
-import { getWeaviateClient } from '../weaviate/client.js';
-import { isValidSpaceId } from '../weaviate/space-schema.js';
 import { SUPPORTED_SPACES } from '../types/space-memory.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { createDebugLogger } from '../utils/debug.js';
-import { CollectionType, getCollectionName } from '../collections/dot-notation.js';
-import { logger } from '../utils/logger.js';
 import type { AuthContext } from '../types/auth.js';
-import { canModerate, canModerateAny } from '../utils/auth-helpers.js';
+import { createCoreServices } from '../core-services.js';
 
 /**
  * Tool definition for remember_search_space
@@ -123,6 +119,42 @@ Let the search algorithm find ALL relevant memories regardless of type unless ex
 
 export type ModerationFilter = 'approved' | 'pending' | 'rejected' | 'removed' | 'all';
 
+/**
+ * Build the moderation status filter for a Weaviate collection query.
+ * @deprecated Kept for test compatibility — logic now lives in remember-core SpaceService
+ */
+export function buildModerationFilter(collection: any, moderationFilter: ModerationFilter = 'approved'): any | null {
+  if (moderationFilter === 'all') return null;
+  if (moderationFilter === 'approved') {
+    return Filters.or(
+      collection.filter.byProperty('moderation_status').equal('approved'),
+      collection.filter.byProperty('moderation_status').isNull(true)
+    );
+  }
+  return collection.filter.byProperty('moderation_status').equal(moderationFilter);
+}
+
+/**
+ * Build base filters applied to all space/group collection queries.
+ * @deprecated Kept for test compatibility — logic now lives in remember-core SpaceService
+ */
+export function buildBaseFilters(collection: any, args: SearchSpaceArgs): any[] {
+  const filterList: any[] = [];
+  filterList.push(collection.filter.byProperty('deleted_at').isNull(true));
+  filterList.push(collection.filter.byProperty('doc_type').equal('memory'));
+  const moderationFilter = buildModerationFilter(collection, args.moderation_filter);
+  if (moderationFilter) filterList.push(moderationFilter);
+  if (args.content_type) filterList.push(collection.filter.byProperty('content_type').equal(args.content_type));
+  if (!args.include_comments && !args.content_type) filterList.push(collection.filter.byProperty('content_type').notEqual('comment'));
+  if (!args.content_type) filterList.push(collection.filter.byProperty('content_type').notEqual('ghost'));
+  if (args.tags && args.tags.length > 0) args.tags.forEach(tag => filterList.push(collection.filter.byProperty('tags').containsAny([tag])));
+  if (args.min_weight !== undefined) filterList.push(collection.filter.byProperty('weight').greaterOrEqual(args.min_weight));
+  if (args.max_weight !== undefined) filterList.push(collection.filter.byProperty('weight').lessOrEqual(args.max_weight));
+  if (args.date_from) filterList.push(collection.filter.byProperty('created_at').greaterOrEqual(new Date(args.date_from)));
+  if (args.date_to) filterList.push(collection.filter.byProperty('created_at').lessOrEqual(new Date(args.date_to)));
+  return filterList;
+}
+
 interface SearchSpaceArgs {
   query: string;
   spaces?: string[];
@@ -138,115 +170,6 @@ interface SearchSpaceArgs {
   include_comments?: boolean;
   limit?: number;
   offset?: number;
-}
-
-/**
- * Build the moderation status filter for a Weaviate collection query.
- *
- * - 'approved' (default): matches approved OR null (backward compat for pre-moderation memories)
- * - 'pending'/'rejected'/'removed': matches that specific status
- * - 'all': no moderation filter applied
- */
-export function buildModerationFilter(collection: any, moderationFilter: ModerationFilter = 'approved'): any | null {
-  if (moderationFilter === 'all') {
-    return null;
-  }
-
-  if (moderationFilter === 'approved') {
-    // Approved OR null (backward compat: existing memories without moderation_status are approved)
-    return Filters.or(
-      collection.filter.byProperty('moderation_status').equal('approved'),
-      collection.filter.byProperty('moderation_status').isNull(true)
-    );
-  }
-
-  // Specific non-approved status
-  return collection.filter.byProperty('moderation_status').equal(moderationFilter);
-}
-
-/**
- * Build base filters applied to all space/group collection queries.
- * Excludes soft-deleted memories and optionally filters by content type, tags, weight, and date.
- * Includes moderation status filter (default: approved/null only).
- */
-export function buildBaseFilters(collection: any, args: SearchSpaceArgs): any[] {
-  const filterList: any[] = [];
-
-  // Exclude soft-deleted memories (requires indexNullState: true on collection)
-  filterList.push(collection.filter.byProperty('deleted_at').isNull(true));
-
-  // Only return memories (not relationships)
-  filterList.push(collection.filter.byProperty('doc_type').equal('memory'));
-
-  // Moderation status filter
-  const moderationFilter = buildModerationFilter(collection, args.moderation_filter);
-  if (moderationFilter) {
-    filterList.push(moderationFilter);
-  }
-
-  // Apply content type filter
-  if (args.content_type) {
-    filterList.push(collection.filter.byProperty('content_type').equal(args.content_type));
-  }
-
-  // Exclude comments and ghost memories by default (unless content_type is explicitly set)
-  if (!args.include_comments && !args.content_type) {
-    filterList.push(collection.filter.byProperty('content_type').notEqual('comment'));
-  }
-  if (!args.content_type) {
-    filterList.push(collection.filter.byProperty('content_type').notEqual('ghost'));
-  }
-
-  // Apply tags filter (AND semantics: memory must have ALL specified tags)
-  if (args.tags && args.tags.length > 0) {
-    args.tags.forEach(tag => {
-      filterList.push(collection.filter.byProperty('tags').containsAny([tag]));
-    });
-  }
-
-  // Apply weight filters
-  if (args.min_weight !== undefined) {
-    filterList.push(collection.filter.byProperty('weight').greaterOrEqual(args.min_weight));
-  }
-  if (args.max_weight !== undefined) {
-    filterList.push(collection.filter.byProperty('weight').lessOrEqual(args.max_weight));
-  }
-
-  // Apply date filters (created_at stored as ISO 8601 text, sorts lexicographically)
-  if (args.date_from) {
-    filterList.push(collection.filter.byProperty('created_at').greaterOrEqual(new Date(args.date_from)));
-  }
-  if (args.date_to) {
-    filterList.push(collection.filter.byProperty('created_at').lessOrEqual(new Date(args.date_to)));
-  }
-
-  return filterList;
-}
-
-/**
- * Execute a search against a Weaviate collection using the specified search type.
- */
-async function executeSearch(
-  collection: any,
-  query: string,
-  searchType: 'hybrid' | 'bm25' | 'semantic',
-  whereFilter: any,
-  limit: number
-): Promise<any[]> {
-  const opts = {
-    limit,
-    ...(whereFilter && { where: whereFilter }),
-  };
-
-  switch (searchType) {
-    case 'bm25':
-      return (await collection.query.bm25(query, opts)).objects;
-    case 'semantic':
-      return (await collection.query.nearText([query], opts)).objects;
-    case 'hybrid':
-    default:
-      return (await collection.query.hybrid(query, opts)).objects;
-  }
 }
 
 /**
@@ -267,212 +190,43 @@ export async function handleSearchSpace(
     debug.info('Tool invoked');
     debug.trace('Arguments', { args });
 
-    const spaces = args.spaces || [];
-    const groups = args.groups || [];
-    const searchType = args.search_type || 'hybrid';
-    const limit = args.limit || 10;
-    const offset = args.offset || 0;
+    const { space } = createCoreServices(userId);
+    const result = await space.search(
+      {
+        query: args.query,
+        spaces: args.spaces,
+        groups: args.groups,
+        search_type: args.search_type,
+        content_type: args.content_type,
+        tags: args.tags,
+        min_weight: args.min_weight,
+        max_weight: args.max_weight,
+        date_from: args.date_from,
+        date_to: args.date_to,
+        moderation_filter: args.moderation_filter as any,
+        include_comments: args.include_comments,
+        limit: args.limit,
+        offset: args.offset,
+      },
+      authContext as any
+    );
 
-    // Validate space IDs
-    if (spaces.length > 0) {
-      const invalidSpaces = spaces.filter(s => !isValidSpaceId(s));
-      if (invalidSpaces.length > 0) {
-        return JSON.stringify(
-          {
-            success: false,
-            error: 'Invalid space IDs',
-            message: `Invalid spaces: ${invalidSpaces.join(', ')}. Supported spaces: ${SUPPORTED_SPACES.join(', ')}`,
-            context: {
-              invalid_spaces: invalidSpaces,
-              provided_spaces: spaces,
-              supported_spaces: SUPPORTED_SPACES,
-            },
-          },
-          null,
-          2
-        );
-      }
-    }
-
-    // Validate group IDs
-    if (groups.length > 0) {
-      const invalidGroups = groups.filter(g => !g || g.includes('.') || g.trim() === '');
-      if (invalidGroups.length > 0) {
-        return JSON.stringify(
-          {
-            success: false,
-            error: 'Invalid group IDs',
-            message: 'Group IDs cannot be empty or contain dots',
-            context: { invalid_groups: invalidGroups },
-          },
-          null,
-          2
-        );
-      }
-    }
-
-    // Permission check: non-approved moderation filters require can_moderate
-    const moderationFilter = args.moderation_filter || 'approved';
-    if (moderationFilter !== 'approved') {
-      // For group searches: check can_moderate per group
-      for (const groupId of groups) {
-        if (!canModerate(authContext, groupId)) {
-          return JSON.stringify(
-            {
-              success: false,
-              error: 'Permission denied',
-              message: `Moderator access required to view ${moderationFilter} memories in group ${groupId}`,
-            },
-            null,
-            2
-          );
-        }
-      }
-      // For space searches: check can_moderate on any group
-      if ((spaces.length > 0 || groups.length === 0) && !canModerateAny(authContext)) {
-        return JSON.stringify(
-          {
-            success: false,
-            error: 'Permission denied',
-            message: `Moderator access required to view ${moderationFilter} memories in spaces`,
-          },
-          null,
-          2
-        );
-      }
-    }
-
-    const weaviateClient = getWeaviateClient();
-    // Fetch enough results before pagination so we can deduplicate across sources
-    const fetchLimit = (limit + offset) * Math.max(1, groups.length + (spaces.length > 0 || groups.length === 0 ? 1 : 0));
-    const allObjects: any[] = [];
-
-    logger.info('Starting space/group search', {
-      tool: 'remember_search_space',
-      userId,
-      spaces,
-      groups,
-      searchType,
+    const response = {
+      spaces_searched: result.spaces_searched,
+      groups_searched: result.groups_searched,
       query: args.query,
-    });
-
-    // --- Space collection search ---
-    // Runs when spaces are specified, OR when neither spaces nor groups are specified (all-public)
-    if (spaces.length > 0 || groups.length === 0) {
-      const spacesCollectionName = getCollectionName(CollectionType.SPACES);
-      const spacesCollection = weaviateClient.collections.get(spacesCollectionName);
-
-      const filterList = buildBaseFilters(spacesCollection, args);
-
-      // Filter by space_ids array when specific spaces are requested
-      if (spaces.length > 0) {
-        filterList.push(spacesCollection.filter.byProperty('space_ids').containsAny(spaces));
-      }
-      // When spaces.length === 0 and groups.length === 0: no space_ids filter → all-public search
-
-      const whereFilter = filterList.length > 0 ? Filters.and(...filterList) : undefined;
-
-      debug.debug('Searching Memory_spaces_public', {
-        filterCount: filterList.length,
-        spaces,
-        allPublic: spaces.length === 0,
-        searchType,
-      });
-
-      const spaceObjects = await debug.time('Space collection search', async () => {
-        return await executeSearch(spacesCollection, args.query, searchType, whereFilter, fetchLimit);
-      });
-
-      allObjects.push(...spaceObjects);
-
-      logger.info('Space collection search complete', {
-        tool: 'remember_search_space',
-        collectionName: spacesCollectionName,
-        resultCount: spaceObjects.length,
-      });
-    }
-
-    // --- Group collection searches ---
-    for (const groupId of groups) {
-      const groupCollectionName = getCollectionName(CollectionType.GROUPS, groupId);
-
-      // Skip if the group collection doesn't exist yet
-      const exists = await weaviateClient.collections.exists(groupCollectionName);
-      if (!exists) {
-        debug.warn('Group collection not found, skipping', { groupId, groupCollectionName });
-        continue;
-      }
-
-      const groupCollection = weaviateClient.collections.get(groupCollectionName);
-      const filterList = buildBaseFilters(groupCollection, args);
-      const whereFilter = filterList.length > 0 ? Filters.and(...filterList) : undefined;
-
-      debug.debug('Searching group collection', {
-        groupId,
-        groupCollectionName,
-        filterCount: filterList.length,
-        searchType,
-      });
-
-      const groupObjects = await debug.time(`Group collection search: ${groupId}`, async () => {
-        return await executeSearch(groupCollection, args.query, searchType, whereFilter, fetchLimit);
-      });
-
-      allObjects.push(...groupObjects);
-
-      logger.info('Group collection search complete', {
-        tool: 'remember_search_space',
-        groupId,
-        collectionName: groupCollectionName,
-        resultCount: groupObjects.length,
-      });
-    }
-
-    // --- Deduplicate by UUID (composite ID) ---
-    const seen = new Set<string>();
-    const deduplicated = allObjects.filter(obj => {
-      if (seen.has(obj.uuid)) return false;
-      seen.add(obj.uuid);
-      return true;
-    });
-
-    // --- Sort by relevance score descending ---
-    deduplicated.sort((a, b) => {
-      const scoreA = a.metadata?.score ?? 0;
-      const scoreB = b.metadata?.score ?? 0;
-      return scoreB - scoreA;
-    });
-
-    // --- Apply pagination ---
-    const paginated = deduplicated.slice(offset, offset + limit);
-
-    // Format results
-    const memories = paginated.map(obj => ({
-      id: obj.uuid,
-      ...obj.properties,
-      _score: obj.metadata?.score,
-    }));
-
-    const isAllPublic = spaces.length === 0 && groups.length === 0;
-
-    const result = {
-      spaces_searched: isAllPublic ? 'all_public' : spaces,
-      groups_searched: groups,
-      query: args.query,
-      search_type: searchType,
-      memories,
-      total: memories.length,
-      offset,
-      limit,
+      search_type: args.search_type || 'hybrid',
+      memories: result.memories,
+      total: result.total,
+      offset: result.offset,
+      limit: result.limit,
     };
 
     debug.info('Tool completed successfully', {
-      resultCount: memories.length,
-      spaces,
-      groups,
+      resultCount: result.total,
     });
 
-    return JSON.stringify(result, null, 2);
+    return JSON.stringify(response, null, 2);
   } catch (error) {
     debug.error('Tool failed', {
       error: error instanceof Error ? error.message : String(error),

@@ -5,10 +5,10 @@
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { confirmationTokenService } from '../services/confirmation-token.service.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
+import { createCoreServices } from '../core-services.js';
 
 /**
  * Tool definition for remember_deny
@@ -66,23 +66,13 @@ export async function handleDeny(
   try {
     debug.info('Tool invoked');
     debug.trace('Arguments', { args });
-    const success = await confirmationTokenService.denyRequest(userId, args.token);
 
-    if (!success) {
-      return JSON.stringify(
-        {
-          success: false,
-          error: 'Invalid token',
-          message: 'Token not found or already used',
-        },
-        null,
-        2
-      );
-    }
+    const { space } = createCoreServices(userId);
+    const result = await space.deny({ token: args.token });
 
     return JSON.stringify(
       {
-        success: true,
+        success: result.success,
       },
       null,
       2
