@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.13.0] - 2026-02-28
+
+### Changed
+
+**Ghost Mode — Server-Side Resolution (M16 hardening)**
+
+- Ghost context now resolved server-side via `AuthContext.ghostMode` instead of LLM-accessible `ghost_context` tool parameter
+- `ServerOptions.ghostMode` added to server factory — agentbase.me passes ghost owner/accessor via mcp-auth extras, trust level resolved from Firestore at server creation
+- `GhostModeContext` type added to `src/types/auth.ts` with `owner_user_id`, `accessor_user_id`, `accessor_trust_level`
+- `AuthContext` extended with optional `ghostMode` field
+
+### Removed
+
+- `ghost_context` parameter from `remember_search_memory` and `remember_query_memory` tool schemas — trust levels are no longer LLM-controllable
+- `GhostContext` interface from `search-memory.ts` — replaced by `GhostModeContext` in `types/auth.ts`
+
+### Security
+
+- Trust level escalation prevention: accessor trust is resolved from GhostConfig (Firestore) at server creation time, not from tool arguments
+
 ## [3.12.0] - 2026-02-27
 
 ### Added

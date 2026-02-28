@@ -48,6 +48,21 @@ import { ghostConfigTool, handleGhostConfig } from './tools/ghost-config.js';
 export interface ServerOptions {
   name?: string;
   version?: string;
+  /**
+   * Ghost mode configuration. When set, the server operates in ghost mode:
+   * - Search/query tools search the ghost owner's collection
+   * - Trust filtering is applied based on the accessor's trust level
+   * - Trust level is resolved server-side from GhostConfig (Firestore)
+   *
+   * agentbase.me sets this when creating a ghost conversation server.
+   * The LLM never has access to set or override these values.
+   */
+  ghostMode?: {
+    /** Ghost owner's user ID (whose memories to search) */
+    owner_user_id: string;
+    /** Accessor's user ID (who is chatting with the ghost) */
+    accessor_user_id: string;
+  };
 }
 
 // Global initialization flag to ensure databases are initialized once
@@ -157,16 +172,40 @@ export async function createServer(
     }
   );
   
+  // Resolve ghost mode trust level from Firestore if ghost mode is configured
+  let resolvedGhostMode: import('./types/auth.js').GhostModeContext | undefined;
+  if (options.ghostMode) {
+    const { getGhostConfig } = await import('./services/ghost-config.service.js');
+    const { resolveAccessorTrustLevel } = await import('./services/access-control.js');
+    const ghostConfig = await getGhostConfig(options.ghostMode.owner_user_id);
+    const trustLevel = resolveAccessorTrustLevel(ghostConfig, options.ghostMode.accessor_user_id);
+    resolvedGhostMode = {
+      owner_user_id: options.ghostMode.owner_user_id,
+      accessor_user_id: options.ghostMode.accessor_user_id,
+      accessor_trust_level: trustLevel,
+    };
+    logger.info('Ghost mode resolved', {
+      ownerUserId: resolvedGhostMode.owner_user_id,
+      accessorUserId: resolvedGhostMode.accessor_user_id,
+      trustLevel: resolvedGhostMode.accessor_trust_level,
+    });
+  }
+
   // Register handlers with userId scope
-  registerHandlers(server, userId, accessToken);
-  
+  registerHandlers(server, userId, accessToken, resolvedGhostMode);
+
   return server;
 }
 
 /**
  * Register MCP handlers scoped to userId
  */
-function registerHandlers(server: Server, userId: string, accessToken: string): void {
+function registerHandlers(
+  server: Server,
+  userId: string,
+  accessToken: string,
+  ghostMode?: import('./types/auth.js').GhostModeContext
+): void {
   // List available tools
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
@@ -207,7 +246,7 @@ function registerHandlers(server: Server, userId: string, accessToken: string): 
     try {
       // Resolve credentials once per request
       const credentials = await credentialsProvider.getCredentials(accessToken, userId);
-      const authContext: AuthContext = { accessToken, credentials };
+      const authContext: AuthContext = { accessToken, credentials, ghostMode };
 
       let result: string;
 

@@ -11,7 +11,6 @@ import { buildCombinedSearchFilters, buildDeletedFilter, combineFiltersWithAnd }
 import { buildTrustFilter } from '../services/trust-enforcement.js';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
-import type { GhostContext } from './search-memory.js';
 
 /**
  * Tool definition for remember_query_memory
@@ -123,15 +122,6 @@ export const queryMemoryTool = {
         default: 'exclude',
         description: 'Filter deleted memories: "exclude" (default, hide deleted), "include" (show all), "only" (show only deleted)',
       },
-      ghost_context: {
-        type: 'object',
-        description: 'Ghost conversation context (injected by system, not user-facing). When present, applies trust filtering.',
-        properties: {
-          owner_user_id: { type: 'string', description: 'Ghost owner user ID (whose memories to query)' },
-          accessor_user_id: { type: 'string', description: 'User chatting with the ghost' },
-          accessor_trust_level: { type: 'number', description: 'Trust level of accessor (0-1)' },
-        },
-      },
     },
     required: ['query'],
   },
@@ -173,22 +163,22 @@ export interface QueryMemoryResult {
  * Handle remember_query_memory tool
  */
 export async function handleQueryMemory(
-  args: QueryMemoryArgs & { ghost_context?: GhostContext },
+  args: QueryMemoryArgs,
   userId: string,
   authContext?: AuthContext
 ): Promise<string> {
-  const ghostContext = args.ghost_context;
-  const searchUserId = ghostContext?.owner_user_id ?? userId;
-  const debug = createDebugLogger({ tool: 'remember_query_memory', userId: searchUserId, operation: ghostContext ? 'ghost query' : 'query memory' });
+  const ghostMode = authContext?.ghostMode;
+  const searchUserId = ghostMode?.owner_user_id ?? userId;
+  const debug = createDebugLogger({ tool: 'remember_query_memory', userId: searchUserId, operation: ghostMode ? 'ghost query' : 'query memory' });
   try {
     debug.info('Tool invoked');
-    debug.trace('Arguments', { args, ghostMode: !!ghostContext });
+    debug.trace('Arguments', { args, ghostMode: !!ghostMode });
     // Validate query is not empty
     if (!args.query || args.query.trim() === '') {
       throw new Error('Query cannot be empty');
     }
 
-    logger.info('Querying memories', { userId: searchUserId, query: args.query, ghostMode: !!ghostContext });
+    logger.info('Querying memories', { userId: searchUserId, query: args.query, ghostMode: !!ghostMode });
 
     const collection = getMemoryCollection(searchUserId);
     const limit = args.limit ?? 5;
@@ -199,9 +189,9 @@ export async function handleQueryMemory(
     // Build deleted filter
     const deletedFilter = buildDeletedFilter(collection, args.deleted_filter || 'exclude');
 
-    // Build trust filter for ghost mode
-    const trustFilter = ghostContext
-      ? buildTrustFilter(collection, ghostContext.accessor_trust_level)
+    // Build trust filter for ghost mode (resolved server-side, never from tool args)
+    const trustFilter = ghostMode
+      ? buildTrustFilter(collection, ghostMode.accessor_trust_level)
       : null;
 
     // Build filters using v3 API - search both memories and relationships

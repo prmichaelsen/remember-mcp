@@ -28,9 +28,21 @@ export interface UserCredentials {
   group_memberships: GroupMembership[];
 }
 
+/** Ghost conversation context — resolved server-side, never from tool args */
+export interface GhostModeContext {
+  /** The ghost owner's user ID (whose memories are being searched) */
+  owner_user_id: string;
+  /** The accessor's user ID (who is chatting with the ghost) */
+  accessor_user_id: string;
+  /** Resolved trust level (looked up from GhostConfig, not user-supplied) */
+  accessor_trust_level: number;
+}
+
 export interface AuthContext {
   accessToken: string | null;
   credentials: UserCredentials | null;
+  /** Present when the server is running in ghost conversation mode */
+  ghostMode?: GhostModeContext;
 }
 
 export type WriteMode = 'owner_only' | 'group_editors' | 'anyone';
