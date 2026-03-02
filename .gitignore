@@ -89,6 +89,10 @@ mcp-debug.log
 # Migration state files
 .v1-to-v2-migration-state.yaml
 .collection-backup-state.yaml
+.cross-instance-migration-state.yaml
+
+# Cross-instance migration env
+.env.cross-migrate.local
 
 service-account-key.json
 *-service.json
