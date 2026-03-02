@@ -1,6 +1,6 @@
 {
   "name": "@prmichaelsen/remember-mcp",
-  "version": "3.14.2",
+  "version": "3.14.4",
   "description": "Multi-tenant memory system MCP server with vector search and relationships",
   "main": "dist/server.js",
   "type": "module",
@@ -50,7 +50,7 @@
     "@modelcontextprotocol/sdk": "^1.0.4",
     "@prmichaelsen/firebase-admin-sdk-v8": "^2.2.0",
     "@prmichaelsen/mcp-auth": "^7.0.4",
-    "@prmichaelsen/remember-core": "^0.16.0",
+    "@prmichaelsen/remember-core": "^0.16.13",
     "@prmichaelsen/remember-mcp": "^2.7.3",
     "dotenv": "^16.4.5",
     "uuid": "^13.0.0",
