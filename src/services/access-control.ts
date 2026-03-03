@@ -16,7 +16,7 @@ import type { Memory } from '../types/memory.js';
 import type { AccessResult } from '../types/access-result.js';
 import type { GhostConfig } from '../types/ghost-config.js';
 import { DEFAULT_GHOST_CONFIG } from '../types/ghost-config.js';
-import { isTrustSufficient } from './trust-enforcement.js';
+import { isTrustSufficient } from '@prmichaelsen/remember-core';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 

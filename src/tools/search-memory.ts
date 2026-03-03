@@ -7,8 +7,7 @@ import type { Memory, Relationship, SearchOptions, SearchResult, SearchFilters }
 import { getMemoryCollection } from '../weaviate/schema.js';
 import { logger } from '../utils/logger.js';
 import { handleToolError } from '../utils/error-handler.js';
-import { buildCombinedSearchFilters, buildMemoryOnlyFilters, buildDeletedFilter, combineFiltersWithAnd } from '../utils/weaviate-filters.js';
-import { buildTrustFilter } from '../services/trust-enforcement.js';
+import { buildCombinedSearchFilters, buildMemoryOnlyFilters, buildDeletedFilter, combineFiltersWithAnd, buildTrustFilter } from '@prmichaelsen/remember-core';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 
