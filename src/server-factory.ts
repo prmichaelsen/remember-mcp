@@ -178,7 +178,7 @@ export async function createServer(
     const { getGhostConfig } = await import('./services/ghost-config.service.js');
     const { resolveAccessorTrustLevel } = await import('./services/access-control.js');
     const ghostConfig = await getGhostConfig(options.ghostMode.owner_user_id);
-    const trustLevel = resolveAccessorTrustLevel(ghostConfig, options.ghostMode.accessor_user_id);
+    const trustLevel = await resolveAccessorTrustLevel(ghostConfig, options.ghostMode.owner_user_id, options.ghostMode.accessor_user_id);
     resolvedGhostMode = {
       owner_user_id: options.ghostMode.owner_user_id,
       accessor_user_id: options.ghostMode.accessor_user_id,

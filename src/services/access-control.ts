@@ -164,7 +164,7 @@ export async function checkMemoryAccess(
   }
 
   // 5. Check trust level
-  const accessorTrust = resolveAccessorTrustLevel(ghostConfig, accessorUserId);
+  const accessorTrust = await resolveAccessorTrustLevel(ghostConfig, ownerUserId, accessorUserId);
   const memoryTrust = memory.trust;
 
   if (!isTrustSufficient(memoryTrust, accessorTrust)) {
@@ -250,20 +250,70 @@ export async function resetBlock(
 /**
  * Resolve the trust level for an accessor from GhostConfig.
  *
- * Priority: per_user_trust → default_friend_trust → default_public_trust → 0
+ * Priority: per_user_trust → default_friend_trust (if friends) → default_public_trust → 0
  *
- * Note: "friend" vs "public" distinction will be determined by the calling
- * context in M16 (friend list, social graph). For now, non-per_user accessors
- * fall through to default_public_trust.
+ * Checks Firestore relationships collection to determine friend status.
  */
-export function resolveAccessorTrustLevel(ghostConfig: GhostConfig, accessorUserId: string): number {
+export async function resolveAccessorTrustLevel(
+  ghostConfig: GhostConfig,
+  ownerUserId: string,
+  accessorUserId: string
+): Promise<number> {
   // 1. Per-user override
   if (accessorUserId in ghostConfig.per_user_trust) {
     return ghostConfig.per_user_trust[accessorUserId];
   }
 
-  // 2. Fall through to public trust (friend detection deferred to M16)
+  // 2. Check if accessor is a friend
+  const isFriend = await checkIfFriend(ownerUserId, accessorUserId);
+
+  if (isFriend) {
+    return ghostConfig.default_friend_trust ?? 0.25;
+  }
+
+  // 3. Fall through to public trust
   return ghostConfig.default_public_trust ?? 0;
+}
+
+/**
+ * Check if accessor is a friend of owner by querying relationships collection.
+ */
+async function checkIfFriend(ownerUserId: string, accessorUserId: string): Promise<boolean> {
+  try {
+    const { queryDocuments } = await import('../firestore/init.js');
+    const BASE = process.env.FIRESTORE_BASE_PATH || 'agentbase';
+
+    // Query relationships collection for friendship
+    // Check both directions: owner→accessor and accessor→owner
+    const results = await queryDocuments(`${BASE}.relationships`, {
+      where: [
+        { field: 'from_user_id', op: '==', value: ownerUserId },
+        { field: 'to_user_id', op: '==', value: accessorUserId },
+        { field: 'friend', op: '==', value: true },
+      ],
+      limit: 1,
+    });
+
+    if (results.length > 0) {
+      return true;
+    }
+
+    // Check reverse direction
+    const reverseResults = await queryDocuments(`${BASE}.relationships`, {
+      where: [
+        { field: 'from_user_id', op: '==', value: accessorUserId },
+        { field: 'to_user_id', op: '==', value: ownerUserId },
+        { field: 'friend', op: '==', value: true },
+      ],
+      limit: 1,
+    });
+
+    return reverseResults.length > 0;
+  } catch (error) {
+    console.error('[checkIfFriend] Error checking friend status:', error);
+    // On error, treat as not friends (safer default)
+    return false;
+  }
 }
 
 // ─── Message Formatting ───────────────────────────────────────────────────

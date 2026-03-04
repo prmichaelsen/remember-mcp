@@ -207,36 +207,36 @@ describe('checkMemoryAccess', () => {
 // ─── resolveAccessorTrustLevel ─────────────────────────────────────────────
 
 describe('resolveAccessorTrustLevel', () => {
-  it('returns per_user_trust when set', () => {
+  it('returns per_user_trust when set', async () => {
     const config = createEnabledGhostConfig({ per_user_trust: { 'alice': 0.9 } });
-    expect(resolveAccessorTrustLevel(config, 'alice')).toBe(0.9);
+    expect(await resolveAccessorTrustLevel(config, 'owner', 'alice')).toBe(0.9);
   });
 
-  it('falls through to default_public_trust when no per_user_trust', () => {
+  it('falls through to default_public_trust when no per_user_trust', async () => {
     const config = createEnabledGhostConfig({ default_public_trust: 0.3 });
-    expect(resolveAccessorTrustLevel(config, 'stranger')).toBe(0.3);
+    expect(await resolveAccessorTrustLevel(config, 'owner', 'stranger')).toBe(0.3);
   });
 
-  it('returns 0 when default_public_trust not set', () => {
+  it('returns 0 when default_public_trust not set', async () => {
     const config = createEnabledGhostConfig({ default_public_trust: 0 });
-    expect(resolveAccessorTrustLevel(config, 'unknown')).toBe(0);
+    expect(await resolveAccessorTrustLevel(config, 'owner', 'unknown')).toBe(0);
   });
 
-  it('per_user_trust takes priority over default', () => {
+  it('per_user_trust takes priority over default', async () => {
     const config = createEnabledGhostConfig({
       default_public_trust: 0.1,
       per_user_trust: { 'bob': 0.8 },
     });
-    expect(resolveAccessorTrustLevel(config, 'bob')).toBe(0.8);
-    expect(resolveAccessorTrustLevel(config, 'carol')).toBe(0.1);
+    expect(await resolveAccessorTrustLevel(config, 'owner', 'bob')).toBe(0.8);
+    expect(await resolveAccessorTrustLevel(config, 'owner', 'carol')).toBe(0.1);
   });
 
-  it('per_user_trust of 0 is used (not falsy fallthrough)', () => {
+  it('per_user_trust of 0 is used (not falsy fallthrough)', async () => {
     const config = createEnabledGhostConfig({
       default_public_trust: 0.5,
       per_user_trust: { 'restricted': 0 },
     });
-    expect(resolveAccessorTrustLevel(config, 'restricted')).toBe(0);
+    expect(await resolveAccessorTrustLevel(config, 'owner', 'restricted')).toBe(0);
   });
 });
 
