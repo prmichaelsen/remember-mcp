@@ -275,40 +275,56 @@ export async function resolveAccessorTrustLevel(
   return ghostConfig.default_public_trust ?? 0;
 }
 
+// ─── Friend Cache ─────────────────────────────────────────────────────────
+
+/** TTL cache for friend status lookups (avoids redundant Firestore reads) */
+const friendCache = new Map<string, { result: boolean; expiresAt: number }>();
+const FRIEND_CACHE_TTL_MS = 60_000; // 60 seconds
+
+/** Clear the friend status cache (for tests or forced refresh) */
+export function invalidateFriendCache(): void {
+  friendCache.clear();
+}
+
 /**
  * Check if accessor is a friend of owner by querying relationships collection.
+ * Results are cached for 60 seconds per user pair.
  */
 async function checkIfFriend(ownerUserId: string, accessorUserId: string): Promise<boolean> {
+  // Check cache first (sorted key so a:b and b:a hit the same entry)
+  const cacheKey = [ownerUserId, accessorUserId].sort().join(':');
+  const cached = friendCache.get(cacheKey);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.result;
+  }
+
   try {
     const { queryDocuments } = await import('../firestore/init.js');
     const BASE = process.env.FIRESTORE_BASE_PATH || 'agentbase';
 
-    // Query relationships collection for friendship
-    // Check both directions: owner→accessor and accessor→owner
-    const results = await queryDocuments(`${BASE}.relationships`, {
-      where: [
-        { field: 'from_user_id', op: '==', value: ownerUserId },
-        { field: 'to_user_id', op: '==', value: accessorUserId },
-        { field: 'friend', op: '==', value: true },
-      ],
-      limit: 1,
-    });
+    // Run both direction queries in parallel
+    const [forward, reverse] = await Promise.all([
+      queryDocuments(`${BASE}.relationships`, {
+        where: [
+          { field: 'from_user_id', op: '==', value: ownerUserId },
+          { field: 'to_user_id', op: '==', value: accessorUserId },
+          { field: 'friend', op: '==', value: true },
+        ],
+        limit: 1,
+      }),
+      queryDocuments(`${BASE}.relationships`, {
+        where: [
+          { field: 'from_user_id', op: '==', value: accessorUserId },
+          { field: 'to_user_id', op: '==', value: ownerUserId },
+          { field: 'friend', op: '==', value: true },
+        ],
+        limit: 1,
+      }),
+    ]);
 
-    if (results.length > 0) {
-      return true;
-    }
-
-    // Check reverse direction
-    const reverseResults = await queryDocuments(`${BASE}.relationships`, {
-      where: [
-        { field: 'from_user_id', op: '==', value: accessorUserId },
-        { field: 'to_user_id', op: '==', value: ownerUserId },
-        { field: 'friend', op: '==', value: true },
-      ],
-      limit: 1,
-    });
-
-    return reverseResults.length > 0;
+    const result = forward.length > 0 || reverse.length > 0;
+    friendCache.set(cacheKey, { result, expiresAt: Date.now() + FRIEND_CACHE_TTL_MS });
+    return result;
   } catch (error) {
     console.error('[checkIfFriend] Error checking friend status:', error);
     // On error, treat as not friends (safer default)

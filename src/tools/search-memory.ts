@@ -181,10 +181,11 @@ export async function handleSearchMemory(
     // Combine deleted filter, trust filter, ghost exclusion, and search filters
     const combinedFilters = combineFiltersWithAnd([deletedFilter, trustFilter, ghostExclusionFilter, searchFilters].filter(f => f !== null));
 
-    // Build search options
+    // Build search options (native offset handled by Weaviate)
     const searchOptions: any = {
       alpha: alpha,
-      limit: limit + offset, // Get extra for offset
+      limit: limit,
+      offset: offset,
     };
 
     // Add filters if present
@@ -203,14 +204,11 @@ export async function handleSearchMemory(
     // Perform hybrid search with Weaviate v3 API
     const results = await collection.query.hybrid(args.query, searchOptions);
 
-    // Apply offset
-    const paginatedResults = results.objects.slice(offset);
-
     // Separate memories and relationships
     const memories: Partial<Memory>[] = [];
     const relationships: Partial<Relationship>[] = [];
 
-    for (const obj of paginatedResults) {
+    for (const obj of results.objects) {
       const doc: any = {
         id: obj.uuid,
         ...obj.properties,

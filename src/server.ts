@@ -57,9 +57,11 @@ async function initServer(): Promise<Server> {
   await initWeaviateClient();
   initFirestore();
 
-  // Test connections
-  const weaviateOk = await testWeaviateConnection();
-  const firestoreOk = await testFirestoreConnection();
+  // Test connections in parallel
+  const [weaviateOk, firestoreOk] = await Promise.all([
+    testWeaviateConnection(),
+    testFirestoreConnection(),
+  ]);
 
   if (!weaviateOk || !firestoreOk) {
     throw new Error('Database connection failed');

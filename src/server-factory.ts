@@ -45,6 +45,10 @@ import { querySpaceTool, handleQuerySpace } from './tools/query-space.js';
 import { moderateTool, handleModerate } from './tools/moderate.js';
 import { ghostConfigTool, handleGhostConfig } from './tools/ghost-config.js';
 
+// Import services (static — avoids dynamic import overhead on hot path)
+import { getGhostConfig } from './services/ghost-config.service.js';
+import { resolveAccessorTrustLevel } from './services/access-control.js';
+
 export interface ServerOptions {
   name?: string;
   version?: string;
@@ -175,8 +179,6 @@ export async function createServer(
   // Resolve ghost mode trust level from Firestore if ghost mode is configured
   let resolvedGhostMode: import('./types/auth.js').GhostModeContext | undefined;
   if (options.ghostMode) {
-    const { getGhostConfig } = await import('./services/ghost-config.service.js');
-    const { resolveAccessorTrustLevel } = await import('./services/access-control.js');
     const ghostConfig = await getGhostConfig(options.ghostMode.owner_user_id);
     const trustLevel = await resolveAccessorTrustLevel(ghostConfig, options.ghostMode.owner_user_id, options.ghostMode.accessor_user_id);
     resolvedGhostMode = {

@@ -15,6 +15,10 @@ import * as firestoreInit from '../firestore/init';
 jest.mock('../firestore/init', () => ({
   getDocument: jest.fn(),
   setDocument: jest.fn(),
+  FieldValue: {
+    arrayUnion: (...elements: any[]) => ({ _type: 'arrayUnion', _value: elements }),
+    arrayRemove: (...elements: any[]) => ({ _type: 'arrayRemove', _value: elements }),
+  },
 }));
 
 jest.mock('../firestore/paths', () => ({
@@ -179,8 +183,7 @@ describe('GhostConfigService', () => {
   });
 
   describe('blockUser', () => {
-    it('adds user to blocked list', async () => {
-      mockGetDocument.mockResolvedValue({ blocked_users: [] });
+    it('adds user to blocked list using FieldValue.arrayUnion', async () => {
       mockSetDocument.mockResolvedValue(undefined);
 
       await blockUser('owner-1', 'bad-user');
@@ -188,21 +191,23 @@ describe('GhostConfigService', () => {
       expect(mockSetDocument).toHaveBeenCalledWith(
         'test-remember-mcp.users/owner-1/ghost_config',
         'settings',
-        { blocked_users: ['bad-user'] },
+        { blocked_users: { _type: 'arrayUnion', _value: ['bad-user'] } },
         { merge: true }
       );
+      // No read needed — arrayUnion is idempotent
+      expect(mockGetDocument).not.toHaveBeenCalled();
     });
 
-    it('does not duplicate already blocked user', async () => {
-      mockGetDocument.mockResolvedValue({ blocked_users: ['bad-user'] });
+    it('does not duplicate already blocked user (arrayUnion is idempotent)', async () => {
+      mockSetDocument.mockResolvedValue(undefined);
 
       await blockUser('owner-1', 'bad-user');
 
-      expect(mockSetDocument).not.toHaveBeenCalled();
+      // arrayUnion handles dedup atomically — always writes
+      expect(mockSetDocument).toHaveBeenCalledTimes(1);
     });
 
-    it('preserves existing blocked users', async () => {
-      mockGetDocument.mockResolvedValue({ blocked_users: ['user-a'] });
+    it('preserves existing blocked users (arrayUnion appends atomically)', async () => {
       mockSetDocument.mockResolvedValue(undefined);
 
       await blockUser('owner-1', 'user-b');
@@ -210,15 +215,14 @@ describe('GhostConfigService', () => {
       expect(mockSetDocument).toHaveBeenCalledWith(
         'test-remember-mcp.users/owner-1/ghost_config',
         'settings',
-        { blocked_users: ['user-a', 'user-b'] },
+        { blocked_users: { _type: 'arrayUnion', _value: ['user-b'] } },
         { merge: true }
       );
     });
   });
 
   describe('unblockUser', () => {
-    it('removes user from blocked list', async () => {
-      mockGetDocument.mockResolvedValue({ blocked_users: ['bad-user', 'other'] });
+    it('removes user from blocked list using FieldValue.arrayRemove', async () => {
       mockSetDocument.mockResolvedValue(undefined);
 
       await unblockUser('owner-1', 'bad-user');
@@ -226,17 +230,20 @@ describe('GhostConfigService', () => {
       expect(mockSetDocument).toHaveBeenCalledWith(
         'test-remember-mcp.users/owner-1/ghost_config',
         'settings',
-        { blocked_users: ['other'] },
+        { blocked_users: { _type: 'arrayRemove', _value: ['bad-user'] } },
         { merge: true }
       );
+      // No read needed — arrayRemove is safe if element not present
+      expect(mockGetDocument).not.toHaveBeenCalled();
     });
 
-    it('does nothing if user not blocked', async () => {
-      mockGetDocument.mockResolvedValue({ blocked_users: [] });
+    it('is safe when user not blocked (arrayRemove is idempotent)', async () => {
+      mockSetDocument.mockResolvedValue(undefined);
 
       await unblockUser('owner-1', 'not-blocked');
 
-      expect(mockSetDocument).not.toHaveBeenCalled();
+      // arrayRemove always writes — safe no-op if element not present
+      expect(mockSetDocument).toHaveBeenCalledTimes(1);
     });
   });
 

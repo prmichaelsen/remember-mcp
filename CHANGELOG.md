@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.14.14] - 2026-03-04
+
+### Changed
+
+- Parallelize `checkIfFriend` Firestore queries with `Promise.all` (task-77)
+- Add 60-second TTL cache to `checkIfFriend` for friend status lookups (task-78)
+- Memoize `createCoreServices` per userId to avoid per-request service instantiation (task-79)
+- Parallelize startup health checks (`testWeaviateConnection` + `testFirestoreConnection`) (task-80)
+- Optimize `blockUser`/`unblockUser` with `FieldValue.arrayUnion`/`arrayRemove` — eliminates read RPC (task-81)
+- Use native Weaviate `offset` parameter in `search-memory` instead of JS `slice()` (task-82)
+- Convert dynamic `import()` to static imports for ghost-config and access-control in server-factory (task-84)
+
 ## [3.14.13] - 2026-03-04
 
 ### Fixed

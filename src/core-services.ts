@@ -30,21 +30,35 @@ const coreLogger: Logger = createLogger('info');
 const tokenService = new ConfirmationTokenService(coreLogger);
 const preferencesService = new PreferencesDatabaseService(coreLogger);
 
+/** Cached CoreServices per userId — avoids re-instantiation on every tool call */
+const coreServicesCache = new Map<string, CoreServices>();
+
 /**
- * Create core services scoped to a specific user.
+ * Create (or return cached) core services scoped to a specific user.
  * Call after databases have been initialized (initWeaviateClient + initFirestore).
  */
 export function createCoreServices(userId: string): CoreServices {
+  const cached = coreServicesCache.get(userId);
+  if (cached) return cached;
+
   const collection = getMemoryCollection(userId);
   const weaviateClient = getWeaviateClient();
 
-  return {
+  const services: CoreServices = {
     memory: new MemoryService(collection, userId, coreLogger),
     relationship: new RelationshipService(collection, userId, coreLogger),
     space: new SpaceService(weaviateClient, collection, userId, tokenService, coreLogger),
     preferences: preferencesService,
     token: tokenService,
   };
+
+  coreServicesCache.set(userId, services);
+  return services;
+}
+
+/** Clear the core services cache (for tests or forced refresh) */
+export function invalidateCoreServicesCache(): void {
+  coreServicesCache.clear();
 }
 
 export { coreLogger, tokenService, preferencesService };

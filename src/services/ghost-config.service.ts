@@ -9,7 +9,7 @@
  * See agent/design/local.ghost-persona-system.md
  */
 
-import { getDocument, setDocument } from '../firestore/init.js';
+import { getDocument, setDocument, FieldValue } from '../firestore/init.js';
 import { BASE } from '../firestore/paths.js';
 import { logger } from '../utils/logger.js';
 import type { GhostConfig, TrustEnforcementMode } from '../types/ghost-config.js';
@@ -121,19 +121,16 @@ export async function removeUserTrust(
 
 /**
  * Block a user from ghost access.
+ * Uses FieldValue.arrayUnion for atomic add without reading first (idempotent).
  */
 export async function blockUser(
   ownerUserId: string,
   targetUserId: string
 ): Promise<void> {
-  const current = await getGhostConfig(ownerUserId);
-  if (current.blocked_users.includes(targetUserId)) {
-    return; // already blocked
-  }
-
-  const blocked_users = [...current.blocked_users, targetUserId];
   const { collectionPath, docId } = getGhostConfigPath(ownerUserId);
-  await setDocument(collectionPath, docId, { blocked_users }, { merge: true });
+  await setDocument(collectionPath, docId, {
+    blocked_users: FieldValue.arrayUnion(targetUserId),
+  }, { merge: true });
 
   logger.info('User blocked from ghost access', {
     service: SERVICE,
@@ -144,19 +141,16 @@ export async function blockUser(
 
 /**
  * Unblock a user from ghost access.
+ * Uses FieldValue.arrayRemove for atomic remove without reading first (safe if not present).
  */
 export async function unblockUser(
   ownerUserId: string,
   targetUserId: string
 ): Promise<void> {
-  const current = await getGhostConfig(ownerUserId);
-  if (!current.blocked_users.includes(targetUserId)) {
-    return; // not blocked
-  }
-
-  const blocked_users = current.blocked_users.filter(id => id !== targetUserId);
   const { collectionPath, docId } = getGhostConfigPath(ownerUserId);
-  await setDocument(collectionPath, docId, { blocked_users }, { merge: true });
+  await setDocument(collectionPath, docId, {
+    blocked_users: FieldValue.arrayRemove(targetUserId),
+  }, { merge: true });
 
   logger.info('User unblocked from ghost access', {
     service: SERVICE,
