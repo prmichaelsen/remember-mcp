@@ -1,0 +1,48 @@
+name: Bump remember-core
+
+on:
+  repository_dispatch:
+    types: [dependency-update]
+
+jobs:
+  bump:
+    if: github.event.client_payload.package == '@prmichaelsen/remember-core'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: mainline
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Bump remember-core
+        run: npm install @prmichaelsen/remember-core@${{ github.event.client_payload.version }} --save
+
+      - name: Bump package version
+        id: bump
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          NEW=$(echo "$CURRENT" | awk -F. '{print $1"."$2"."$3+1}')
+          npm version "$NEW" --no-git-tag-version
+          echo "version=$NEW" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "bump: remember core"
+          git commit --allow-empty -m "${{ steps.bump.outputs.version }}"
+          git tag "v${{ steps.bump.outputs.version }}"
+          git push --follow-tags
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Summary
+        run: echo "Bumped remember-core to ${{ github.event.client_payload.version }}, published remember-mcp@${{ steps.bump.outputs.version }}"

@@ -1070,11 +1070,21 @@ tasks:
       notes: |
         Static imports for ghost-config and access-control
 
+  unassigned:
+    - id: task-201
+      name: Auto-bump remember-core via GitHub Actions
+      status: not_started
+      file: agent/tasks/unassigned/task-201-auto-bump-remember-core-ci.md
+      estimated_hours: 2
+      notes: |
+        Set up repository_dispatch CI/CD: remember-core publish triggers remember-mcp bump + publish.
+        Draft workflow files already created in both repos (not yet committed).
+
 documentation:
   design_documents: 31
   milestone_documents: 14
   pattern_documents: 7
-  task_documents: 91
+  task_documents: 92
 
 progress:
   planning: 100%
