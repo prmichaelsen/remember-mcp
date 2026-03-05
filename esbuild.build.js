@@ -13,7 +13,10 @@ await esbuild.build({
   external: [
     'weaviate-client',
     '@prmichaelsen/firebase-admin-sdk-v8',
-    '@modelcontextprotocol/sdk'
+    '@modelcontextprotocol/sdk',
+    'unpdf',
+    'mammoth',
+    'turndown',
   ],
   banner: {
     js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);"
@@ -35,7 +38,10 @@ await esbuild.build({
   external: [
     'weaviate-client',
     '@prmichaelsen/firebase-admin-sdk-v8',
-    '@modelcontextprotocol/sdk'
+    '@modelcontextprotocol/sdk',
+    'unpdf',
+    'mammoth',
+    'turndown',
   ],
   banner: {
     js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);"
