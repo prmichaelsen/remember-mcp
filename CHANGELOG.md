@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.14.21] - 2026-03-06
+
+### Added
+
+- Wire LLM auto-moderation into SpaceService publish/revise flow (task-202)
+- Create singleton `ModerationClient` from `ANTHROPIC_API_KEY` env var when present
+- Content published to spaces is now screened by Claude Haiku before storage
+
 ## [3.14.14] - 2026-03-04
 
 ### Changed

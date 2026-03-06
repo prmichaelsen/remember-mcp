@@ -246,10 +246,10 @@ milestones:
     status: completed
     progress: 100%
     started: 2026-02-27
-    completed: 2026-02-27
+    completed: 2026-03-06
     estimated_weeks: 2
-    tasks_completed: 6
-    tasks_total: 6
+    tasks_completed: 7
+    tasks_total: 7
     notes: |
       ✅ Content moderation lifecycle and per-space/group behavioral config.
       ✅ Design: agent/design/local.moderation-and-space-config.md (Implemented)
@@ -701,6 +701,19 @@ tasks:
       notes: |
         ✅ CHANGELOG, design doc status, version bump 3.9.0→3.10.0
         📋 Verify all tests pass
+
+    - id: task-202
+      name: Wire LLM Moderation Client to SpaceService
+      status: completed
+      completed_date: 2026-03-06
+      file: agent/tasks/milestone-15-moderation-space-config/task-202-wire-llm-moderation-client.md
+      estimated_hours: 0.5
+      actual_hours: 0.25
+      dependencies: [task-179]
+      notes: |
+        📋 Connect createModerationClient (remember-core) to SpaceService in core-services.ts
+        📋 Auto-create when ANTHROPIC_API_KEY env var is present
+        📋 ~5 lines of code change
 
   milestone_7:
     - id: task-180
