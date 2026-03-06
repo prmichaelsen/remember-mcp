@@ -7,6 +7,7 @@
 
 import {
   MemoryService,
+  MemoryIndexService,
   RelationshipService,
   SpaceService,
   PreferencesDatabaseService,
@@ -33,6 +34,7 @@ const preferencesService = new PreferencesDatabaseService(coreLogger);
 const moderationClient: ModerationClient | undefined = process.env.ANTHROPIC_API_KEY
   ? createModerationClient({ apiKey: process.env.ANTHROPIC_API_KEY })
   : undefined;
+const memoryIndexService = new MemoryIndexService(coreLogger);
 
 /** Cached CoreServices per userId — avoids re-instantiation on every tool call */
 const coreServicesCache = new Map<string, CoreServices>();
@@ -49,9 +51,12 @@ export function createCoreServices(userId: string): CoreServices {
   const weaviateClient = getWeaviateClient();
 
   const services: CoreServices = {
-    memory: new MemoryService(collection, userId, coreLogger),
+    memory: new MemoryService(collection, userId, coreLogger, {
+      memoryIndex: memoryIndexService,
+      weaviateClient,
+    }),
     relationship: new RelationshipService(collection, userId, coreLogger),
-    space: new SpaceService(weaviateClient, collection, userId, tokenService, coreLogger, { moderationClient }),
+    space: new SpaceService(weaviateClient, collection, userId, tokenService, coreLogger, memoryIndexService, { moderationClient }),
     preferences: preferencesService,
     token: tokenService,
   };

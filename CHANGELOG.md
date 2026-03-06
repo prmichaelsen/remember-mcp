@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.15.0] - 2026-03-06
+
+### Fixed
+
+- Wire `MemoryIndexService` into `MemoryService` and `SpaceService` (task-174)
+- All new memories and space-published memories are now indexed in Firestore lookup table
+- Enables `resolveById()` cross-collection resolution and fixes 404s on published memories
+
 ## [3.14.21] - 2026-03-06
 
 ### Added
