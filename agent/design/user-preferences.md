@@ -2,13 +2,16 @@
 
 **Concept**: User-configurable preferences for system behavior with MCP tool support
 **Created**: 2026-02-11
-**Status**: Design Specification
+**Last Updated**: 2026-03-07
+**Status**: Implemented (M4, v1.x)
 
 ---
 
 ## Overview
 
-Users should be able to configure system behavior to match their preferences. These preferences are stored per-user in Firestore and can be modified through natural conversation using the `remember_update_preferences` tool.
+Users should be able to configure system behavior to match their preferences. These preferences are stored per-user in Firestore and can be modified through natural conversation using the `remember_set_preference` tool.
+
+> **Note**: The original design used `remember_update_preferences` with dot-notation paths. The actual implementation uses `remember_set_preference` which accepts a partial `UserPreferences` object for bulk updates. See `src/tools/set-preference.ts` for the current implementation.
 
 **Key Innovation**: Agent can learn and adapt preferences through conversation without requiring UI settings changes.
 
@@ -353,7 +356,7 @@ interface SettingsPage {
 
 ---
 
-## MCP Tool: `remember_update_preferences`
+## MCP Tool: `remember_set_preference` (originally `remember_update_preferences`)
 
 ### Tool Definition
 
@@ -666,7 +669,7 @@ Result: {
 10. remember_delete_relationship
 
 **Preferences** (2 NEW):
-11. **remember_update_preferences** ← NEW
+11. **remember_set_preference** ← NEW (originally named remember_update_preferences)
 12. **remember_get_preferences** ← NEW
 
 **Templates** (optional, Phase 3):
@@ -677,7 +680,8 @@ Result: {
 
 ---
 
-**Status**: Design Specification
-**Storage**: Firestore (`user_preferences/{user_id}`)
-**Default**: Template auto-suggest enabled, user can disable via tool
+**Status**: Implemented (M4)
+**Storage**: Firestore (`users/{user_id}/preferences`)
+**Implementation**: `src/tools/set-preference.ts`, `src/tools/get-preferences.ts`
+**Actual tool name**: `remember_set_preference` (accepts partial UserPreferences object)
 **Key Innovation**: Preferences manageable through natural conversation

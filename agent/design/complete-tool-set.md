@@ -1,12 +1,13 @@
 # Complete Remember-MCP Tool Set
 
-**Project**: remember-mcp  
-**Created**: 2026-02-11  
-**Status**: Final Specification
+**Project**: remember-mcp
+**Created**: 2026-02-11
+**Last Updated**: 2026-03-07
+**Status**: Implemented (v3.15.4)
 
 ---
 
-## Complete Tool Set (18 Tools)
+## Implemented Tool Set (21 Tools)
 
 ### Core Memory Operations (6 tools)
 
@@ -14,380 +15,302 @@
 Create a new memory with optional template
 
 **Parameters**:
-- `content`: Memory content (string or structured object)
-- `template_id`: Optional template to use
-- `type`: Content type (inventory, note, event, etc.)
-- `weight`: Significance (0-1, default from preferences)
-- `trust`: Access control (0-1, default from preferences)
+- `content` (required): Memory content
+- `title`: Optional title
+- `type`: Content type (45+ types)
+- `weight`: Significance (0-1)
+- `trust`: Access control (0-1)
 - `tags`: Array of tags
 - `references`: Array of source URLs
-- `skip_template_suggestion`: Boolean to skip auto-suggestion
+- `template_id`: Optional template
+- `parent_id`: For comment threading
+- `thread_root_id`: Thread root reference
+- `moderation_flags`: Per-space moderation
 
-**Returns**: Memory ID or template suggestion
+**Returns**: CreateMemoryResult with memory_id, created_at, message
 
 ---
 
 #### 2. `remember_update_memory`
-Update an existing memory
+Update an existing memory with partial updates
 
 **Parameters**:
-- `memory_id`: ID of memory to update
-- `updates`: Partial memory object with fields to update
-- `reason`: Optional reason for update (for history)
+- `memory_id` (required): ID of memory to update
+- `content`, `title`, `type`, `weight`, `trust`, `tags`, `references`, `parent_id`, `thread_root_id`: Fields to update
 
-**Returns**: Updated memory
+**Returns**: UpdateMemoryResult with updated_at, version, updated_fields
 
 ---
 
 #### 3. `remember_delete_memory`
-Delete a memory
+Request to delete a memory (two-phase: generates token, requires `remember_confirm`)
 
 **Parameters**:
-- `memory_id`: ID of memory to delete
-- `delete_relationships`: Boolean - also delete connected relationships?
+- `memory_id` (required): ID of memory to delete
+- `reason`: Optional reason
 
-**Returns**: Confirmation
+**Returns**: Token for confirmation, expires_at (5 minutes)
 
 ---
 
 #### 4. `remember_search_memory`
-Hybrid search for memories
+Hybrid semantic + keyword search for memories and relationships
 
 **Parameters**:
-- `query`: Search query string
-- `alpha`: Balance between semantic (1.0) and keyword (0.0), default from preferences
-- `filters`: Content type, tags, date range, weight threshold, trust level, location
-- `include_relationships`: Boolean - include relationships in results
-- `limit`: Max results (default from preferences)
-- `offset`: Pagination offset
+- `query` (required): Search query
+- `alpha`: Balance semantic (1.0) vs keyword (0.0), default 0.7
+- `limit`, `offset`: Pagination
+- `filters`: Content type, tags, weight, trust, date range
+- `include_relationships`: Include relationships (default true)
+- `deleted_filter`: "exclude" | "include" | "only" (default "exclude")
 
-**Returns**: Array of memories (and optionally relationships)
+**Returns**: SearchResult with memories array, relationships array, total count
 
 ---
 
 #### 5. `remember_find_similar`
-Find memories similar to a reference memory
+Find memories similar to a given memory or text using vector similarity
 
 **Parameters**:
-- `reference_id`: Memory ID to find similar to
-- `similarity_threshold`: Minimum similarity (0-1)
-- `limit`: Max results
-- `filters`: Optional filters
+- `memory_id` OR `text` (at least one required)
+- `limit`: Default 10
+- `min_similarity`: Default 0.7
+- `include_relationships`: Default false
+- `deleted_filter`: "exclude" | "include" | "only"
 
-**Returns**: Array of similar memories with similarity scores
+**Returns**: FindSimilarResult with similar_memories array, total count
 
 ---
 
 #### 6. `remember_query_memory`
-RAG + GraphQL queries for complex questions
+RAG-optimized natural language queries (pure semantic search)
 
 **Parameters**:
-- `question`: Natural language question
-- `max_sources`: Max memories to use for context
-- `filters`: Optional filters
-- `include_relationships`: Boolean - include relationship context
+- `query` (required): Natural language question
+- `limit`: Default 5
+- `min_relevance`: Default 0.6
+- `filters`: Content type, tags, weight, trust, date
+- `include_context`: Boolean
+- `format`: 'detailed' | 'compact'
+- `deleted_filter`: "exclude" | "include" | "only"
 
-**Returns**: AI-generated answer with source citations
+**Returns**: QueryMemoryResult with memories array, total count, context_summary
 
 ---
 
 ### Relationship Operations (4 tools)
 
 #### 7. `remember_create_relationship`
-Create a relationship between memories
+Create a relationship connecting 2 or more memories
 
 **Parameters**:
-- `memory_ids`: Array of 2...N memory IDs to connect
-- `relationship_type`: Free-form string (e.g., "inspired_by", "contradicts")
-- `observation`: Description of the connection
-- `strength`: Relationship strength (0-1)
-- `confidence`: Confidence in relationship (0-1)
+- `memory_ids` (required): Array of 2+ memory IDs
+- `relationship_type` (required): Free-form string
+- `observation` (required): Description of the connection
+- `strength`: 0-1, default 0.5
+- `confidence`: 0-1, default 0.8
+- `tags`: Array of tags
 
-**Returns**: Relationship ID
+**Returns**: CreateRelationshipResult with relationship_id, memory_ids, created_at
 
 ---
 
 #### 8. `remember_update_relationship`
-Update an existing relationship
+Update an existing relationship with partial updates
 
 **Parameters**:
-- `relationship_id`: ID of relationship to update
-- `updates`: Partial relationship object
-- `reason`: Optional reason for update
+- `relationship_id` (required)
+- `relationship_type`, `observation`, `strength`, `confidence`, `tags`: Fields to update
 
-**Returns**: Updated relationship
+**Returns**: UpdateRelationshipResult with relationship_id, updated_at, version, updated_fields
 
 ---
 
 #### 9. `remember_search_relationship`
-Search relationships by observation or type
+Search relationships by observation text or type
 
 **Parameters**:
-- `query`: Search query (searches observation text)
-- `memory_id`: Optional - filter to relationships involving this memory
-- `relationship_type`: Optional - filter by type
-- `limit`: Max results
+- `query` (required): Searches observation text
+- `relationship_types`: Filter by type(s)
+- `strength_min`, `confidence_min`: Thresholds
+- `tags`: Filter by tags
+- `limit`: Default 10
+- `offset`: Pagination
+- `deleted_filter`: "exclude" | "include" | "only"
 
-**Returns**: Array of relationships
+**Returns**: SearchRelationshipResult with relationships array, total, offset, limit
 
 ---
 
 #### 10. `remember_delete_relationship`
-Delete a relationship
+Delete a relationship and clean up references in connected memories
 
 **Parameters**:
-- `relationship_id`: ID of relationship to delete
-- `update_memories`: Boolean - remove relationship ID from connected memories?
+- `relationship_id` (required)
 
-**Returns**: Confirmation
+**Returns**: DeleteRelationshipResult with relationship_id, deleted, memories_updated count
 
 ---
 
 ### Preference Management (2 tools)
 
-#### 11. `remember_update_preferences`
-Update user preferences through conversation
+#### 11. `remember_set_preference`
+Update user preferences for system behavior
 
 **Parameters**:
-- `preference_path`: Dot-notation path (e.g., "templates.auto_suggest")
-- `value`: New value (boolean, number, string, or array)
-- `reason`: Optional reason for change
+- `preferences` (required): Partial UserPreferences object (merged with existing)
 
-**Returns**: Old value, new value, confirmation message
-
-**Examples**:
-- "Stop suggesting templates" → `{ preference_path: "templates.auto_suggest", value: false }`
-- "Show 20 results" → `{ preference_path: "search.default_limit", value: 20 }`
+**Returns**: SetPreferenceResult with success, updated_preferences, message
 
 ---
 
 #### 12. `remember_get_preferences`
-Get current user preferences
+Get current user preferences (with defaults if not set)
 
 **Parameters**:
-- `category`: Optional filter (templates, search, privacy, etc.)
+- `category`: Optional filter (templates, search, location, privacy, notifications, display)
 
-**Returns**: User preferences object or filtered by category
+**Returns**: GetPreferencesResult with preferences object, is_default flag, message
 
 ---
 
-### Template Management (5 tools - Optional, Phase 3)
+### Space/Sharing Tools (7 tools) — Two-Phase Confirmation Workflow
 
-#### 13. `remember_create_template`
-Create a custom template
+#### 13. `remember_publish`
+Publish a memory to shared spaces and/or groups (phase 1 - generates token)
 
 **Parameters**:
-- `template_name`: Name of template
-- `description`: What template is for
-- `fields`: Array of field definitions
-- `trigger_keywords`: Keywords that suggest this template
-- `auto_apply`: Boolean - auto-suggest this template
+- `memory_id` (required)
+- `spaces`: Array of space names (default ['the_void'])
+- `groups`: Array of group IDs
+- `additional_tags`: Extra tags for published copy
 
-**Returns**: Template ID
+**Returns**: Token for `remember_confirm`
 
 ---
 
-#### 14. `remember_list_templates`
-List available templates
+#### 14. `remember_retract`
+Retract a memory from specific shared spaces and/or groups (phase 1)
 
 **Parameters**:
-- `include_default`: Boolean - include default templates
-- `include_user`: Boolean - include user's custom templates
-- `category`: Optional category filter
-- `sort_by`: popularity, name, recent
+- `memory_id` (required)
+- `spaces`: Array of space names
+- `groups`: Array of group IDs
 
-**Returns**: Array of templates
+**Returns**: Token for confirmation
 
 ---
 
-#### 15. `remember_get_template`
-Get template details
+#### 15. `remember_revise`
+Sync updated content from source memory to all published copies (phase 1)
 
 **Parameters**:
-- `template_id`: Template ID
+- `memory_id` (required)
 
-**Returns**: Full template definition
+**Returns**: Token for confirmation (preserves revision history, up to 10 versions)
 
 ---
 
-#### 16. `remember_update_template`
-Update a user template
+#### 16. `remember_confirm`
+Confirm and execute a pending action using the token (phase 2)
 
 **Parameters**:
-- `template_id`: Template ID (must be user's template)
-- `updates`: Partial template object
+- `token` (required)
 
-**Returns**: Updated template
+**Returns**: Action-specific response (publish/retract/revise/delete_memory)
+
+**Critical**: Must be called AFTER explicit user confirmation in a separate message
 
 ---
 
-#### 17. `remember_delete_template`
-Delete a user template
+#### 17. `remember_deny`
+Deny a pending action (invalidates token)
 
 **Parameters**:
-- `template_id`: Template ID (must be user's template)
+- `token` (required)
 
-**Returns**: Confirmation
+**Returns**: success flag
 
 ---
 
-### Permission Management (1 tool - Phase 2)
-
-#### 18. `remember_grant_access`
-Grant another user access to your memories
+#### 18. `remember_search_space`
+Search shared spaces and/or groups to discover memories from other users
 
 **Parameters**:
-- `accessor_user_id`: User to grant access to
-- `trust_level`: Trust level (0-1)
-- `trust_summary`: Brief explanation
-- `allowed_tags`: Optional - limit to specific tags
-- `excluded_tags`: Optional - exclude specific tags
-- `expires_at`: Optional expiration date
+- `query` (required)
+- `spaces`: Array of space names
+- `groups`: Array of group IDs
+- `search_type`: 'hybrid' | 'bm25' | 'semantic' (default 'hybrid')
+- `content_type`, `tags`, `min_weight`, `max_weight`, `date_from`, `date_to`: Filters
+- `moderation_filter`: Filter by moderation status
+- `include_comments`: Include comment memories (default false)
+- `limit`: Default 10
+- `offset`: Pagination
 
-**Returns**: Permission confirmation
-
----
-
-## Tool Organization by Phase
-
-### Phase 1: MVP (12 tools)
-
-**Memory Operations** (6):
-1. remember_create_memory
-2. remember_update_memory
-3. remember_delete_memory
-4. remember_search_memory
-5. remember_find_similar
-6. remember_query_memory
-
-**Relationship Operations** (4):
-7. remember_create_relationship
-8. remember_update_relationship
-9. remember_search_relationship
-10. remember_delete_relationship
-
-**Preferences** (2):
-11. remember_update_preferences
-12. remember_get_preferences
-
-### Phase 2: Trust & Permissions (1 tool)
-
-**Permission Management** (1):
-13. remember_grant_access
-
-### Phase 3: Templates (5 tools)
-
-**Template Management** (5):
-14. remember_create_template
-15. remember_list_templates
-16. remember_get_template
-17. remember_update_template
-18. remember_delete_template
+**Returns**: SearchSpaceResult with spaces_searched, groups_searched, memories, total
 
 ---
 
-## Additional Tools from Design Documents
-
-### Suggested Additional Tools (Optional)
-
-#### A. `remember_revoke_access`
-Revoke access from a user
+#### 19. `remember_query_space`
+RAG queries against shared spaces (semantic search)
 
 **Parameters**:
-- `accessor_user_id`: User to revoke access from
-- `reason`: Reason for revocation
+- `query` (required)
+- `spaces`: Array of space names
+- `groups`: Array of group IDs
+- `limit`, filters, `include_comments`
+
+**Returns**: QuerySpaceResult with memories and context
 
 ---
 
-#### B. `remember_list_accessors`
-List who can access your memories
+### Moderation & Configuration (2 tools)
+
+#### 20. `remember_moderate`
+Approve, reject, or remove published memories (requires can_moderate permission)
 
 **Parameters**:
-- `sort_by`: trust_level, last_accessed, granted_at
+- `memory_id` (required)
+- `space_id` OR `group_id` (one required)
+- `action` (required): 'approve' | 'reject' | 'remove'
+- `reason`: Optional
 
-**Returns**: Array of users with access and their trust levels
+**Returns**: Moderation result with success, action, moderation_status, moderated_by, moderated_at
 
 ---
 
-#### C. `remember_reset_block`
-Reset a memory block after trust violations
+#### 21. `remember_ghost_config`
+Manage ghost/persona configuration (who can interact with your ghost, at what trust level)
 
 **Parameters**:
-- `accessor_user_id`: User to unblock
-- `memory_id`: Memory to unblock
-- `reason`: Reason for reset
+- `action` (required): 'get' | 'set' | 'set_trust' | 'remove_trust' | 'block' | 'unblock'
+- `enabled`, `public_ghost_enabled`: Ghost toggles
+- `default_friend_trust`, `default_public_trust`: Default trust levels
+- `enforcement_mode`: 'query_filter' | 'prompt_filter' | 'hybrid'
+- `target_user_id`, `trust_level`: Per-user trust overrides
+
+**Trust Levels**: 0.0 (existence only), 0.25 (metadata), 0.5 (summary), 0.75 (partial), 1.0 (full)
+
+**Returns**: Action-specific responses (config object, success flags)
 
 ---
 
-#### D. `remember_get_access_logs`
-View access attempts to your memories
+## Tool Organization by Implementation Phase
 
-**Parameters**:
-- `accessor_user_id`: Optional filter
-- `memory_id`: Optional filter
-- `blocked_only`: Boolean - only show blocked attempts
-
-**Returns**: Array of access attempt logs
-
----
-
-#### E. `remember_suggest_templates`
-Explicitly request template suggestions
-
-**Parameters**:
-- `content`: Content to analyze
-- `limit`: Max suggestions
-
-**Returns**: Array of template suggestions
-
----
-
-#### F. `remember_copy_template`
-Copy a default template to customize
-
-**Parameters**:
-- `source_template_id`: Default template to copy
-- `customizations`: Optional modifications
-
-**Returns**: New user template ID
-
----
-
-#### G. `remember_validate_memory`
-Validate memory against template
-
-**Parameters**:
-- `template_id`: Template to validate against
-- `content`: Memory content to validate
-
-**Returns**: Validation result with errors
-
----
-
-## Recommended Final Tool Set
-
-### MVP (Phase 1): 12 Core Tools
+### Phase 1: MVP (12 tools) - Completed (M1-M4)
 - 6 memory operations
 - 4 relationship operations
 - 2 preference management
 
-### Phase 2: +5 Permission Tools
-- remember_grant_access
-- remember_revoke_access
-- remember_list_accessors
-- remember_reset_block
-- remember_get_access_logs
+### Phase 2: Shared Spaces & Confirmation (7 tools) - Completed (M10-M11)
+- publish, retract, revise, confirm, deny, search_space, query_space
 
-### Phase 3: +7 Template Tools
-- remember_create_template
-- remember_list_templates
-- remember_get_template
-- remember_update_template
-- remember_delete_template
-- remember_copy_template
-- remember_validate_memory
+### Phase 3: Moderation & Ghost (2 tools) - Completed (M15-M16)
+- moderate, ghost_config
 
-**Total**: 24 tools (12 MVP + 5 permissions + 7 templates)
+### Future Phases (Not Yet Implemented)
+- Template management tools (create, list, get, update, delete)
+- Additional permission tools (grant_access, revoke_access, list_accessors)
 
 ---
 
@@ -396,12 +319,13 @@ Validate memory against template
 | Phase | Tools | Total |
 |-------|-------|-------|
 | Phase 1 (MVP) | 12 | 12 |
-| Phase 2 (Permissions) | +5 | 17 |
-| Phase 3 (Templates) | +7 | 24 |
+| Phase 2 (Spaces) | +7 | 19 |
+| Phase 3 (Moderation/Ghost) | +2 | 21 |
+| Future (Templates) | +5 | 26 |
+| Future (Permissions) | +3 | 29 |
 
 ---
 
-**Status**: Final Specification  
-**MVP Tools**: 12  
-**Complete Tool Set**: 24  
+**Status**: Implemented (21 tools active)
+**Version**: 3.15.4
 **All tools support natural conversation interface**

@@ -2,11 +2,11 @@
 
 project:
   name: remember-mcp
-  version: 3.12.0
+  version: 3.15.4
   started: 2026-02-11
   status: in_progress
-  current_milestone: M17
-  last_updated: 2026-02-28
+  current_milestone: M18
+  last_updated: 2026-03-07
 
 milestones:
   - id: M1
@@ -301,7 +301,7 @@ milestones:
     
   - id: M16
     name: Ghost System
-    status: in_progress
+    status: completed
     progress: 100%
     estimated_weeks: 2
     started: 2026-02-27
@@ -1105,6 +1105,16 @@ progress:
   overall: 85%
 
 recent_work:
+  - date: 2026-03-07
+    description: Documentation Sync (@acp.sync)
+    items:
+      - Updated progress.yaml version 3.12.0 → 3.15.4
+      - Updated progress.yaml current_milestone M17 → M18
+      - Fixed M16 status in_progress → completed
+      - Rewrote complete-tool-set.md to reflect actual 21-tool implementation
+      - Updated user-preferences.md status and tool name (remember_update_preferences → remember_set_preference)
+      - All 21 tools verified against server-factory.ts implementation
+
   - date: 2026-02-28
     description: M17 remember-core Migration COMPLETED
     items:
