@@ -106,6 +106,23 @@ export const searchMemoryTool = {
             type: 'string',
             description: 'End date (ISO 8601)',
           },
+          exclude_types: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Exclude specific content types (takes precedence over types if both provided)',
+          },
+          rating_min: {
+            type: 'number',
+            description: 'Minimum Bayesian rating average',
+          },
+          relationship_count_min: {
+            type: 'number',
+            description: 'Minimum relationship count',
+          },
+          relationship_count_max: {
+            type: 'number',
+            description: 'Maximum relationship count',
+          },
         },
       },
       include_relationships: {

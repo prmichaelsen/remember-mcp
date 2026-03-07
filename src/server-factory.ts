@@ -44,6 +44,18 @@ import { searchSpaceTool, handleSearchSpace } from './tools/search-space.js';
 import { querySpaceTool, handleQuerySpace } from './tools/query-space.js';
 import { moderateTool, handleModerate } from './tools/moderate.js';
 import { ghostConfigTool, handleGhostConfig } from './tools/ghost-config.js';
+import { searchByTool, handleSearchBy } from './tools/search-by.js';
+
+// Import ghost memory tools
+import { createGhostMemoryTool, handleCreateGhostMemory } from './tools/create-ghost-memory.js';
+import { updateGhostMemoryTool, handleUpdateGhostMemory } from './tools/update-ghost-memory.js';
+import { searchGhostMemoryTool, handleSearchGhostMemory } from './tools/search-ghost-memory.js';
+import { queryGhostMemoryTool, handleQueryGhostMemory } from './tools/query-ghost-memory.js';
+import { searchGhostMemoryByTool, handleSearchGhostMemoryBy } from './tools/search-ghost-memory-by.js';
+
+// Import core introspection tools
+import { getCoreTool, handleGetCore } from './tools/get-core.js';
+import { searchSpaceByTool, handleSearchSpaceBy } from './tools/search-space-by.js';
 
 // Import services (static — avoids dynamic import overhead on hot path)
 import { getGhostConfig } from './services/ghost-config.service.js';
@@ -237,6 +249,18 @@ function registerHandlers(
         querySpaceTool,
         moderateTool,
         ghostConfigTool,
+        // Search modes
+        searchByTool,
+        // Ghost memory tools
+        createGhostMemoryTool,
+        updateGhostMemoryTool,
+        searchGhostMemoryTool,
+        queryGhostMemoryTool,
+        searchGhostMemoryByTool,
+        // Core introspection
+        getCoreTool,
+        // Space search modes
+        searchSpaceByTool,
       ],
     };
   });
@@ -335,6 +359,38 @@ function registerHandlers(
 
         case 'remember_ghost_config':
           result = await handleGhostConfig(args as any, userId, authContext);
+          break;
+
+        case 'remember_search_by':
+          result = await handleSearchBy(args as any, userId, authContext);
+          break;
+
+        case 'remember_create_ghost_memory':
+          result = await handleCreateGhostMemory(args as any, userId, authContext);
+          break;
+
+        case 'remember_update_ghost_memory':
+          result = await handleUpdateGhostMemory(args as any, userId, authContext);
+          break;
+
+        case 'remember_search_ghost_memory':
+          result = await handleSearchGhostMemory(args as any, userId, authContext);
+          break;
+
+        case 'remember_query_ghost_memory':
+          result = await handleQueryGhostMemory(args as any, userId, authContext);
+          break;
+
+        case 'remember_search_ghost_memory_by':
+          result = await handleSearchGhostMemoryBy(args as any, userId, authContext);
+          break;
+
+        case 'remember_get_core':
+          result = await handleGetCore(args as any, userId, authContext);
+          break;
+
+        case 'remember_search_space_by':
+          result = await handleSearchSpaceBy(args as any, userId, authContext);
           break;
 
         default:

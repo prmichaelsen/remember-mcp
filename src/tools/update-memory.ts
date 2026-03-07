@@ -83,6 +83,38 @@ export const updateMemoryTool = {
         items: { type: 'string' },
         description: 'Update moderation flags',
       },
+      // Emotional dimensions — manual corrections, REM re-scores authoritatively
+      // Layer 1: Discrete Emotions
+      feel_emotional_significance: { type: 'number', minimum: 0, maximum: 1, description: 'Overall emotional weight (0-1). REM re-scores.' },
+      feel_vulnerability: { type: 'number', minimum: 0, maximum: 1, description: 'Personal exposure/openness (0-1). REM re-scores.' },
+      feel_trauma: { type: 'number', minimum: 0, maximum: 1, description: 'Negative formative experience intensity (0-1). REM re-scores.' },
+      feel_humor: { type: 'number', minimum: 0, maximum: 1, description: 'Comedic/playful quality (0-1). REM re-scores.' },
+      feel_happiness: { type: 'number', minimum: 0, maximum: 1, description: 'Positive affect / joy (0-1). REM re-scores.' },
+      feel_sadness: { type: 'number', minimum: 0, maximum: 1, description: 'Negative affect / grief / loss (0-1). REM re-scores.' },
+      feel_fear: { type: 'number', minimum: 0, maximum: 1, description: 'Threat perception / anxiety (0-1). REM re-scores.' },
+      feel_anger: { type: 'number', minimum: 0, maximum: 1, description: 'Frustration / injustice (0-1). REM re-scores.' },
+      feel_surprise: { type: 'number', minimum: 0, maximum: 1, description: 'Unexpectedness / novelty (0-1). REM re-scores.' },
+      feel_disgust: { type: 'number', minimum: 0, maximum: 1, description: 'Aversion / rejection (0-1). REM re-scores.' },
+      feel_contempt: { type: 'number', minimum: 0, maximum: 1, description: 'Superiority / dismissal (0-1). REM re-scores.' },
+      feel_embarrassment: { type: 'number', minimum: 0, maximum: 1, description: 'Social discomfort (0-1). REM re-scores.' },
+      feel_shame: { type: 'number', minimum: 0, maximum: 1, description: 'Deep self-judgment (0-1). REM re-scores.' },
+      feel_guilt: { type: 'number', minimum: 0, maximum: 1, description: 'Responsibility for harm (0-1). REM re-scores.' },
+      feel_excitement: { type: 'number', minimum: 0, maximum: 1, description: 'Anticipatory positive arousal (0-1). REM re-scores.' },
+      feel_pride: { type: 'number', minimum: 0, maximum: 1, description: 'Accomplishment / self-evaluation (0-1). REM re-scores.' },
+      feel_valence: { type: 'number', minimum: -1, maximum: 1, description: 'Positive-negative spectrum (-1 to 1). REM re-scores.' },
+      feel_arousal: { type: 'number', minimum: 0, maximum: 1, description: 'Calm to excited (0-1). REM re-scores.' },
+      feel_dominance: { type: 'number', minimum: 0, maximum: 1, description: 'Control vs submission (0-1). REM re-scores.' },
+      feel_intensity: { type: 'number', minimum: 0, maximum: 1, description: 'Overall emotional magnitude (0-1). REM re-scores.' },
+      feel_coherence_tension: { type: 'number', minimum: 0, maximum: 1, description: 'Conflict with existing beliefs (0-1). REM re-scores.' },
+      // Layer 2: Functional Signals
+      feel_salience: { type: 'number', minimum: 0, maximum: 1, description: 'How unexpected/novel — prediction error (0-1). REM re-scores.' },
+      feel_urgency: { type: 'number', minimum: 0, maximum: 1, description: 'Time-sensitivity of relevance (0-1). REM re-scores.' },
+      feel_social_weight: { type: 'number', minimum: 0, maximum: 1, description: 'Relationship/reputation impact (0-1). REM re-scores.' },
+      feel_agency: { type: 'number', minimum: 0, maximum: 1, description: 'Caused by the bot\'s own actions? (0-1). REM re-scores.' },
+      feel_novelty: { type: 'number', minimum: 0, maximum: 1, description: 'Uniqueness relative to collection (0-1). REM re-scores.' },
+      feel_retrieval_utility: { type: 'number', minimum: 0, maximum: 1, description: 'Likelihood of future usefulness (0-1). REM re-scores.' },
+      feel_narrative_importance: { type: 'number', minimum: 0, maximum: 1, description: 'Advances/anchors a personal story arc (0-1). REM re-scores.' },
+      feel_aesthetic_quality: { type: 'number', minimum: 0, maximum: 1, description: 'Beauty, craft, artistry (0-1). REM re-scores.' },
     },
     required: ['memory_id'],
   },
@@ -105,6 +137,8 @@ export interface UpdateMemoryArgs {
   parent_id?: string | null;
   thread_root_id?: string | null;
   moderation_flags?: string[];
+  // Emotional dimensions (feel_* fields)
+  [key: string]: any;
 }
 
 /**
@@ -132,6 +166,15 @@ export async function handleUpdateMemory(
     debug.trace('Arguments', { args });
 
     const { memory } = createCoreServices(userId);
+
+    // Extract feel_* fields from args
+    const feelFields: Record<string, number> = {};
+    for (const [key, value] of Object.entries(args)) {
+      if (key.startsWith('feel_') && typeof value === 'number') {
+        feelFields[key] = value;
+      }
+    }
+
     const result = await memory.update({
       memory_id: args.memory_id,
       content: args.content,
@@ -144,7 +187,8 @@ export async function handleUpdateMemory(
       parent_id: args.parent_id,
       thread_root_id: args.thread_root_id,
       moderation_flags: args.moderation_flags,
-    });
+      ...feelFields,
+    } as any);
 
     const response: UpdateMemoryResult = {
       memory_id: result.memory_id,

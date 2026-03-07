@@ -102,6 +102,10 @@ export const queryMemoryTool = {
             type: 'string',
             description: 'End date (ISO 8601)',
           },
+          rating_min: {
+            type: 'number',
+            description: 'Minimum Bayesian rating average',
+          },
         },
       },
       include_context: {

@@ -91,6 +91,15 @@ Let the search algorithm find ALL relevant memories regardless of type unless ex
         type: 'string',
         description: 'Filter memories created before this date (ISO 8601)',
       },
+      exclude_types: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Exclude specific content types',
+      },
+      rating_min: {
+        type: 'number',
+        description: 'Minimum Bayesian rating average',
+      },
       moderation_filter: {
         type: 'string',
         enum: ['approved', 'pending', 'rejected', 'removed', 'all'],
@@ -161,11 +170,13 @@ interface SearchSpaceArgs {
   groups?: string[];
   search_type?: 'hybrid' | 'bm25' | 'semantic';
   content_type?: string;
+  exclude_types?: string[];
   tags?: string[];
   min_weight?: number;
   max_weight?: number;
   date_from?: string;
   date_to?: string;
+  rating_min?: number;
   moderation_filter?: ModerationFilter;
   include_comments?: boolean;
   limit?: number;
@@ -207,7 +218,10 @@ export async function handleSearchSpace(
         include_comments: args.include_comments,
         limit: args.limit,
         offset: args.offset,
-      },
+        // New filters — passed through when core supports them
+        ...(args.exclude_types && { exclude_types: args.exclude_types }),
+        ...(args.rating_min !== undefined && { rating_min: args.rating_min }),
+      } as any,
       authContext as any
     );
 
