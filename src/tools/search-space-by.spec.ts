@@ -1,11 +1,21 @@
 import { searchSpaceByTool, handleSearchSpaceBy } from './search-space-by.js';
 
 const mockByDiscovery = jest.fn();
+const mockByTime = jest.fn();
+const mockByRating = jest.fn();
+const mockByProperty = jest.fn();
+const mockByBroad = jest.fn();
+const mockByRandom = jest.fn();
 
 jest.mock('../core-services.js', () => ({
   createCoreServices: jest.fn(() => ({
     space: {
       byDiscovery: mockByDiscovery,
+      byTime: mockByTime,
+      byRating: mockByRating,
+      byProperty: mockByProperty,
+      byBroad: mockByBroad,
+      byRandom: mockByRandom,
     },
   })),
 }));
@@ -31,6 +41,11 @@ describe('remember_search_space_by', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockByDiscovery.mockResolvedValue(mockResult);
+    mockByTime.mockResolvedValue(mockResult);
+    mockByRating.mockResolvedValue(mockResult);
+    mockByProperty.mockResolvedValue(mockResult);
+    mockByBroad.mockResolvedValue(mockResult);
+    mockByRandom.mockResolvedValue(mockResult);
   });
 
   describe('tool definition', () => {
@@ -166,29 +181,43 @@ describe('remember_search_space_by', () => {
     });
   });
 
-  describe('stub modes', () => {
-    it('byTime returns not-yet-available', async () => {
+  describe('byTime mode', () => {
+    it('dispatches to space.byTime', async () => {
       const result = await handleSearchSpaceBy({ mode: 'byTime', spaces: ['pub'] }, userId);
-      const parsed = JSON.parse(result);
-      expect(parsed.error).toContain('not yet available');
+      expect(mockByTime).toHaveBeenCalledTimes(1);
+      expect(JSON.parse(result)).toEqual(mockResult);
     });
 
-    it('byRating returns not-yet-available', async () => {
+    it('passes sort_order as direction', async () => {
+      await handleSearchSpaceBy({ mode: 'byTime', spaces: ['pub'], sort_order: 'asc' }, userId);
+      expect(mockByTime).toHaveBeenCalledWith(
+        expect.objectContaining({ direction: 'asc' }),
+        undefined,
+      );
+    });
+
+    it('defaults direction to desc', async () => {
+      await handleSearchSpaceBy({ mode: 'byTime', spaces: ['pub'] }, userId);
+      expect(mockByTime).toHaveBeenCalledWith(
+        expect.objectContaining({ direction: 'desc' }),
+        undefined,
+      );
+    });
+  });
+
+  describe('byRating mode', () => {
+    it('dispatches to space.byRating', async () => {
       const result = await handleSearchSpaceBy({ mode: 'byRating', spaces: ['pub'] }, userId);
-      const parsed = JSON.parse(result);
-      expect(parsed.error).toContain('not yet available');
+      expect(mockByRating).toHaveBeenCalledTimes(1);
+      expect(JSON.parse(result)).toEqual(mockResult);
     });
 
-    it('byBroad returns not-yet-available', async () => {
-      const result = await handleSearchSpaceBy({ mode: 'byBroad', spaces: ['pub'] }, userId);
-      const parsed = JSON.parse(result);
-      expect(parsed.error).toContain('not yet available');
-    });
-
-    it('byRandom returns not-yet-available', async () => {
-      const result = await handleSearchSpaceBy({ mode: 'byRandom', spaces: ['pub'] }, userId);
-      const parsed = JSON.parse(result);
-      expect(parsed.error).toContain('not yet available');
+    it('passes sort_order as direction', async () => {
+      await handleSearchSpaceBy({ mode: 'byRating', spaces: ['pub'], sort_order: 'asc' }, userId);
+      expect(mockByRating).toHaveBeenCalledWith(
+        expect.objectContaining({ direction: 'asc' }),
+        undefined,
+      );
     });
   });
 
@@ -199,13 +228,51 @@ describe('remember_search_space_by', () => {
       expect(parsed.error).toContain('sort_field is required');
     });
 
-    it('returns not-yet-available with sort_field', async () => {
+    it('dispatches to space.byProperty with sort_field', async () => {
       const result = await handleSearchSpaceBy(
         { mode: 'byProperty', spaces: ['pub'], sort_field: 'feel_trauma' },
         userId,
       );
-      const parsed = JSON.parse(result);
-      expect(parsed.error).toContain('not yet available');
+      expect(mockByProperty).toHaveBeenCalledWith(
+        expect.objectContaining({ sort_field: 'feel_trauma', sort_direction: 'desc' }),
+        undefined,
+      );
+      expect(JSON.parse(result)).toEqual(mockResult);
+    });
+
+    it('passes sort_order as sort_direction', async () => {
+      await handleSearchSpaceBy(
+        { mode: 'byProperty', spaces: ['pub'], sort_field: 'weight', sort_order: 'asc' },
+        userId,
+      );
+      expect(mockByProperty).toHaveBeenCalledWith(
+        expect.objectContaining({ sort_field: 'weight', sort_direction: 'asc' }),
+        undefined,
+      );
+    });
+  });
+
+  describe('byBroad mode', () => {
+    it('dispatches to space.byBroad', async () => {
+      const result = await handleSearchSpaceBy({ mode: 'byBroad', spaces: ['pub'] }, userId);
+      expect(mockByBroad).toHaveBeenCalledTimes(1);
+      expect(JSON.parse(result)).toEqual(mockResult);
+    });
+
+    it('passes query through', async () => {
+      await handleSearchSpaceBy({ mode: 'byBroad', spaces: ['pub'], query: 'explore' }, userId);
+      expect(mockByBroad).toHaveBeenCalledWith(
+        expect.objectContaining({ query: 'explore' }),
+        undefined,
+      );
+    });
+  });
+
+  describe('byRandom mode', () => {
+    it('dispatches to space.byRandom', async () => {
+      const result = await handleSearchSpaceBy({ mode: 'byRandom', spaces: ['pub'] }, userId);
+      expect(mockByRandom).toHaveBeenCalledTimes(1);
+      expect(JSON.parse(result)).toEqual(mockResult);
     });
   });
 

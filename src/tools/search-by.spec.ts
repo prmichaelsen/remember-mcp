@@ -5,6 +5,9 @@ const mockByTime = jest.fn();
 const mockByDensity = jest.fn();
 const mockByRating = jest.fn();
 const mockByDiscovery = jest.fn();
+const mockByProperty = jest.fn();
+const mockByBroad = jest.fn();
+const mockByRandom = jest.fn();
 
 jest.mock('../core-services.js', () => ({
   createCoreServices: jest.fn(() => ({
@@ -13,6 +16,9 @@ jest.mock('../core-services.js', () => ({
       byDensity: mockByDensity,
       byRating: mockByRating,
       byDiscovery: mockByDiscovery,
+      byProperty: mockByProperty,
+      byBroad: mockByBroad,
+      byRandom: mockByRandom,
     },
   })),
 }));
@@ -41,6 +47,9 @@ describe('remember_search_by', () => {
     mockByDensity.mockResolvedValue(mockResult);
     mockByRating.mockResolvedValue(mockResult);
     mockByDiscovery.mockResolvedValue(mockResult);
+    mockByProperty.mockResolvedValue(mockResult);
+    mockByBroad.mockResolvedValue(mockResult);
+    mockByRandom.mockResolvedValue(mockResult);
   });
 
   describe('tool definition', () => {
@@ -182,34 +191,59 @@ describe('remember_search_by', () => {
       expect(parsed.error).toContain('sort_field is required');
     });
 
-    it('returns not-yet-available with sort_field', async () => {
+    it('dispatches to memory.byProperty with sort_field', async () => {
       const result = await handleSearchBy({ mode: 'byProperty', sort_field: 'feel_trauma' }, userId);
-      const parsed = JSON.parse(result);
-      expect(parsed.error).toContain('not yet available');
+      expect(mockByProperty).toHaveBeenCalledWith(
+        expect.objectContaining({ sort_field: 'feel_trauma', sort_direction: 'desc' }),
+      );
+      expect(JSON.parse(result)).toEqual(mockResult);
+    });
+
+    it('passes sort_order as sort_direction', async () => {
+      await handleSearchBy({ mode: 'byProperty', sort_field: 'weight', sort_order: 'asc' }, userId);
+      expect(mockByProperty).toHaveBeenCalledWith(
+        expect.objectContaining({ sort_field: 'weight', sort_direction: 'asc' }),
+      );
     });
   });
 
   describe('bySignificance mode', () => {
-    it('returns not-yet-available', async () => {
+    it('dispatches to memory.byProperty with total_significance', async () => {
       const result = await handleSearchBy({ mode: 'bySignificance' }, userId);
-      const parsed = JSON.parse(result);
-      expect(parsed.error).toContain('not yet available');
+      expect(mockByProperty).toHaveBeenCalledWith(
+        expect.objectContaining({ sort_field: 'total_significance', sort_direction: 'desc' }),
+      );
+      expect(JSON.parse(result)).toEqual(mockResult);
+    });
+
+    it('respects sort_order', async () => {
+      await handleSearchBy({ mode: 'bySignificance', sort_order: 'asc' }, userId);
+      expect(mockByProperty).toHaveBeenCalledWith(
+        expect.objectContaining({ sort_direction: 'asc' }),
+      );
     });
   });
 
   describe('byBroad mode', () => {
-    it('returns not-yet-available', async () => {
+    it('dispatches to memory.byBroad', async () => {
       const result = await handleSearchBy({ mode: 'byBroad' }, userId);
-      const parsed = JSON.parse(result);
-      expect(parsed.error).toContain('not yet available');
+      expect(mockByBroad).toHaveBeenCalledTimes(1);
+      expect(JSON.parse(result)).toEqual(mockResult);
+    });
+
+    it('passes query through', async () => {
+      await handleSearchBy({ mode: 'byBroad', query: 'explore' }, userId);
+      expect(mockByBroad).toHaveBeenCalledWith(
+        expect.objectContaining({ query: 'explore' }),
+      );
     });
   });
 
   describe('byRandom mode', () => {
-    it('returns not-yet-available', async () => {
+    it('dispatches to memory.byRandom', async () => {
       const result = await handleSearchBy({ mode: 'byRandom' }, userId);
-      const parsed = JSON.parse(result);
-      expect(parsed.error).toContain('not yet available');
+      expect(mockByRandom).toHaveBeenCalledTimes(1);
+      expect(JSON.parse(result)).toEqual(mockResult);
     });
   });
 

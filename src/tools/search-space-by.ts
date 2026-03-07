@@ -115,18 +115,19 @@ export async function handleSearchSpaceBy(
         result = await space.byDiscovery(baseParams as any, authContext as any);
         break;
 
-      case 'byTime': {
-        // byTime requires core SpaceService.byTime() — not yet available
-        return JSON.stringify({
-          error: 'byTime mode for spaces is not yet available. Waiting for remember-core implementation.',
-        });
-      }
+      case 'byTime':
+        result = await space.byTime({
+          ...baseParams,
+          direction: args.sort_order ?? 'desc',
+        } as any, authContext as any);
+        break;
 
-      case 'byRating': {
-        return JSON.stringify({
-          error: 'byRating mode for spaces is not yet available. Waiting for remember-core implementation.',
-        });
-      }
+      case 'byRating':
+        result = await space.byRating({
+          ...baseParams,
+          direction: args.sort_order ?? 'desc',
+        } as any, authContext as any);
+        break;
 
       case 'byProperty': {
         if (!args.sort_field) {
@@ -134,22 +135,25 @@ export async function handleSearchSpaceBy(
             error: 'sort_field is required for byProperty mode. Provide a property name (e.g., "feel_trauma", "total_significance").',
           });
         }
-        return JSON.stringify({
-          error: 'byProperty mode for spaces is not yet available. Waiting for remember-core implementation.',
-        });
+        result = await space.byProperty({
+          ...baseParams,
+          sort_field: args.sort_field,
+          sort_direction: args.sort_order ?? 'desc',
+        } as any, authContext as any);
+        break;
       }
 
-      case 'byBroad': {
-        return JSON.stringify({
-          error: 'byBroad mode for spaces is not yet available. Waiting for remember-core implementation.',
-        });
-      }
+      case 'byBroad':
+        result = await space.byBroad({
+          ...baseParams,
+          query: args.query,
+          sort_order: args.sort_order,
+        } as any, authContext as any);
+        break;
 
-      case 'byRandom': {
-        return JSON.stringify({
-          error: 'byRandom mode for spaces is not yet available. Waiting for remember-core implementation.',
-        });
-      }
+      case 'byRandom':
+        result = await space.byRandom(baseParams as any, authContext as any);
+        break;
 
       default:
         return JSON.stringify({

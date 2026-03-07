@@ -231,33 +231,52 @@ export async function handleSearchBy(
             error: 'sort_field is required for byProperty mode. Provide a Weaviate property name (e.g., "feel_trauma", "weight", "total_significance").',
           });
         }
-        // byProperty requires core MemoryService.byProperty() — not yet available
-        // Once core implements it, dispatch here:
-        // result = await memory.byProperty({ sort_field: args.sort_field, ... });
-        return JSON.stringify({
-          error: 'byProperty mode is not yet available. Waiting for remember-core implementation.',
+        result = await memory.byProperty({
+          sort_field: args.sort_field,
+          sort_direction: args.sort_order ?? 'desc',
+          limit,
+          offset,
+          filters,
+          deleted_filter: args.deleted_filter,
+          ghost_context: ghostContext,
         });
+        break;
       }
 
       case 'bySignificance': {
-        // Shorthand for byProperty on total_significance — blocked until core implements byProperty
-        return JSON.stringify({
-          error: 'bySignificance mode is not yet available. Waiting for remember-core byProperty implementation.',
+        result = await memory.byProperty({
+          sort_field: 'total_significance',
+          sort_direction: args.sort_order ?? 'desc',
+          limit,
+          offset,
+          filters,
+          deleted_filter: args.deleted_filter,
+          ghost_context: ghostContext,
         });
+        break;
       }
 
       case 'byBroad': {
-        // Truncated content (content_head/mid/tail) — blocked until core implements byBroad
-        return JSON.stringify({
-          error: 'byBroad mode is not yet available. Waiting for remember-core implementation.',
+        result = await memory.byBroad({
+          query: args.query,
+          sort_order: args.sort_order,
+          limit: limit,
+          offset,
+          filters,
+          deleted_filter: args.deleted_filter,
+          ghost_context: ghostContext,
         });
+        break;
       }
 
       case 'byRandom': {
-        // Random sampling — blocked until core implements byRandom
-        return JSON.stringify({
-          error: 'byRandom mode is not yet available. Waiting for remember-core implementation.',
+        result = await memory.byRandom({
+          limit,
+          filters,
+          deleted_filter: args.deleted_filter,
+          ghost_context: ghostContext,
         });
+        break;
       }
 
       default:
