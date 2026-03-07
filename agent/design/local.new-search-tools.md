@@ -23,7 +23,7 @@ Additionally, this design addresses gaps where remember-core capabilities are no
 - **Broad search**: No way to fetch large result sets without overloading LLM context. Users need a "scan and drill-in" workflow.
 - **Random sampling**: No serendipity mechanism — users can't discover forgotten memories randomly.
 - **Ghost memories**: Creating ghost memories requires knowing the correct content_type and tags. A dedicated tool suite would eliminate errors and simplify the ghost workflow.
-- **Rating**: remember-core has a full `RatingService` (1-5 stars, Bayesian averaging) but remember-mcp exposes no `remember_rate` tool.
+- **Rating**: remember-core has a full `RatingService` (1-5 stars, Bayesian averaging) but remember-mcp doesn't expose it. Rating is social (for published space memories), not personal (personal importance = `weight`).
 - **Missing filters**: `rating_min`, `relationship_count_min/max` filters exist in core but aren't in MCP tool schemas.
 
 ---
@@ -118,29 +118,19 @@ interface BroadSearchResult {
 
 ---
 
-### Tool 2: `remember_rate`
+### Rating — Space-Only (Social Ratings)
 
-Expose the existing `RatingService` as an MCP tool.
+Rating is a **social** feature for published memories in spaces, not for personal memories. Personal importance is already covered by the `weight` parameter (0-1).
 
-```typescript
-{
-  name: 'remember_rate',
-  inputSchema: {
-    type: 'object',
-    properties: {
-      memory_id: { type: 'string', description: 'Memory to rate' },
-      rating: { type: 'number', minimum: 1, maximum: 5, description: 'Rating (1-5 stars)' }
-    },
-    required: ['memory_id', 'rating']
-  }
-}
-```
+Rating should be exposed on space tools (e.g., a future action on `remember_search_space` results or a dedicated space interaction), not on `remember_update_memory`. The `RatingService.rate()` in remember-core manages Bayesian averaging (`rating_count`, `rating_sum`, `rating_bayesian`) for published content.
 
-This is prerequisite for `byRating` and `byDiscovery` modes to be useful.
+Ghost tools do not need rating — ghosts are read-only accessors.
+
+`byRating` and `byDiscovery` modes on `remember_search_by` work against personal memories using whatever ratings exist (initially empty). These modes are more immediately useful on a future `remember_search_space_by` where social ratings are populated.
 
 ---
 
-### Tool 3-8: Ghost Memory Tools
+### Tool 2-7: Ghost Memory Tools
 
 Dedicated tools for ghost memory operations with hardcoded content_type and tags.
 
@@ -207,9 +197,8 @@ Update existing tool schemas to expose new core filters:
 ## Implementation
 
 ### Phase 1: Expose Existing Core Capabilities
-1. Add `remember_rate` tool (wraps `RatingService.rate()`)
-2. Add `remember_search_by` tool with modes `byTime`, `byDensity`, `byRating`, `byDiscovery`
-3. Update existing tool schemas with `rating_min`, `relationship_count_min/max`, `exclude_types`
+1. Add `remember_search_by` tool with modes `byTime`, `byDensity`, `byRating`, `byDiscovery`
+2. Update existing tool schemas with `rating_min`, `relationship_count_min/max`, `exclude_types`
 
 ### Phase 2: New Core Modes
 4. Implement `byBroad` in remember-core (truncated content response)
