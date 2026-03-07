@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.15.7] - 2026-03-07
+
+### Changed
+
+- Expand tool descriptions for `remember_search_by`, `remember_search_ghost_memory_by`, and `remember_search_space_by` with full mode explanations and complete property reference for byProperty mode
+- Add inline mode descriptions to `mode` enum field so agents see them in schema-only views
+- Document all sortable properties: 21 emotions, 10 functional signals, 3 composite scores, core fields, ratings, and REM metadata
+
 ## [3.15.5] - 2026-03-07
 
 ### Changed

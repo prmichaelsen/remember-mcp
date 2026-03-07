@@ -34,14 +34,25 @@ export const searchByTool = {
   Use remember_find_similar for vector similarity.
   Use this tool for structured browsing, sorting, and discovery.
 
+  byBroad returns truncated content (content_head/mid/tail ~100 chars each) instead of full content.
+  Use it to scan large collections, then drill into specific memories with other search tools.
+
+  Available sort_field values for byProperty:
+  Emotions (0-1): feel_emotional_significance, feel_vulnerability, feel_trauma, feel_humor, feel_happiness, feel_sadness, feel_fear, feel_anger, feel_surprise, feel_disgust, feel_contempt, feel_embarrassment, feel_shame, feel_guilt, feel_excitement, feel_pride, feel_intensity, feel_coherence_tension
+  Affect dimensions: feel_valence (-1 to 1), feel_arousal (0-1), feel_dominance (0-1)
+  Functional signals (0-1): functional_salience, functional_urgency, functional_social_weight, functional_agency, functional_novelty, functional_retrieval_utility, functional_narrative_importance, functional_aesthetic_quality, functional_valence, functional_coherence_tension
+  Composite scores: feel_significance, functional_significance, total_significance
+  Core: weight, trust_score, confidence, strength, relationship_count, version, access_count
+  Ratings: rating_sum, rating_count, rating_bayesian
+  REM metadata: rem_visits (times scored by REM)
+
   byProperty examples:
   - { mode: "byProperty", sort_field: "feel_trauma", sort_order: "desc" } — most traumatic
   - { mode: "byProperty", sort_field: "feel_humor", sort_order: "desc" } — funniest
-  - { mode: "byProperty", sort_field: "feel_retrieval_utility", sort_order: "desc" } — most useful
+  - { mode: "byProperty", sort_field: "functional_retrieval_utility", sort_order: "desc" } — most useful
   - { mode: "byProperty", sort_field: "rem_visits", sort_order: "asc" } — least scored by REM
-
-  byBroad returns truncated content (content_head/mid/tail ~100 chars each) instead of full content.
-  Use it to scan large collections, then drill into specific memories with other search tools.`,
+  - { mode: "byProperty", sort_field: "total_significance", sort_order: "desc" } — most significant overall
+  - { mode: "byProperty", sort_field: "functional_novelty", sort_order: "desc" } — most novel`,
   inputSchema: {
     type: 'object',
     properties: {

@@ -12,25 +12,36 @@ export type SearchSpaceByMode = 'byTime' | 'byRating' | 'byDiscovery' | 'byPrope
 
 export const searchSpaceByTool = {
   name: 'remember_search_space_by',
-  description: `Search shared spaces using specialized modes. Similar to remember_search_by
-  but operates on published memories in spaces and groups.
+  description: `Search published memories in shared spaces/groups using specialized sort/discovery modes.
 
   Modes:
-  - byTime: Chronological sort of published memories
-  - byRating: Sort by Bayesian rating average (social ratings)
-  - byDiscovery: Interleaved rated + unrated for exploration
-  - byProperty: Sort by any property (e.g., feel_trauma, total_significance)
-  - byBroad: Massive results with truncated content
-  - byRandom: Random sampling from space
+  - byTime: Chronological sort (newest/oldest first)
+  - byRating: Sort by Bayesian rating average (social ratings from other users)
+  - byDiscovery: Interleaved rated + unrated content for exploration (4:1 ratio). Good for finding hidden gems.
+  - byProperty: Sort by any memory property (e.g., feel_trauma, total_significance, weight). Requires sort_field.
+  - byBroad: Massive results with truncated content (content_head/mid/tail ~100 chars each) for scan-and-drill-in workflow
+  - byRandom: Random sampling for serendipitous discovery
 
-  At least one of 'spaces' or 'groups' must be provided.`,
+  At least one of 'spaces' or 'groups' must be provided.
+
+  Use remember_search_space for hybrid semantic+keyword search of space memories.
+  Use this tool for structured browsing, sorting, and discovery of published content.
+
+  Available sort_field values for byProperty:
+  Emotions (0-1): feel_emotional_significance, feel_vulnerability, feel_trauma, feel_humor, feel_happiness, feel_sadness, feel_fear, feel_anger, feel_surprise, feel_disgust, feel_contempt, feel_embarrassment, feel_shame, feel_guilt, feel_excitement, feel_pride, feel_intensity, feel_coherence_tension
+  Affect dimensions: feel_valence (-1 to 1), feel_arousal (0-1), feel_dominance (0-1)
+  Functional signals (0-1): functional_salience, functional_urgency, functional_social_weight, functional_agency, functional_novelty, functional_retrieval_utility, functional_narrative_importance, functional_aesthetic_quality, functional_valence, functional_coherence_tension
+  Composite scores: feel_significance, functional_significance, total_significance
+  Core: weight, trust_score, relationship_count, version
+  Ratings: rating_sum, rating_count, rating_bayesian
+  Published: discovery_count, revision_count`,
   inputSchema: {
     type: 'object',
     properties: {
       mode: {
         type: 'string',
         enum: ['byTime', 'byRating', 'byDiscovery', 'byProperty', 'byBroad', 'byRandom'],
-        description: 'Search mode',
+        description: 'Search mode: byTime (chronological), byRating (highest rated), byDiscovery (explore mix), byProperty (sort by field), byBroad (scan many truncated), byRandom (random sample)',
       },
       spaces: {
         type: 'array',
