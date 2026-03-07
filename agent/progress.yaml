@@ -352,6 +352,19 @@ milestones:
       Optimize server performance: parallel queries, caching, memoization.
       See: agent/milestones/milestone-18-performance-tuning.md
 
+  - id: M19
+    name: New Search Modes, Ghost Tools & Emotional Exposure
+    status: not_started
+    progress: 0%
+    estimated_weeks: 2-3
+    tasks_completed: 0
+    tasks_total: 9
+    notes: |
+      Expand from 21 to 29 MCP tools. Unified search_by modes, ghost memory suite,
+      emotional dimension exposure, core mood introspection, space search_by.
+      See: agent/milestones/milestone-19-new-search-ghost-tools.md
+      Design: remember-core/agent/design/local.new-search-tools.md (authoritative)
+
 tasks:
   milestone_1:
     - id: task-1
@@ -1083,6 +1096,94 @@ tasks:
       notes: |
         Static imports for ghost-config and access-control
 
+  milestone_19:
+    - id: task-203
+      name: Create remember_search_by Tool
+      status: not_started
+      file: agent/tasks/milestone-19-new-search-ghost-tools/task-203-create-search-by-tool.md
+      estimated_hours: 3-4
+      notes: |
+        Foundation tool with modes: byTime, byDensity, byRating, byDiscovery
+        Full input schema with filters, sort_order, pagination
+
+    - id: task-204
+      name: Add New Filters to Existing Tool Schemas
+      status: not_started
+      file: agent/tasks/milestone-19-new-search-ghost-tools/task-204-add-new-filters-existing-tools.md
+      estimated_hours: 2-3
+      notes: |
+        Add rating_min, relationship_count_min/max, exclude_types to search/find/query/space tools
+
+    - id: task-205
+      name: Add feel_* Fields to create_memory and update_memory
+      status: not_started
+      file: agent/tasks/milestone-19-new-search-ghost-tools/task-205-add-feel-fields-create-update.md
+      estimated_hours: 2-3
+      dependencies: []
+      notes: |
+        31 optional emotional dimension fields (21 discrete + 10 functional)
+        Create-time hints, REM re-scores authoritatively
+
+    - id: task-206
+      name: Add byProperty and bySignificance Modes
+      status: not_started
+      file: agent/tasks/milestone-19-new-search-ghost-tools/task-206-add-byproperty-bysignificance-modes.md
+      estimated_hours: 2-3
+      dependencies: [task-203]
+      notes: |
+        Sort by any Weaviate property (feel_*, weight, etc.)
+        bySignificance = shorthand for total_significance sort
+
+    - id: task-207
+      name: Add Emotional Composites to Search Results
+      status: not_started
+      file: agent/tasks/milestone-19-new-search-ghost-tools/task-207-add-emotional-composites-search-results.md
+      estimated_hours: 2-3
+      notes: |
+        total_significance, feel_significance, functional_significance, rem_touched_at, rem_visits
+        Across all 5 search tools, omit when null
+
+    - id: task-208
+      name: Add byBroad and byRandom Modes
+      status: not_started
+      file: agent/tasks/milestone-19-new-search-ghost-tools/task-208-add-bybroad-byrandom-modes.md
+      estimated_hours: 3-4
+      dependencies: [task-203]
+      notes: |
+        byBroad: truncated content (head/mid/tail), default limit 50
+        byRandom: random sampling, optional query constraint
+        Blocked on remember-core implementation
+
+    - id: task-209
+      name: Create Ghost Memory Tool Suite (5 Tools)
+      status: not_started
+      file: agent/tasks/milestone-19-new-search-ghost-tools/task-209-create-ghost-memory-tools.md
+      estimated_hours: 4-6
+      dependencies: [task-203]
+      notes: |
+        5 thin wrappers: create, update, search, query, search_by
+        Hardcode content_type: 'ghost' and ghost-specific tags
+
+    - id: task-210
+      name: Create remember_get_core Tool
+      status: not_started
+      file: agent/tasks/milestone-19-new-search-ghost-tools/task-210-create-get-core-tool.md
+      estimated_hours: 2-3
+      notes: |
+        Consolidated mood + perception in single tool
+        6 mood dimensions, pressures, threshold flags, user perception
+        Firestore: users/{user_id}/core/mood + perceptions subcollection
+
+    - id: task-211
+      name: Create remember_search_space_by Tool
+      status: not_started
+      file: agent/tasks/milestone-19-new-search-ghost-tools/task-211-create-search-space-by-tool.md
+      estimated_hours: 3-4
+      notes: |
+        Space variant of search_by (no byDensity mode)
+        Rating is primary here (social feature)
+        Requires spaces or groups param, moderation_filter, include_comments
+
   unassigned:
     - id: task-201
       name: Auto-bump remember-core via GitHub Actions
@@ -1095,9 +1196,9 @@ tasks:
 
 documentation:
   design_documents: 31
-  milestone_documents: 14
+  milestone_documents: 15
   pattern_documents: 7
-  task_documents: 92
+  task_documents: 101
 
 progress:
   planning: 100%
@@ -1105,6 +1206,16 @@ progress:
   overall: 85%
 
 recent_work:
+  - date: 2026-03-07
+    description: M19 Planning — New Search Modes, Ghost Tools & Emotional Exposure
+    items:
+      - Created milestone document: agent/milestones/milestone-19-new-search-ghost-tools.md
+      - Created 9 task documents (task-203 through task-211) with complete implementation specs
+      - Tasks include full input schemas, return shapes, handler logic, key decisions
+      - Tool count 21 → 29 (8 new tools + schema enhancements to 3 existing)
+      - Authoritative design doc in remember-core/agent/design/local.new-search-tools.md
+      - Consolidated get_mood + get_perception → get_core, removed get_classifications (REST API)
+
   - date: 2026-03-07
     description: Documentation Sync (@acp.sync)
     items:
