@@ -9,6 +9,7 @@
 **Created**: 2026-02-21
 **Last Updated**: 2026-02-21
 **Status**: Active
+**Scripts**: None
 
 ---
 
@@ -48,11 +49,12 @@ Run the initialization workflow to load complete project context.
 - Execute `@acp.init` workflow
 - Check for ACP updates
 - Read all agent documentation
+- Read key files from `agent/index/` (via `@acp.init` step 2.8)
 - Review key source files
 - Update stale documentation
 - Refresh progress tracking
 
-**Expected Outcome**: Complete project context loaded
+**Expected Outcome**: Complete project context loaded (including key file index)
 
 ### 2. Read Latest Session Report
 

@@ -196,7 +196,7 @@ update_package() {
     local modified_files=()
     
     # Check for modified files first
-    for file_type in patterns commands design; do
+    for file_type in patterns commands design indices; do
         local files
         files=$(awk -v pkg="$package_name" -v type="$file_type" '
             BEGIN { in_pkg=0; in_type=0 }
@@ -206,13 +206,31 @@ update_package() {
             in_type && /^      [a-z]/ { in_type=0 }
             in_type && /^        - name:/ { print $3 }
         ' "$MANIFEST_FILE")
-        
+
         for file_name in $files; do
             if is_file_modified "$package_name" "$file_type" "$file_name"; then
                 modified_files+=("$file_type/$file_name")
             fi
         done
     done
+
+    # Check template files for modifications
+    local _tmpl_entries
+    _tmpl_entries=$(awk -v pkg="$package_name" '
+        BEGIN { in_pkg=0; in_files=0; name="" }
+        $0 ~ "^  " pkg ":" { in_pkg=1; next }
+        in_pkg && /^  [a-z]/ { in_pkg=0 }
+        in_pkg && /^      files:$/ { in_files=1; next }
+        in_files && /^      [a-z]/ { in_files=0 }
+        in_files && /^        - name:/ { name=$3 }
+        in_files && /^          target:/ { $1=""; gsub(/^ +/, ""); print name "|" $0 }
+    ' "$MANIFEST_FILE")
+    while IFS='|' read -r _fname _ftarget; do
+        [ -z "$_fname" ] && continue
+        if [ -n "$_ftarget" ] && is_template_file_modified "$package_name" "$_fname" "$_ftarget"; then
+            modified_files+=("files/$_fname → $_ftarget")
+        fi
+    done <<< "$_tmpl_entries"
     
     # Handle modified files
     if [ ${#modified_files[@]} -gt 0 ] && [ "$FORCE" = false ]; then
@@ -236,8 +254,17 @@ update_package() {
         echo ""
     fi
     
+    # Mapping from manifest type to directory name
+    local _dir_for_type
+    _type_to_dir() {
+        case "$1" in
+            indices) echo "index" ;;
+            *) echo "$1" ;;
+        esac
+    }
+
     # Update files
-    for file_type in patterns commands design; do
+    for file_type in patterns commands design indices; do
         local files
         files=$(awk -v pkg="$package_name" -v type="$file_type" '
             BEGIN { in_pkg=0; in_type=0 }
@@ -258,13 +285,16 @@ update_package() {
                 fi
             fi
             
+            # Map manifest type to directory name
+            local _file_dir=$(_type_to_dir "$file_type")
+
             # Check if file exists in new version
-            if [ ! -f "$temp_dir/agent/$file_type/$file_name" ]; then
-                warn "File no longer exists in package: $file_type/$file_name"
+            if [ ! -f "$temp_dir/agent/$_file_dir/$file_name" ]; then
+                warn "File no longer exists in package: $_file_dir/$file_name"
                 ((skipped_count++))
                 continue
             fi
-            
+
             # Check if this is a new experimental feature
             local is_experimental=$(grep -A 1000 "^  ${file_type}:" "$temp_dir/package.yaml" 2>/dev/null | grep -A 2 "name: ${file_name}" | grep "^ *experimental: true" | grep -v "^[[:space:]]*#" | head -1)
             
@@ -287,13 +317,14 @@ update_package() {
             fi
             
             # Copy file
-            cp "$temp_dir/agent/$file_type/$file_name" "agent/$file_type/"
-            
+            mkdir -p "agent/$_file_dir"
+            cp "$temp_dir/agent/$_file_dir/$file_name" "agent/$_file_dir/"
+
             # Get new version and checksum
             local new_version
             new_version=$(get_file_version "$temp_dir/package.yaml" "$file_type" "$file_name")
             local new_checksum
-            new_checksum=$(calculate_checksum "agent/$file_type/$file_name")
+            new_checksum=$(calculate_checksum "agent/$_file_dir/$file_name")
             
             # Update manifest (including experimental status)
             update_file_in_manifest "$package_name" "$file_type" "$file_name" "$new_version" "$new_checksum"
@@ -301,17 +332,65 @@ update_package() {
             # Update experimental flag in manifest if needed
             if [ -n "$is_experimental" ]; then
                 # Still experimental, ensure flag is set
-                sed -i "/packages:/{:a;N;/name: ${file_name}/!ba;s/\(name: ${file_name}\)/\1\n          experimental: true/;}" "$MANIFEST_FILE" 2>/dev/null || true
+                _sed_i "/packages:/{:a;N;/name: ${file_name}/!ba;s/\(name: ${file_name}\)/\1\n          experimental: true/;}" "$MANIFEST_FILE" 2>/dev/null || true
             elif check_graduation "$file_name" "$file_type" "$package_name" "$temp_dir/package.yaml"; then
                 # Graduated, remove experimental flag
-                sed -i "/name: ${file_name}/{N;s/\n *experimental: true//;}" "$MANIFEST_FILE" 2>/dev/null || true
+                _sed_i "/name: ${file_name}/{N;s/\n *experimental: true//;}" "$MANIFEST_FILE" 2>/dev/null || true
             fi
             
             echo "  ${GREEN}✓${NC} Updated $file_type/$file_name (v$new_version)"
             ((updated_count++))
         done
     done
-    
+
+    # Update template files (installed at target paths)
+    while IFS='|' read -r _fname _ftarget; do
+        [ -z "$_fname" ] && continue
+
+        # Check if modified and should skip
+        if [ "$SKIP_MODIFIED" = true ]; then
+            if printf '%s\n' "${modified_files[@]}" | grep -q "^files/$_fname"; then
+                echo "  ${YELLOW}⊘${NC} Skipped files/$_fname (modified locally)"
+                ((skipped_count++))
+                continue
+            fi
+        fi
+
+        # Check if source file exists in new version
+        local _src_file="$temp_dir/agent/files/$_fname"
+        if [ ! -f "$_src_file" ]; then
+            warn "File no longer exists in package: files/$_fname"
+            ((skipped_count++))
+            continue
+        fi
+
+        # Copy to target path
+        mkdir -p "$(dirname "$_ftarget")"
+        cp "$_src_file" "$_ftarget"
+
+        # Re-apply variable substitution if stored
+        local _stored_vars
+        _stored_vars=$(get_template_file_variables "$package_name" "$_fname")
+        if [ -n "$_stored_vars" ]; then
+            while IFS='=' read -r _vname _vval; do
+                [ -z "$_vname" ] && continue
+                local _escaped
+                _escaped=$(printf '%s\n' "$_vval" | sed 's/[&/\]/\\&/g')
+                _sed_i "s|{{${_vname}}}|${_escaped}|g" "$_ftarget"
+            done <<< "$_stored_vars"
+        fi
+
+        # Update manifest
+        local _new_checksum
+        _new_checksum=$(calculate_checksum "$_ftarget")
+        local _new_version
+        _new_version=$(get_file_version "$temp_dir/package.yaml" "files" "$_fname")
+        update_template_file_in_manifest "$package_name" "$_fname" "$_new_version" "$_new_checksum"
+
+        echo "  ${GREEN}✓${NC} Updated files/$_fname → $_ftarget"
+        ((updated_count++))
+    done <<< "$_tmpl_entries"
+
     # Update package metadata in manifest
     local timestamp
     timestamp=$(get_timestamp)

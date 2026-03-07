@@ -7,6 +7,7 @@
 **Created**: 2026-02-16
 **Last Updated**: 2026-02-16
 **Status**: Active
+**Scripts**: None
 
 ---
 
@@ -91,6 +92,18 @@ Show what needs to be done next.
 - Highlight any urgent items
 
 **Expected Outcome**: User knows what to work on next
+
+### 5.5. Display Active Sessions (Optional)
+
+Show the count of active agent sessions.
+
+**Actions**:
+- If `./agent/scripts/acp.sessions.sh` exists, run `./agent/scripts/acp.sessions.sh count`
+- Display: `"Sessions: N active"` in status output
+
+**Expected Outcome**: Session count displayed
+
+**Note**: If `./agent/scripts/acp.sessions.sh` does not exist, omit the Sessions line.
 
 ### 6. Display Blockers
 

@@ -9,6 +9,11 @@
 **Created**: YYYY-MM-DD
 **Last Updated**: YYYY-MM-DD
 **Status**: [Draft | Active | Deprecated]
+**Scripts**: {namespace}.{command-name}.sh, acp.common.sh, acp.yaml-parser.sh
+
+---
+
+**Note**: The `**Scripts**:` field is REQUIRED and must list ALL script dependencies (direct + shared utilities). This must match the `scripts` array in package.yaml exactly. If the command has no script dependencies, use `**Scripts**: None`.
 
 ---
 
@@ -287,6 +292,24 @@ Example output message or status report
 ### Sensitive Data
 - **Secrets**: Never reads `.env` files or credential files
 - **Credentials**: Does not access any credentials
+
+---
+
+## Key Design Decisions (Optional)
+
+<!-- This section is populated by @acp.clarification-capture when
+     create commands are invoked with --from-clar, --from-chat, or
+     --from-context. It can also be manually authored.
+     Omit this section entirely if no decisions to capture.
+
+     Group decisions by agent-inferred category using tables:
+
+### {Category}
+
+| Decision | Choice | Rationale |
+|---|---|---|
+| {decision} | {choice} | {rationale} |
+-->
 
 ---
 

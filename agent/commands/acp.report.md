@@ -9,6 +9,7 @@
 **Created**: 2026-02-16
 **Last Updated**: 2026-02-16
 **Status**: Active
+**Scripts**: None
 
 ---
 
@@ -154,6 +155,18 @@ Write report to file.
 - Display report location
 
 **Expected Outcome**: Report saved
+
+### 10. Deregister Session (Optional)
+
+End the current agent session.
+
+**Actions**:
+- If `./agent/scripts/acp.sessions.sh` exists, run `./agent/scripts/acp.sessions.sh deregister`
+- Display: `"Session deregistered"` in report footer
+
+**Expected Outcome**: Session deregistered
+
+**Note**: If `./agent/scripts/acp.sessions.sh` does not exist, skip this step silently.
 
 ---
 

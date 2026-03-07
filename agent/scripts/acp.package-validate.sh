@@ -172,13 +172,49 @@ validate_file_existence() {
         done
     fi
     
+    # Check indices (key file index files in agent/index/)
+    if yaml_has_key "package.yaml" "contents.indices"; then
+        local indices_count=$(yaml_get_array "package.yaml" "contents.indices")
+        for i in $(seq 0 $((indices_count - 1))); do
+            local index_name=$(yaml_get_nested "package.yaml" "contents.indices[$i].name")
+            if [ -n "$index_name" ]; then
+                total_files=$((total_files + 1))
+                check
+                if [ -f "agent/index/$index_name" ]; then
+                    pass "agent/index/$index_name ✓"
+                else
+                    error "Missing file: agent/index/$index_name"
+                    missing_files=$((missing_files + 1))
+                fi
+            fi
+        done
+    fi
+
+    # Check files (template source files in agent/files/)
+    if yaml_has_key "package.yaml" "contents.files"; then
+        local files_count=$(yaml_get_array "package.yaml" "contents.files")
+        for i in $(seq 0 $((files_count - 1))); do
+            local file_name=$(yaml_get_nested "package.yaml" "contents.files[$i].name")
+            if [ -n "$file_name" ]; then
+                total_files=$((total_files + 1))
+                check
+                if [ -f "agent/files/$file_name" ]; then
+                    pass "agent/files/$file_name ✓"
+                else
+                    error "Missing file: agent/files/$file_name"
+                    missing_files=$((missing_files + 1))
+                fi
+            fi
+        done
+    fi
+
     if [ "$missing_files" -eq 0 ]; then
         pass "All $total_files files in contents exist"
     else
         error "$missing_files of $total_files files missing"
         fixable "Remove missing files from package.yaml"
     fi
-    
+
     echo ""
 }
 
@@ -794,6 +830,104 @@ validate_experimental_consistency() {
     return $errors
 }
 
+# Validate script-command bindings
+validate_script_dependencies() {
+    echo ""
+    echo "${BOLD}Script-Command Bindings${NC}"
+    
+    local validation_errors=0
+    
+    # Get all commands from package.yaml
+    local commands=$(yaml_query ".contents.commands[]?.name" 2>/dev/null || echo "")
+    
+    if [ -z "$commands" ]; then
+        pass "No commands to validate"
+        return 0
+    fi
+    
+    local cmd_count=0
+    while IFS= read -r cmd; do
+        if [ -z "$cmd" ] || [ "$cmd" = "null" ]; then
+            continue
+        fi
+        
+        cmd_count=$((cmd_count + 1))
+        local cmd_file="agent/commands/$cmd"
+        
+        if [ ! -f "$cmd_file" ]; then
+            continue  # File existence checked elsewhere
+        fi
+        
+        # Get scripts from frontmatter
+        local frontmatter_line=$(grep "^\*\*Scripts\*\*:" "$cmd_file" 2>/dev/null || echo "")
+        
+        if [ -z "$frontmatter_line" ]; then
+            check
+            error "$cmd: Missing **Scripts**: field in frontmatter"
+            fixable "Add **Scripts**: field to $cmd_file frontmatter"
+            validation_errors=$((validation_errors + 1))
+            continue
+        fi
+        
+        local frontmatter_scripts=$(echo "$frontmatter_line" | awk -F': ' '{print $2}' | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v "^$" | sort)
+        
+        # Handle "None" case
+        if echo "$frontmatter_scripts" | grep -qi "^None$"; then
+            frontmatter_scripts=""
+        fi
+        
+        # Get scripts from package.yaml
+        local yaml_scripts=$(yaml_query ".contents.commands[] | select(.name == \"$cmd\") | .scripts[]?" 2>/dev/null | grep -v "^null$" | sort || echo "")
+        
+        # Compare (both should be empty or both should match)
+        if [ "$frontmatter_scripts" != "$yaml_scripts" ]; then
+            check
+            error "$cmd: Scripts mismatch between frontmatter and package.yaml"
+            echo "     ${DIM}Frontmatter: $(echo "$frontmatter_scripts" | tr '\n' ', ' | sed 's/, $//')${NC}"
+            echo "     ${DIM}package.yaml: $(echo "$yaml_scripts" | tr '\n' ', ' | sed 's/, $//')${NC}"
+            fixable "Update $cmd to have matching scripts in both locations"
+            validation_errors=$((validation_errors + 1))
+            continue
+        fi
+        
+        # Verify all scripts exist in scripts section
+        local script_errors=0
+        while IFS= read -r script; do
+            if [ -n "$script" ]; then
+                local script_exists=$(yaml_query ".contents.scripts[]? | select(.name == \"$script\") | .name" 2>/dev/null || echo "")
+                
+                if [ -z "$script_exists" ] || [ "$script_exists" = "null" ]; then
+                    if [ $script_errors -eq 0 ]; then
+                        check
+                        error "$cmd: Declares scripts not in scripts section"
+                    fi
+                    echo "     ${DIM}Missing: $script${NC}"
+                    fixable "Add $script to contents.scripts section in package.yaml"
+                    script_errors=$((script_errors + 1))
+                fi
+            fi
+        done <<< "$frontmatter_scripts"
+        
+        if [ $script_errors -gt 0 ]; then
+            validation_errors=$((validation_errors + 1))
+        else
+            check
+            local script_count=$(echo "$frontmatter_scripts" | grep -v "^$" | wc -l)
+            if [ "$script_count" -eq 0 ]; then
+                pass "$cmd: No script dependencies"
+            else
+                pass "$cmd: Scripts consistent ($script_count script(s))"
+            fi
+        fi
+    done <<< "$commands"
+    
+    if [ $cmd_count -eq 0 ]; then
+        pass "No commands to validate"
+    fi
+    
+    return $validation_errors
+}
+
 # Main validation function
 main() {
     echo "${BLUE}🔍 ACP Package Validation${NC}"
@@ -808,6 +942,7 @@ main() {
     validate_file_existence
     check_unlisted_files
     validate_namespace_consistency
+    validate_script_dependencies
     validate_experimental_consistency
     validate_git_repository
     validate_readme

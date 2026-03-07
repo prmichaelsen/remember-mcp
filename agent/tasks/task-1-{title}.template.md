@@ -1,6 +1,7 @@
 # Task {N}: {Descriptive Task Name}
 
 **Milestone**: [M{N} - Milestone Name](../milestones/milestone-{N}-{name}.md)
+**Design Reference**: [{Design Name}](../design/{namespace}.{design-name}.md) | None
 **Estimated Time**: [e.g., "2 hours", "4 hours", "1 day"]
 **Dependencies**: [List prerequisite tasks, or "None"]
 **Status**: Not Started | In Progress | Completed
@@ -163,6 +164,24 @@ project-root/
 - `file1`: [Purpose]
 - `file2`: [Purpose]
 - `directory/file3`: [Purpose]
+
+---
+
+## Key Design Decisions (Optional)
+
+<!-- This section is populated by @acp.clarification-capture when
+     create commands are invoked with --from-clar, --from-chat, or
+     --from-context. It can also be manually authored.
+     Omit this section entirely if no decisions to capture.
+
+     Group decisions by agent-inferred category using tables:
+
+### {Category}
+
+| Decision | Choice | Rationale |
+|---|---|---|
+| {decision} | {choice} | {rationale} |
+-->
 
 ---
 

@@ -13,6 +13,7 @@
 **Created**: 2026-02-21
 **Last Updated**: 2026-02-21
 **Status**: Active
+**Scripts**: None
 
 ---
 
@@ -46,6 +47,22 @@ This command creates a new task file with proper structure, milestone linking, a
 
 ---
 
+## Arguments
+
+**Context Capture Arguments** (optional — passed to `@acp.clarification-capture` directive):
+
+| Argument | Alias | Behavior |
+|---|---|---|
+| `--from-clarification <file>` | `--from-clar` | Capture decisions from a specific clarification file |
+| `--from-clarifications` | `--from-clars` | Capture from all recent clarifications |
+| `--from-chat-context` | `--from-chat` | Capture decisions from chat conversation |
+| `--from-context` | (none) | Shorthand for all sources (clarifications + chat) |
+| `--include-clarifications` | (none) | Alias for `--from-clars` |
+
+**Default behavior** (no flags): Auto-detect clarifications and context in session.
+
+---
+
 ## Steps
 
 ### 1. Detect Current Milestone
@@ -71,6 +88,33 @@ Find the next available task number:
 - Increment by 1 for new task number
 
 **Expected Outcome**: Next task number determined (e.g., task-25)
+
+### 2.5. Read Contextual Key Files
+
+Before creating content, load relevant key files from the index.
+
+**Actions**:
+- Check if `agent/index/` directory exists
+- If exists, scan for all `*.yaml` files (excluding `*.template.yaml`)
+- Filter entries where `applies` includes `acp.task-create`
+- Sort by weight descending, read matching files
+- Produce visible output
+
+**Note**: If `agent/index/` does not exist, skip silently.
+
+### 2.7. Capture Clarification Context
+
+Invoke the `@acp.clarification-capture` shared directive to capture decisions from clarifications and/or chat context.
+
+**Actions**:
+- Read and follow the directive in [`agent/commands/acp.clarification-capture.md`](acp.clarification-capture.md)
+- Pass through any `--from-*` arguments from this command's invocation
+- If no `--from-*` flags specified: auto-detect clarifications in session (default behavior)
+- If uncaptured clarifications detected, show warning and ask user whether to include
+- Directive returns a "Key Design Decisions" markdown section (or nothing if no context)
+- Hold the generated section for insertion during Step 6 (Generate Task File)
+
+**Expected Outcome**: Key Design Decisions section generated (if context available), or skipped cleanly
 
 ### 3. Check for Draft File
 
@@ -126,6 +170,29 @@ If draft file was provided, create clarification if needed:
 
 **Expected Outcome**: Clarification created and answered (if needed)
 
+### 5.5. Cross-Reference Design Documents
+
+Invoke the `@acp.design-reference` shared directive to discover and extract design document context.
+
+**Actions**:
+- Read and follow the directive in [`agent/commands/acp.design-reference.md`](acp.design-reference.md)
+- Pass context from this command:
+  - `topic_keywords`: Keywords from task name and milestone name
+  - `milestone_name`: Current milestone name (from Step 1)
+  - `user_description`: User's task description (from Step 4)
+  - `draft_content`: Draft file content (from Step 3, if provided)
+- The directive will:
+  1. Search `agent/design/` for relevant documents by keyword matching
+  2. Report what was found/skipped
+  3. Extract design elements across 8 categories (implementation steps, argument tables, UX specs, edge cases, format specs, integration points, lifecycle rules, decision rationale)
+  4. Flag any design gaps (suggest clarification if needed)
+  5. Return structured data: design elements, gaps, and paths
+- Hold the returned design elements for use in Step 6
+
+**If no design found**: The directive warns and returns empty. Proceed to Step 6 with available context only (user input, draft, clarifications).
+
+**Expected Outcome**: Design elements extracted and ready for task generation, or skipped cleanly with warning
+
 ### 6. Generate Task File
 
 Create task file from template:
@@ -141,19 +208,39 @@ Create task file from template:
 - Fill in metadata:
   - Task number and name
   - Milestone link
+  - **Design Reference**: If Step 5.5 found a design document, link to it: `[{Design Name}](../design/{namespace}.{design-name}.md)`. If none found, set to `None`.
   - Estimated time
   - Dependencies
   - Status: "Not Started"
 - Fill in sections:
   - Objective (from collected info)
   - Context (from collected info or draft)
-  - Steps (from draft/clarification or template structure)
-  - Verification checklist
+  - **Steps** — must include implementation-level detail:
+    - Each step should be concrete and actionable, not a vague summary
+    - Include specific sub-steps for complex operations
+    - If Step 5.5 returned design elements, integrate them:
+      - Preserve argument/parameter tables from the design — include verbatim or as detailed prose
+      - Preserve UX specifications — exact warning text, prompt formats, display output
+      - Preserve format specifications — output structure, naming conventions, file format rules
+      - Include integration points — which other commands/systems are affected and how
+      - Include lifecycle rules — status transitions, cleanup behavior, ordering constraints
+      - Include decision rationale inline where it aids implementation
+    - If the design describes N distinct operations, the task should have corresponding steps covering all N (grouping related operations into fewer steps is acceptable, but no operation may be omitted)
+  - **Verification checklist** — must cover every design requirement:
+    - One verification item per design requirement from the design document
+    - Include edge cases from the design (partial data, conflicts, empty state, missing files)
+    - Include format verification (output matches specified format)
+    - Include integration verification (affected commands updated correctly)
+    - If the design has a Testing Strategy section, map each test scenario to a verification item
+  - If Key Design Decisions section was generated in Step 2.7: Insert it into the task document
+  - If Step 5.5 returned design decisions (from the design doc's Key Design Decisions section): Carry relevant decisions into the task's Key Design Decisions section
 - Save to appropriate path (milestone subdirectory or unassigned/)
+
+> **Self-Contained Task Principle**: After generating the task, verify that an agent reading ONLY this task file could implement the feature without needing to read the design document. If any design element is missing from the task, add it before saving.
 
 **Note**: Older tasks may use flat structure (`agent/tasks/task-{N}-{name}.md`) for historical reasons. New tasks should use milestone subdirectories.
 
-**Expected Outcome**: Task file created in milestone subdirectory
+**Expected Outcome**: Task file created in milestone subdirectory with complete design coverage
 
 ### 7. Update progress.yaml
 
@@ -214,6 +301,21 @@ Next steps:
 ```
 
 **Expected Outcome**: User knows task was created successfully
+
+### 10. Prompt to Add to Key File Index
+
+After successful creation, offer to add the new file to the index (if `agent/index/` exists).
+
+**Display**:
+```
+Would you like to add this to the key file index?
+  - Yes, add to agent/index/local.main.yaml
+  - No, skip
+```
+
+If yes, prompt for weight, description, rationale, and applies values. Add entry to `agent/index/local.main.yaml`.
+
+**Note**: Skip silently if `agent/index/` does not exist.
 
 ---
 

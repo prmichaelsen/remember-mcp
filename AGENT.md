@@ -1,7 +1,7 @@
 # Agent Context Protocol (ACP)
 
 **Also Known As**: The Agent Directory Pattern
-**Version**: 4.5.0
+**Version**: 5.13.1
 **Created**: 2026-02-11
 **Status**: Production Pattern
 
@@ -17,16 +17,17 @@
 6. [How to Use the Agent Pattern](#how-to-use-the-agent-pattern)
 7. [Pattern Significance & Impact](#pattern-significance--impact)
 8. [Problems This Pattern Solves](#problems-this-pattern-solves)
-9. [Instructions for Future Agents](#instructions-for-future-agents)
-10. [Best Practices](#best-practices)
+9. [Key File Index](#key-file-index)
+10. [Instructions for Future Agents](#instructions-for-future-agents)
+11. [Best Practices](#best-practices)
     - [Critical Rules](#critical-rules)
     - [Workflow Best Practices](#workflow-best-practices)
     - [Documentation Best Practices](#documentation-best-practices)
     - [Organization Best Practices](#organization-best-practices)
     - [Progress Tracking Best Practices](#progress-tracking-best-practices)
     - [Quality Best Practices](#quality-best-practices)
-11. [What NOT to Do](#what-not-to-do)
-12. [Keeping ACP Updated](#keeping-acp-updated)
+12. [What NOT to Do](#what-not-to-do)
+13. [Keeping ACP Updated](#keeping-acp-updated)
 
 ---
 
@@ -123,6 +124,16 @@ project-root/
 │   │   ├── unassigned/             # Tasks without milestone
 │   │   │   └── task-{M}-{name}.md
 │   │   └── task-{N}-{name}.md      # Legacy flat structure (older tasks)
+│   │
+│   ├── files/                      # Template source files (in packages)
+│   │   ├── config/                 # Config templates
+│   │   └── src/                    # Source code templates
+│   │
+│   ├── index/                      # Key file index
+│   │   ├── .gitkeep
+│   │   ├── local.main.yaml         # Project's own key files
+│   │   ├── local.main.template.yaml# Template with schema docs
+│   │   └── {pkg}.main.yaml         # Package-shipped indices
 │   │
 │   └── progress.yaml               # Progress tracking
 │
@@ -677,6 +688,123 @@ When working in any project, you can discover globally installed packages:
 
 ---
 
+## Project Registry System
+
+ACP supports a global project registry at `~/.acp/projects.yaml` that tracks all projects in the `~/.acp/projects/` workspace. This enables project discovery, context switching, and metadata management across your entire ACP workspace.
+
+### Key Features
+
+- **Project Discovery**: List all registered projects with filtering options
+- **Context Switching**: Quickly switch between projects using `@acp.project-set`
+- **Metadata Tracking**: Track project type, status, tags, and relationships
+- **Automatic Registration**: Projects auto-register when created via `@acp.project-create`
+- **Sync Discovery**: Find and register existing projects with `@acp.projects-sync`
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| [`@acp.project-list`](agent/commands/acp.project-list.md) | List all registered projects with optional filtering |
+| [`@acp.project-set`](agent/commands/acp.project-set.md) | Switch to a project (set as current) |
+| [`@acp.project-info`](agent/commands/acp.project-info.md) | Show detailed project information |
+| [`@acp.project-update`](agent/commands/acp.project-update.md) | Update project metadata |
+| [`@acp.project-remove`](agent/commands/acp.project-remove.md) | Remove project from registry |
+| [`@acp.projects-sync`](agent/commands/acp.projects-sync.md) | Discover and register existing projects |
+
+### Registry Structure
+
+The `~/.acp/projects.yaml` file tracks all registered projects:
+
+```yaml
+projects:
+  - name: my-project
+    path: /home/user/.acp/projects/my-project
+    type: library
+    status: in_progress
+    registered: 2026-02-23T10:00:00Z
+    last_accessed: 2026-02-26T15:30:00Z
+    tags:
+      - typescript
+      - npm
+    related_projects: []
+    description: My awesome project
+
+current_project: my-project
+```
+
+### Example Workflow
+
+```bash
+# List all projects
+@acp.project-list
+
+# Switch to a specific project
+@acp.project-set my-project
+
+# View project details
+@acp.project-info
+
+# Update project metadata
+@acp.project-update --tags "typescript,api,rest"
+
+# Discover unregistered projects
+@acp.projects-sync
+
+# Remove a project from registry (keeps files)
+@acp.project-remove old-project
+```
+
+### For Agents: How to Use the Registry
+
+When working in any ACP project, you can:
+
+1. **Check current project**: Read `~/.acp/projects.yaml` and find `current_project`
+2. **List available projects**: Use `@acp.project-list` to see all projects
+3. **Switch context**: Use `@acp.project-set <name>` to change projects
+4. **Get project info**: Use `@acp.project-info` for detailed metadata
+
+**Automatic Tracking**: The `@acp.init` command automatically reads the registry and reports the current project context.
+
+---
+
+## Sessions System
+
+ACP supports global session tracking via `~/.acp/sessions.yaml` for awareness of concurrent agent work across projects. When multiple `claude` terminals run from a single IDE instance, sessions give each agent visibility into what other agents are doing.
+
+This is an advisory-only visibility layer — no locking or coordination. Sessions are registered at `@acp.init` and deregistered at `@acp.report`, with automatic stale cleanup for crashed terminals.
+
+### What sessions.yaml Tracks
+
+Each session entry contains: session ID, project name, description, timestamps (started, last_activity), status (active/idle), current milestone and task, PID (for stale detection), terminal, and optional remote URL.
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| [`@acp.sessions`](agent/commands/acp.sessions.md) | List, clean, deregister, or count sessions |
+| `@acp.sessions list` | Show all active sessions |
+| `@acp.sessions clean` | Remove stale sessions (dead PIDs, timeouts) |
+| `@acp.sessions deregister` | End current session |
+
+### Integration with Other Commands
+
+| Command | Integration |
+|---------|-------------|
+| `@acp.init` | Registers session and displays active siblings |
+| `@acp.status` | Shows session count ("Sessions: N active") |
+| `@acp.report` | Deregisters session on completion |
+
+All integrations are optional — if `acp.sessions.sh` is missing, commands skip the session step silently.
+
+### Session Lifecycle
+
+1. **Register**: `@acp.init` registers a session with project, PID, timestamps
+2. **Heartbeat**: Activity updates via `acp.sessions.sh heartbeat`
+3. **Deregister**: `@acp.report` ends the session, or manual via `@acp.sessions deregister`
+4. **Stale Cleanup**: Dead PIDs removed immediately; inactive >2h removed; inactive >30m marked idle
+
+---
+
 ## Experimental Features
 
 ACP supports marking features as "experimental" to enable safe innovation without affecting stable installations.
@@ -751,6 +879,196 @@ Validation ensures consistency:
 3. **Graduate promptly** - Move to stable once proven
 4. **Version appropriately** - Use 0.x.x versions for experimental
 5. **Communicate clearly** - Note experimental status in README.md
+
+---
+
+## Benchmark Suite
+
+ACP includes an automated E2E benchmark system that compares project outcomes with and without ACP to generate quantitative success metrics.
+
+### Quick Start
+
+```bash
+# Run all benchmarks (ACP vs baseline)
+bash agent/benchmarks/runner/run-benchmark.sh
+
+# Run a specific task
+bash agent/benchmarks/runner/run-benchmark.sh --task complex-auth-system
+
+# Run ACP mode only, 3 runs for statistical averaging
+bash agent/benchmarks/runner/run-benchmark.sh --task medium-rest-api --acp-only --runs 3
+
+# Serve HTML reports
+bash agent/benchmarks/runner/serve-reports.sh
+```
+
+### Benchmark Tasks
+
+| Task | Complexity | Steps | Description |
+|------|-----------|-------|-------------|
+| hello-world | simple | 1 | Basic script creation |
+| simple-cli-tool | medium | 3 | CSV-to-JSON CLI tool |
+| medium-rest-api | medium | 4 | Express CRUD API with refactoring |
+| complex-auth-system | complex | 5 | JWT authentication system |
+| legacy-refactor | complex | 6 | Refactor messy legacy app (seed-based) |
+| order-pipeline | complex | 7 | Order system with event-driven pivot |
+
+### How It Works
+
+1. Each task runs in an isolated temp directory using `claude -p` (non-interactive mode)
+2. Multi-turn conversations use `--resume` for step-by-step execution
+3. ACP mode installs ACP and injects `@acp.plan` / `@acp.proceed` directives
+4. After execution: automated verification checks + LLM evaluator (6-category rubric)
+5. Reports generated in Markdown and HTML (with Chart.js radar charts)
+
+### Key Files
+
+- `agent/benchmarks/runner/run-benchmark.sh` — Main entry point
+- `agent/benchmarks/runner/run-single.sh` — Single task/mode runner
+- `agent/benchmarks/runner/verify.sh` — Verification functions per task
+- `agent/benchmarks/runner/evaluator-prompt.md` — LLM evaluator rubric
+- `agent/benchmarks/suite/` — Benchmark task definitions
+- `agent/benchmarks/reports/` — Generated reports (gitignored)
+- `.github/workflows/benchmark.yaml` — On-demand CI workflow
+
+### Design Document
+
+See [agent/design/local.benchmark-suite.md](agent/design/local.benchmark-suite.md) for the full design specification.
+
+---
+
+## Template Source Files
+
+ACP packages can bundle template source files (code, configs, etc.) alongside patterns, commands, and designs. Templates are declared in the `contents.files` section of `package.yaml` and stored in the `agent/files/` directory of the package.
+
+### Templates vs Other Content Types
+
+| Type | Location | Purpose |
+|------|----------|---------|
+| Patterns | `agent/patterns/` | Documentation and guidance |
+| Commands | `agent/commands/` | Agent directives |
+| Designs | `agent/design/` | Architecture documentation |
+| Scripts | `agent/scripts/` | Shell utilities |
+| **Files** | **Project root (target paths)** | **Actual code and config files** |
+
+### Installing Template Files
+
+```bash
+# Install all files (templates install to target paths)
+@acp.package-install --repo <url>
+
+# Install specific template files only
+@acp.package-install --files config/tsconfig.json src/schemas/example.schema.ts --repo <url>
+
+# Preview what would be installed
+@acp.package-install --list --repo <url>
+```
+
+### Variable Substitution
+
+Templates with `.template` extension can contain `{{VARIABLE}}` placeholders that are replaced during installation:
+
+```json
+{
+  "name": "{{PACKAGE_NAME}}",
+  "author": "{{AUTHOR_NAME}}"
+}
+```
+
+Variables are declared in `package.yaml` and values are prompted during installation. Variable values are stored in the manifest for reproducible updates.
+
+### Target Paths
+
+Each file declares a `target` path in `package.yaml`:
+- `target: ./` installs to project root
+- `target: src/schemas/` installs to `src/schemas/` directory
+- `.template` extension is stripped (e.g., `settings.json.template` becomes `settings.json`)
+- Unsafe paths (`../`, absolute paths) are rejected
+
+### Security Considerations
+
+Templates install to project directories (not `agent/`):
+- May overwrite existing files
+- Always prompted before installation (unless `-y` flag)
+- Target paths validated for safety
+- Conflict detection warns about overwrites
+- Use `--list` to preview before installing
+
+### Package.yaml Declaration
+
+```yaml
+contents:
+  files:
+    - name: config/tsconfig.json
+      description: TypeScript configuration
+      target: ./
+      required: true
+
+    - name: config/settings.json.template
+      description: Settings with variable substitution
+      target: config/
+      required: false
+      variables:
+        - PROJECT_NAME
+        - AUTHOR_NAME
+```
+
+---
+
+## Key File Index
+
+This project uses the ACP Key File Index system to ensure agents read critical files before making decisions. Key files are declared in `agent/index/` with weights and descriptions.
+
+### How It Works
+
+Index files in `agent/index/` declare which project files are critical. Each entry includes:
+- **path**: Path to the file (relative to project root)
+- **weight**: Priority from 0.0-1.0 (higher = more important)
+- **kind**: Type of file — `pattern`, `command`, `design`, or `requirements`
+- **description**: What the file contains
+- **rationale**: Why an agent must read it
+- **applies**: Comma-separated list of commands that should read this file (e.g. `acp.proceed, acp.plan`)
+
+### Index File Naming
+
+Files follow `{namespace}.{qualifier}.yaml` naming:
+- `local.main.yaml` — Project's own key files (highest precedence)
+- `{package}.main.yaml` — Package-shipped key files (installed via `@acp.package-install`)
+
+### When Key Files Are Read
+
+- **`@acp.init`**: Reads all key files with weight >= 0.8
+- **`@acp.proceed`**, **`@acp.plan`**: Read key files where `applies` includes the command name
+- **Creation commands** (`@acp.design-create`, etc.): Read key files where `applies` includes the command name
+- **After context compaction**: Re-read key files following [When Recovering from Context Loss](#when-recovering-from-context-loss)
+
+### Managing the Index
+
+Use `@acp.index` to manage entries:
+```
+@acp.index list              # List all indexed key files
+@acp.index add <path>        # Add a file to the index
+@acp.index remove <path>     # Remove a file from the index
+@acp.index explore           # Suggest files that should be indexed
+@acp.index show <path>       # Show details for a specific entry
+```
+
+### Weight Guidelines
+
+| Weight | Use For |
+|--------|---------|
+| 0.9-1.0 | Requirements, critical design docs |
+| 0.7-0.8 | Important patterns, testing guides |
+| 0.5-0.6 | Useful references, conventions |
+| 0.3-0.4 | Package-shipped indices (convention) |
+
+### Validation
+
+Run `@acp.validate` to check index health: valid schema, existing paths, reasonable limits (recommended max 20 entries total, 10 per namespace).
+
+### Design Document
+
+See `agent/design/local.key-file-index-system.md` for the complete design specification.
 
 ---
 
@@ -917,6 +1235,29 @@ Run ./agent/scripts/unacp.install.sh to remove all ACP files (agent/ directory a
    - Add completion date
    - Update milestone progress
    - Add notes about work done
+
+### When Recovering from Context Loss
+
+When your context is compacted, truncated, or you start a new session mid-task:
+
+1. **Re-read `agent/index/` key files**
+   - Scan `agent/index/` for `*.yaml` files (excluding `*.template.yaml`)
+   - Read entries with weight >= 0.8 to restore critical context
+   - Filter by `applies` field if you know which command you were executing
+
+2. **Re-read `agent/progress.yaml`**
+   - Identify current milestone and task
+   - Check what was last completed
+
+3. **Re-read the current task document**
+   - Determine which step you were on
+   - Review remaining verification items
+
+4. **Offer scope control to the user**
+   - Ask if they want full context reload or minimal recovery
+   - Suggest relevant key files based on current work
+
+This is equivalent to running `@acp.init` steps 2-2.8 followed by resuming the current task.
 
 ### When Creating New Features
 
@@ -1115,6 +1456,16 @@ This pattern is because: ...
 
 **Rationale**: The `>` syntax provides a lightweight way for users to give inline feedback without needing to explain context. Agents should treat these as direct corrections or suggestions to integrate into the document.
 
+#### Use Direct Git Commits
+
+When creating git commits, always use `git commit -m` directly:
+
+- ✅ **DO** use `git commit -m "message"` to create commits
+- ❌ **DO NOT** use bash tools, subshells, or scripts to generate commits
+- ❌ **DO NOT** use heredocs, `echo`, or `cat` to construct commit messages
+
+**Rationale**: Direct `git commit -m` is simpler, more transparent, and avoids escaping issues. The commit message should be authored directly, not piped through intermediate tools.
+
 #### Format Commands for User Execution
 
 When providing commands for users to copy and paste:
@@ -1224,6 +1575,13 @@ touch acp.init.md
 - Capture reusable solutions
 - Include anti-patterns
 - Provide examples
+
+#### Documentation is a First-Class Deliverable
+
+- README.md, architecture docs, and migration guides are deliverables equal to source code
+- A project with passing tests but missing required documentation is INCOMPLETE
+- Verify documentation files exist and contain required sections before marking tasks complete
+- Documentation tasks deserve the same rigor as implementation tasks
 
 #### Review and Refine
 

@@ -2,6 +2,16 @@
 # Common utilities for ACP scripts
 # POSIX-compliant for maximum portability
 
+# Portable in-place sed (works on both GNU and BSD/macOS sed)
+# Usage: _sed_i "expression" "file"
+_sed_i() {
+    if [ "$(uname)" = "Darwin" ]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
 # Initialize colors using tput (more reliable than ANSI codes)
 init_colors() {
     if command -v tput >/dev/null 2>&1 && [ -t 1 ]; then
@@ -30,7 +40,13 @@ calculate_checksum() {
         echo "Error: File not found: $file" >&2
         return 1
     fi
-    sha256sum "$file" 2>/dev/null | cut -d' ' -f1
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$file" 2>/dev/null | cut -d' ' -f1
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$file" 2>/dev/null | cut -d' ' -f1
+    else
+        echo "unknown"
+    fi
 }
 
 # Get current timestamp in ISO 8601 format (UTC)
@@ -143,7 +159,7 @@ update_manifest_timestamp() {
     timestamp=$(get_timestamp)
     
     # Update timestamp using sed
-    sed -i "s/^last_updated: .*/last_updated: $timestamp/" "$manifest"
+    _sed_i "s/^last_updated: .*/last_updated: $timestamp/" "$manifest"
 }
 
 # Check if package exists in manifest
@@ -192,7 +208,6 @@ init_global_manifest() {
     fi
     
     # Create ~/.acp directory if needed
-    mkdir -p "$HOME/.acp/packages"
     mkdir -p "$HOME/.acp/projects"
     
     # Create manifest
@@ -240,7 +255,7 @@ update_global_manifest_timestamp() {
     # Update timestamp using sed
     local timestamp
     timestamp=$(get_timestamp)
-    sed -i "s/^updated: .*/updated: $timestamp/" "$manifest_path"
+    _sed_i "s/^updated: .*/updated: $timestamp/" "$manifest_path"
 }
 
 # Check if package exists in global manifest
@@ -296,7 +311,22 @@ init_global_acp() {
     
     # Create ~/.acp directory
     mkdir -p "$global_dir"
-    
+
+    # Create .gitignore for global ACP directory
+    if [ ! -f "$global_dir/.gitignore" ]; then
+        cat > "$global_dir/.gitignore" << 'GITIGNORE'
+# Project repos have their own git
+projects/
+
+# Claude Code session data
+.claude/
+
+# Common noise
+*.log
+node_modules/
+GITIGNORE
+    fi
+
     # Get the directory where this script is located
     local script_dir
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -483,7 +513,7 @@ get_file_version() {
     
     if [ ! -f "$package_yaml" ]; then
         echo "0.0.0"
-        return 1
+        return 0
     fi
     
     # Use awk to parse YAML array (acp.yaml.sh doesn't support array queries)
@@ -508,6 +538,8 @@ get_file_version() {
     else
         echo "$version"
     fi
+    
+    return 0
 }
 
 # Add package to manifest
@@ -526,7 +558,7 @@ add_package_to_manifest() {
     # Check if package already exists
     if grep -q "^  ${package_name}:" "$manifest" 2>/dev/null; then
         # Update existing package
-        sed -i "/^  ${package_name}:/,/^  [a-z]/ {
+        _sed_i "/^  ${package_name}:/,/^  [a-z]/ {
             s|source: .*|source: $source_url|
             s|package_version: .*|package_version: $package_version|
             s|commit: .*|commit: $commit_hash|
@@ -537,10 +569,11 @@ add_package_to_manifest() {
         # Find the packages: line and append after it
         awk -v pkg="$package_name" -v src="$source_url" -v ver="$package_version" -v commit="$commit_hash" -v ts="$timestamp" '
             /^packages:/ {
-                print
                 if ($2 == "{}") {
-                    # Empty packages, replace line
-                    next
+                    # Empty packages - replace {} with just "packages:"
+                    print "packages:"
+                } else {
+                    print
                 }
                 print "  " pkg ":"
                 print "    source: " src
@@ -554,6 +587,7 @@ add_package_to_manifest() {
                 print "      designs: []"
                 print "      scripts: []"
                 print "      files: []"
+                print "      indices: []"
                 next
             }
             { print }
@@ -602,7 +636,7 @@ add_file_to_manifest() {
     fi
     
     # Convert empty arrays [] to proper format first (workaround for parser limitation)
-    sed -i "s/^      ${file_type}: \\[\\]$/      ${file_type}:/" "$manifest"
+    _sed_i "s/^      ${file_type}: \\[\\]$/      ${file_type}:/" "$manifest"
     
     # Parse manifest
     yaml_parse "$manifest"
@@ -637,7 +671,7 @@ get_commit_hash() {
     
     if [ ! -d "$repo_dir/.git" ]; then
         echo "unknown"
-        return 1
+        return 0
     fi
     
     (cd "$repo_dir" && git rev-parse HEAD 2>/dev/null) || echo "unknown"
@@ -701,8 +735,13 @@ is_file_modified() {
     fi
     
     # Calculate current checksum
+    # Map manifest key to filesystem directory (they differ for some types)
+    local file_dir="$file_type"
+    case "$file_type" in
+        indices) file_dir="index" ;;
+    esac
     local current_checksum
-    current_checksum=$(calculate_checksum "agent/${file_type}/${file_name}")
+    current_checksum=$(calculate_checksum "agent/${file_dir}/${file_name}")
     
     if [ "$stored_checksum" != "$current_checksum" ]; then
         return 0  # Modified
@@ -757,6 +796,166 @@ update_file_in_manifest() {
         { print }
     ' "$manifest" > "$temp_file"
     
+    mv "$temp_file" "$manifest"
+}
+
+# ============================================================================
+# Template File Manifest Functions
+# ============================================================================
+
+# Check if a template file was modified locally (uses target path, not agent/ path)
+# Usage: is_template_file_modified "package_name" "filename" "target_path"
+# Returns: 0 if modified, 1 if not modified
+is_template_file_modified() {
+    local package_name="$1"
+    local file_name="$2"
+    local target_path="$3"
+    local manifest="agent/manifest.yaml"
+
+    # Get stored checksum from manifest
+    local stored_checksum
+    stored_checksum=$(awk -v pkg="$package_name" -v name="$file_name" '
+        BEGIN { in_pkg=0; in_files=0; in_file=0 }
+        $0 ~ "^  " pkg ":" { in_pkg=1; next }
+        in_pkg && /^  [a-z]/ && !/^    / { in_pkg=0 }
+        in_pkg && /^      files:/ { in_files=1; next }
+        in_files && /^      [a-z]/ && !/^        / { in_files=0 }
+        in_files && /^        - name:/ {
+            if ($3 == name) { in_file=1 }
+            else { in_file=0 }
+            next
+        }
+        in_file && /^          checksum:/ {
+            gsub(/sha256:/, "", $2)
+            print $2
+            exit
+        }
+    ' "$manifest")
+
+    if [ -z "$stored_checksum" ]; then
+        warn "No checksum found in manifest for files/$file_name"
+        return 1
+    fi
+
+    # Calculate current checksum from target path
+    if [ ! -f "$target_path" ]; then
+        warn "Target file not found: $target_path"
+        return 0  # Missing = modified (deleted)
+    fi
+
+    local current_checksum
+    current_checksum=$(calculate_checksum "$target_path")
+
+    if [ "$stored_checksum" != "$current_checksum" ]; then
+        return 0  # Modified
+    else
+        return 1  # Not modified
+    fi
+}
+
+# Get target path for a template file from manifest
+# Usage: target=$(get_template_file_target "package_name" "filename")
+get_template_file_target() {
+    local package_name="$1"
+    local file_name="$2"
+    local manifest="agent/manifest.yaml"
+
+    awk -v pkg="$package_name" -v name="$file_name" '
+        BEGIN { in_pkg=0; in_files=0; in_file=0 }
+        $0 ~ "^  " pkg ":" { in_pkg=1; next }
+        in_pkg && /^  [a-z]/ && !/^    / { in_pkg=0 }
+        in_pkg && /^      files:/ { in_files=1; next }
+        in_files && /^      [a-z]/ && !/^        / { in_files=0 }
+        in_files && /^        - name:/ {
+            if ($3 == name) { in_file=1 }
+            else { in_file=0 }
+            next
+        }
+        in_file && /^          target:/ {
+            $1=""
+            gsub(/^ +/, "")
+            print
+            exit
+        }
+    ' "$manifest"
+}
+
+# Get stored variable values for a template file from manifest
+# Usage: vars=$(get_template_file_variables "package_name" "filename")
+# Returns: KEY=VALUE lines (one per line)
+get_template_file_variables() {
+    local package_name="$1"
+    local file_name="$2"
+    local manifest="agent/manifest.yaml"
+
+    awk -v pkg="$package_name" -v name="$file_name" '
+        BEGIN { in_pkg=0; in_files=0; in_file=0; in_vars=0 }
+        $0 ~ "^  " pkg ":" { in_pkg=1; next }
+        in_pkg && /^  [a-z]/ && !/^    / { in_pkg=0 }
+        in_pkg && /^      files:/ { in_files=1; next }
+        in_files && /^      [a-z]/ && !/^        / { in_files=0 }
+        in_files && /^        - name:/ {
+            if ($3 == name) { in_file=1 }
+            else { in_file=0; in_vars=0 }
+            next
+        }
+        in_file && /^          variables:/ { in_vars=1; next }
+        in_vars && /^            [A-Z]/ {
+            key=$1
+            gsub(/:$/, "", key)
+            $1=""
+            gsub(/^ +/, "")
+            print key "=" $0
+            next
+        }
+        in_vars && /^          [a-z]/ { in_vars=0 }
+        in_vars && /^        -/ { in_vars=0; in_file=0 }
+    ' "$manifest"
+}
+
+# Update template file entry in manifest
+# Usage: update_template_file_in_manifest "package_name" "filename" "new_version" "new_checksum"
+update_template_file_in_manifest() {
+    local package_name="$1"
+    local file_name="$2"
+    local new_version="$3"
+    local new_checksum="$4"
+    local timestamp
+    timestamp=$(get_timestamp)
+
+    local manifest="agent/manifest.yaml"
+
+    local temp_file
+    temp_file=$(mktemp)
+
+    awk -v pkg="$package_name" -v name="$file_name" \
+        -v ver="$new_version" -v chk="sha256:$new_checksum" -v ts="$timestamp" '
+        BEGIN { in_pkg=0; in_files=0; in_file=0 }
+        $0 ~ "^  " pkg ":" { in_pkg=1; print; next }
+        in_pkg && /^  [a-z]/ && !/^    / { in_pkg=0; print; next }
+        in_pkg && /^      files:/ { in_files=1; print; next }
+        in_files && /^      [a-z]/ && !/^        / { in_files=0; print; next }
+        in_files && /^        - name:/ {
+            if ($3 == name) { in_file=1 }
+            else { in_file=0 }
+            print
+            next
+        }
+        in_file && /^          version:/ {
+            print "          version: " ver
+            next
+        }
+        in_file && /^          checksum:/ {
+            print "          checksum: " chk
+            next
+        }
+        in_file && /^          modified:/ {
+            print "          modified: false"
+            next
+        }
+        { print }
+    ' "$manifest" > "$temp_file"
+
     mv "$temp_file" "$manifest"
 }
 
@@ -1437,14 +1636,41 @@ last_updated: ${timestamp}
 EOF
 }
 
+# Get git remote origin URL for a directory
+# Usage: origin=$(get_git_origin "/path/to/repo")
+# Returns: Git remote origin URL, or empty string if not a git repo or no origin
+get_git_origin() {
+    local dir="${1:-.}"
+    if [ -d "$dir/.git" ] || git -C "$dir" rev-parse --git-dir >/dev/null 2>&1; then
+        git -C "$dir" remote get-url origin 2>/dev/null || echo ""
+    else
+        echo ""
+    fi
+}
+
+# Get current git branch for a directory
+# Usage: branch=$(get_git_branch "/path/to/repo")
+# Returns: Current branch name, or empty string if not a git repo
+get_git_branch() {
+    local dir="${1:-.}"
+    if [ -d "$dir/.git" ] || git -C "$dir" rev-parse --git-dir >/dev/null 2>&1; then
+        git -C "$dir" branch --show-current 2>/dev/null || echo ""
+    else
+        echo ""
+    fi
+}
+
 # Register project in registry
-# Usage: register_project "project-name" "/path/to/project" "project-type" "description"
+# Usage: register_project "project-name" "/path/to/project" "project-type" "description" ["git_origin"] ["git_branch"]
 # NOTE: Caller must source acp.yaml-parser.sh before calling this function
+# git_origin and git_branch are optional; if omitted, auto-detected from project path
 register_project() {
     local project_name="$1"
     local project_path="$2"
     local project_type="$3"
     local project_description="$4"
+    local git_origin="${5:-}"
+    local git_branch="${6:-}"
     local registry_path
     registry_path=$(get_projects_registry_path)
     
@@ -1471,7 +1697,24 @@ register_project() {
     yaml_set "projects.${project_name}.last_modified" "$timestamp"
     yaml_set "projects.${project_name}.last_accessed" "$timestamp"
     yaml_set "projects.${project_name}.status" "active"
-    
+
+    # Auto-detect git origin/branch if not provided
+    local expanded_path="${project_path/#\~/$HOME}"
+    if [ -z "$git_origin" ] && [ -d "$expanded_path" ]; then
+        git_origin=$(get_git_origin "$expanded_path")
+    fi
+    if [ -z "$git_branch" ] && [ -d "$expanded_path" ]; then
+        git_branch=$(get_git_branch "$expanded_path")
+    fi
+
+    # Set git fields if available
+    if [ -n "$git_origin" ]; then
+        yaml_set "projects.${project_name}.git_origin" "$git_origin"
+    fi
+    if [ -n "$git_branch" ]; then
+        yaml_set "projects.${project_name}.git_branch" "$git_branch"
+    fi
+
     # Set as current project if first project
     local current
     current=$(yaml_get "$registry_path" "current_project" 2>/dev/null || echo "")

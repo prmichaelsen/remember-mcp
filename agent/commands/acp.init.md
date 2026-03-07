@@ -7,6 +7,7 @@
 **Created**: 2026-02-16
 **Last Updated**: 2026-02-16
 **Status**: Active
+**Scripts**: None
 
 ---
 
@@ -47,6 +48,25 @@ Check if newer version of ACP is available.
 - Ask if user wants to update (don't auto-update)
 
 **Expected Outcome**: User informed of ACP version status
+
+### 1.5. Register Session and Show Siblings (Optional)
+
+Register this agent session and display any active sibling sessions.
+
+**Actions**:
+- If `./agent/scripts/acp.sessions.sh` exists, run `./agent/scripts/acp.sessions.sh register --project <current-project> --pid <agent-pid>`
+- If `./agent/scripts/acp.sessions.sh` exists, run `./agent/scripts/acp.sessions.sh list` and display active sibling sessions
+
+**Display format** (compact, one line per sibling):
+```
+Active Sessions: 2 others
+  remember-core — task-12 (Implement Auth) — 20m ago
+  agentbase.me — task-5 (Fix API Routes) — 8m ago
+```
+
+**Expected Outcome**: Session registered, sibling sessions displayed
+
+**Note**: If `./agent/scripts/acp.sessions.sh` does not exist, skip this step silently.
 
 ### 2. Read All Agent Documentation
 
@@ -96,6 +116,34 @@ Check for globally installed ACP packages.
 ```
 
 **Note**: This step is optional and graceful - if no global packages exist or manifest is not found, continue without error.
+
+### 2.8. Read Key Files from Index
+
+Load critical project files from the key file index.
+
+**Actions**:
+- Check if `agent/index/` directory exists
+- If exists, scan for all `*.yaml` files (excluding `*.template.yaml`)
+- Parse each index file's entries
+- Merge entries across namespaces (`local.*` takes precedence over package indices)
+- Filter entries with weight >= 0.8 (high-importance files for init)
+- Sort by weight descending
+- Read each qualifying file
+- Produce visible output showing what was read/skipped
+
+**Display format**:
+```
+📑 Reading Key Files...
+  ✓ agent/design/acp-commands-design.md (weight: 0.9, design)
+  ✓ agent/patterns/local.e2e-testing.md (weight: 0.8, pattern)
+  ○ agent/patterns/local.tracked-untracked-directories.md (weight: 0.7, skipped — below threshold)
+
+  2 index files scanned, 2 key files read, 1 skipped
+```
+
+**Expected Outcome**: High-importance key files loaded into context
+
+**Note**: If `agent/index/` does not exist, skip this step silently. The index is optional but recommended.
 
 ### 3. Identify Key Source Files
 
