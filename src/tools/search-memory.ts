@@ -35,6 +35,12 @@ export const searchMemoryTool = {
   - "Search for recipes I saved" → returns recipe memories + related relationships
   - "Show me notes from last week" → returns notes + any relationships created that week
   
+  **GRAPH TRAVERSAL**: Use include_relationships: true (the default) to discover graph nodes
+  that link memories together. Relationships contain observations about how memories connect.
+  When exploring a memory in more detail, search for it and examine the returned relationships
+  to find related memories you can drill into — this lets you traverse the memory graph and
+  explore a memory's "near field" of connected knowledge.
+
   **AGENT GUIDANCE**:
   - ⚠️ **CRITICAL - CONTENT TYPE FILTERING**: Do NOT add filters.types unless the user explicitly requests filtering by content type.
     * ✅ CORRECT: User says "search for hiking" → { query: "hiking" }

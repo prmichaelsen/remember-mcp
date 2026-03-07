@@ -28,6 +28,11 @@ Destinations:
 
 Results from multiple sources are merged and deduplicated by composite ID, sorted by relevance.
 
+**GRAPH TRAVERSAL**: To explore a space memory's connections, take the memory's source ID and
+use remember_search_memory with include_relationships: true to find graph nodes linking to it.
+This lets you traverse the original author's memory graph to discover related context, connected
+topics, and the memory's "near field" of knowledge.
+
 ⚠️ **CRITICAL - CONTENT TYPE FILTERING**: Do NOT add content_type filter unless the user explicitly requests filtering by type.
 - ✅ CORRECT: User says "search The Void for hiking" → { spaces: ["the_void"], query: "hiking" }
 - ❌ WRONG: User says "search The Void for hiking" → { spaces: ["the_void"], query: "hiking", content_type: "note" }

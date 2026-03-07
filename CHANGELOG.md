@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.15.5] - 2026-03-07
+
+### Changed
+
+- Add graph traversal guidance to `remember_search_memory` tool description — prompts LLM to use `include_relationships: true` for exploring a memory's connected knowledge
+- Add graph traversal guidance to `remember_search_space` tool description — prompts LLM to use `remember_search_memory` to traverse the author's memory graph from space results
+
 ## [3.15.0] - 2026-03-06
 
 ### Fixed
