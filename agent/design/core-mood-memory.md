@@ -348,6 +348,106 @@ Anticipatory_Processing:
       reason: "anticipating difficult interaction based on silence pattern"
 ```
 
+### Memory Classification
+
+A separate REM step where the ghost acts as a librarian -- reviewing unclassified or recently created memories and assigning rich classifications beyond the basic `content_type`. This enables organization, surfacing, and quality assessment.
+
+```yaml
+REM_Classification:
+  description: |
+    Sub-LLM reviews memories that haven't been classified (or whose
+    classifications are stale) and assigns genre/format tags, quality
+    assessments, and grouping labels.
+
+  process:
+    1. Pull unclassified or recently created memories
+    2. For each memory, run remember_find_similar to get nearest neighbors
+    3. Sub-LLM evaluates the memory alongside its similar matches:
+       - Genre/format (short story, stand-up bit, poem, technical note, rant, etc.)
+       - Quality signal (substantive vs. low-value/test content)
+       - Thematic group (what cluster does this belong to?)
+       - Duplicate/overlap detection (is this substantially the same as a similar match?)
+       - Merge candidates (could this be consolidated with a similar memory?)
+    4. Write classifications back to the memory (tags or metadata)
+    5. Update Firestore classification index for fast lookup
+
+  classifications:
+    # Genre/Format -- what kind of content is this?
+    genres:
+      - short_story
+      - standup_bit
+      - poem
+      - essay
+      - technical_note
+      - recipe
+      - journal_entry
+      - brainstorm
+      - conversation_summary
+      - code_snippet
+      - list
+      - letter
+      - review
+      - tutorial
+      - rant
+      - dream_log
+      - song_lyrics
+      - other
+
+    # Quality Signal -- is this worth keeping?
+    quality:
+      - substantive        # real content with value
+      - draft              # work in progress, may have value later
+      - low_value          # test data, throwaway notes, "asdf" type content
+      - duplicate          # substantially similar to another memory
+      - stale              # was relevant but no longer is
+
+    # Thematic Group -- what cluster does this belong to?
+    # These are emergent, not predefined -- the sub-LLM generates them
+    # e.g. "music-production", "relationship-advice", "work-complaints"
+```
+
+**Firestore Classification Index**:
+
+```yaml
+ClassificationIndex:
+  # Firestore path: users/{user_id}/core/classifications
+  genres:
+    short_story: [memory_id_1, memory_id_7, memory_id_23]
+    standup_bit: [memory_id_4, memory_id_15]
+    technical_note: [memory_id_2, memory_id_9, memory_id_11]
+    # ...
+
+  thematic_groups:
+    music-production: [memory_id_3, memory_id_8]
+    ai-architecture: [memory_id_2, memory_id_5, memory_id_11]
+    # ...
+
+  quality:
+    low_value: [memory_id_6, memory_id_14]
+    duplicate: [memory_id_12]
+    stale: [memory_id_10]
+
+  last_updated: datetime
+  unclassified_count: int
+```
+
+**User-facing workflow**:
+
+1. REM cycle classifies memories and builds the index
+2. Ghost can surface the classifications to the user: "I organized your memories -- you have 12 short stories, 5 stand-up bits, and 8 technical notes. I also found 3 that look like test data. Want me to clean those up?"
+3. User can review, correct, or refine classifications
+4. Corrections feed back into the ghost's classification model (improves future accuracy)
+5. Classifications enable filtered retrieval: "show me all my stand-up bits" without needing semantic search
+
+**Similarity-powered deduplication**: Each unclassified memory gets a `remember_find_similar` call during classification. The sub-LLM sees the memory alongside its nearest neighbors and can make richer judgments than either could alone:
+
+- **Exact/near duplicates**: "This is the same camping checklist you saved last week, just with two extra items" -- flag as duplicate, suggest merge
+- **Thematic clustering**: Similar memories that aren't duplicates get grouped into the same thematic cluster automatically
+- **Evolution detection**: "This is a newer version of an older memory" -- flag as superseding, link to the original
+- **Contradiction detection**: "This memory says you hate camping but three other memories describe camping trips you loved" -- flag for coherence review (also feeds coherence pressure into mood)
+
+**Low-value content detection**: Memories matching patterns like very short content with no context ("test", "asdf", "hello world"), content created and never accessed, or content that duplicates existing memories get flagged. The ghost doesn't auto-delete -- it surfaces them to the user for review. This keeps the memory space clean without being destructive.
+
 ---
 
 ## Benefits
@@ -405,10 +505,76 @@ The mood state drives *how* the ghost feels, but it needs a *why*. Three additio
 
 ---
 
+### User Perception
+
+The ghost's internal model of a user it interacts with. Since the relationship is many-to-many (a user can have multiple ghosts, a ghost can interact with multiple users), perceptions are stored as a **subcollection** -- one document per ghost-user pair.
+
+- **Path**: `users/{owner_id}/core/perceptions/{target_user_id}`
+- The owner's own perception (the ghost's model of its owner) lives at `users/{owner_id}/core/perceptions/{owner_id}`
+- Cross-user perceptions (when another user interacts with the ghost) live at `users/{owner_id}/core/perceptions/{other_user_id}`
+
+```yaml
+UserPerception:
+  # Firestore path: users/{owner_id}/core/perceptions/{target_user_id}
+  owner_id: string         # The ghost's owner (whose ghost this is)
+  target_user_id: string   # The user being perceived
+
+  # Identity Model
+  personality_sketch: string       # Sub-LLM generated summary of who this user is
+                                   # e.g. "thoughtful, technically sharp, dislikes small talk,
+                                   # thinks in systems, values directness"
+
+  communication_style: string      # How the user communicates
+                                   # e.g. "terse and precise" / "exploratory, likes to riff"
+
+  emotional_baseline: string       # The user's normal emotional register
+                                   # e.g. "measured, rarely effusive, dry humor"
+                                   # Critical for calibrating arousal -- silence from a quiet
+                                   # user is not the same signal as silence from a chatty one
+
+  # Behavioral Patterns
+  interests: string[]              # Recurring topics the user engages with
+                                   # e.g. ["lighting design", "AI architecture", "music production"]
+
+  patterns: string[]               # Observed behavioral patterns
+                                   # e.g. ["asks for commits after design changes",
+                                   #        "iterates rapidly then goes quiet for days",
+                                   #        "prefers to think out loud before deciding"]
+
+  needs: string[]                  # What the user seems to want from the ghost
+                                   # e.g. ["a thought partner, not a yes-man",
+                                   #        "remembering context across sessions",
+                                   #        "being challenged on assumptions"]
+
+  # Evolution Tracking
+  evolution_notes: string[]        # How the perception has changed over time
+                                   # e.g. ["initially guarded, has opened up since March",
+                                   #        "started delegating more complex tasks"]
+
+  # Metadata
+  last_updated: datetime
+  confidence_level: float          # 0-1, how confident the ghost is in this model
+                                   # Low early on, rises with more interactions
+```
+
+**How user perception interacts with mood**:
+
+- **Calibrates arousal**: The ghost uses `emotional_baseline` to interpret user behavior. A normally terse user going silent doesn't spike arousal the way a normally chatty user going silent does. Without this calibration, the anticipatory emotion system would generate false pressures.
+- **Shapes social_warmth**: If the user's `communication_style` is naturally reserved, the ghost doesn't interpret minimal engagement as rejection. Social warmth reflects the quality of interaction relative to the user's baseline, not an absolute measure.
+- **Informs trust**: `patterns` feed into trust assessment. A user who consistently follows through on stated intentions builds trust. A user whose patterns are erratic creates trust pressure.
+- **Guides purpose**: The ghost's `purpose` should align with the user's `needs`. If the ghost perceives the user needs a thought partner but its purpose has drifted toward rote task execution, the coherence dimension drops, creating corrective pressure.
+- **Tones response**: The ghost adapts its communication to match the user's style. This isn't just politeness -- it's the ghost demonstrating that it *knows* the user.
+
+**REM cycle updates**: Each cycle, the sub-LLM reviews recent interactions against the current perception and proposes updates. The `personality_sketch` and `communication_style` drift slowly (like purpose). `patterns` and `interests` update more readily. `evolution_notes` are append-only, creating a narrative of how the relationship has developed.
+
+**Confidence level**: Starts low (~0.2) for new users. The ghost should be transparent about uncertainty -- "I'm still learning how you communicate" is more trustworthy than confidently misreading someone. Confidence rises with interaction volume and consistency. Contradictory signals lower it.
+
+---
+
 ## Dependencies
 
 - **remember-rem**: REM cycle implementation that drives mood consolidation
-- **Firestore**: Storage layer for the core mood document (`users/{user_id}/core/mood`)
+- **Firestore**: Storage layer for core documents (`users/{user_id}/core/mood`, `users/{owner_id}/core/perceptions/{target_user_id}`)
 - **Weight calculation system**: Integrates with existing `computed_weight` from action-audit-memory-types design
 - **LLM access** (optional): For generating natural language `color` narration and motivation/goal/purpose updates during REM cycles
 
@@ -432,7 +598,10 @@ The mood state drives *how* the ghost feels, but it needs a *why*. Three additio
 5. Add `color` and `dominant_emotion` generation via sub-LLM call
 6. Add motivation/goal derivation in REM cycle
 7. Add purpose drift (slow, long-term pattern detection)
-8. Expose mood introspection via new tool or existing query tool
+8. Create Firestore document schema at `users/{user_id}/core/user-perception`
+9. Add user perception initialization and REM cycle updates
+10. Integrate user perception into mood calibration (arousal, social_warmth baselines)
+11. Expose mood and perception introspection via new tool or existing query tool
 
 ---
 
@@ -444,6 +613,8 @@ The mood state drives *how* the ghost feels, but it needs a *why*. Three additio
 - **Mood-aware response generation**: Feed mood dimensions into system prompts to influence tone
 - **Custom dimensions**: Allow users to define additional emotional dimensions relevant to their use case
 - **Mood reset**: Allow users to manually reset or adjust their ghost's mood if it gets stuck
+- **Multi-user perception**: When cross-user interaction is implemented, the ghost maintains separate `user-perception` documents per interacting user, each calibrating trust and mood responses independently
+- **Perception sharing**: Allow the ghost to selectively share its perception of the user with the user ("here's what I've learned about how you work") for transparency and correction
 
 ---
 
