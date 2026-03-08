@@ -46,12 +46,19 @@ import { moderateTool, handleModerate } from './tools/moderate.js';
 import { ghostConfigTool, handleGhostConfig } from './tools/ghost-config.js';
 import { searchByTool, handleSearchBy } from './tools/search-by.js';
 
-// Import ghost memory tools
+// Import ghost memory tools (legacy — will be deleted in task-217)
 import { createGhostMemoryTool, handleCreateGhostMemory } from './tools/create-ghost-memory.js';
 import { updateGhostMemoryTool, handleUpdateGhostMemory } from './tools/update-ghost-memory.js';
 import { searchGhostMemoryTool, handleSearchGhostMemory } from './tools/search-ghost-memory.js';
 import { queryGhostMemoryTool, handleQueryGhostMemory } from './tools/query-ghost-memory.js';
 import { searchGhostMemoryByTool, handleSearchGhostMemoryBy } from './tools/search-ghost-memory-by.js';
+
+// Import unified internal memory tools
+import { createInternalMemoryTool, handleCreateInternalMemory } from './tools/create-internal-memory.js';
+import { updateInternalMemoryTool, handleUpdateInternalMemory } from './tools/update-internal-memory.js';
+import { searchInternalMemoryTool, handleSearchInternalMemory } from './tools/search-internal-memory.js';
+import { queryInternalMemoryTool, handleQueryInternalMemory } from './tools/query-internal-memory.js';
+import { searchInternalMemoryByTool, handleSearchInternalMemoryBy } from './tools/search-internal-memory-by.js';
 
 // Import core introspection tools
 import { getCoreTool, handleGetCore } from './tools/get-core.js';
@@ -276,6 +283,12 @@ function registerHandlers(
         searchGhostMemoryTool,
         queryGhostMemoryTool,
         searchGhostMemoryByTool,
+        // Unified internal memory tools
+        createInternalMemoryTool,
+        updateInternalMemoryTool,
+        searchInternalMemoryTool,
+        queryInternalMemoryTool,
+        searchInternalMemoryByTool,
         // Core introspection
         getCoreTool,
         // Space search modes
@@ -402,6 +415,26 @@ function registerHandlers(
 
         case 'remember_search_ghost_memory_by':
           result = await handleSearchGhostMemoryBy(args as any, userId, authContext);
+          break;
+
+        case 'remember_create_internal_memory':
+          result = await handleCreateInternalMemory(args as any, userId, authContext);
+          break;
+
+        case 'remember_update_internal_memory':
+          result = await handleUpdateInternalMemory(args as any, userId, authContext);
+          break;
+
+        case 'remember_search_internal_memory':
+          result = await handleSearchInternalMemory(args as any, userId, authContext);
+          break;
+
+        case 'remember_query_internal_memory':
+          result = await handleQueryInternalMemory(args as any, userId, authContext);
+          break;
+
+        case 'remember_search_internal_memory_by':
+          result = await handleSearchInternalMemoryBy(args as any, userId, authContext);
           break;
 
         case 'remember_get_core':

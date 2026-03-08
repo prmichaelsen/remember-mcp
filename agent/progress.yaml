@@ -369,9 +369,9 @@ milestones:
   - id: M20
     name: Unified Internal Memory Tools
     status: in_progress
-    progress: 42%
+    progress: 57%
     estimated_weeks: 1-2
-    tasks_completed: 3
+    tasks_completed: 4
     tasks_total: 7
     notes: |
       Replace 5 standalone ghost tools + future agent tools with 5 unified
@@ -2350,14 +2350,18 @@ task_20_completion:
 
     - id: task-215
       name: Create Unified Internal Memory Tools
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-20-unified-internal-memory-tools/task-215-create-unified-internal-memory-tools.md
       estimated_hours: 6-8
       actual_hours: null
-      completed_date: null
+      completed_date: 2026-03-08
       dependencies: [task-212, task-213, task-214]
       notes: |
-        5 unified remember_*_internal_memory tools replacing standalone ghost tools.
+        ✅ 5 unified tools: create, update, search, query, search-by
+        ✅ Auto-tags via buildInternalTags, auto-scoping via scope tags
+        ✅ Error without internalContext
+        ✅ Registered in server-factory (34 tools total)
+        ✅ 447 tests passing, TypeScript clean
 
     - id: task-216
       name: Update Default Search Filters for Agent Exclusion
