@@ -369,9 +369,9 @@ milestones:
   - id: M20
     name: Unified Internal Memory Tools
     status: in_progress
-    progress: 28%
+    progress: 42%
     estimated_weeks: 1-2
-    tasks_completed: 2
+    tasks_completed: 3
     tasks_total: 7
     notes: |
       Replace 5 standalone ghost tools + future agent tools with 5 unified
@@ -2338,14 +2338,15 @@ task_20_completion:
 
     - id: task-214
       name: Create Tag Builder Utility
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-20-unified-internal-memory-tools/task-214-create-tag-builder-utility.md
       estimated_hours: 2-3
       actual_hours: null
-      completed_date: null
+      completed_date: 2026-03-08
       dependencies: [task-212]
       notes: |
-        buildInternalTags utility for ghost source isolation tags.
+        ✅ buildInternalTags utility in src/utils/internal-tags.ts
+        ✅ 8 unit tests covering all tag permutations
 
     - id: task-215
       name: Create Unified Internal Memory Tools
