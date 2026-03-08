@@ -369,9 +369,10 @@ milestones:
   - id: M20
     name: Unified Internal Memory Tools
     status: in_progress
-    progress: 71%
+    progress: 100%
+    status: completed
     estimated_weeks: 1-2
-    tasks_completed: 5
+    tasks_completed: 7
     tasks_total: 7
     notes: |
       Replace 5 standalone ghost tools + future agent tools with 5 unified
@@ -2379,22 +2380,31 @@ task_20_completion:
 
     - id: task-217
       name: Delete Standalone Ghost Tools
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-20-unified-internal-memory-tools/task-217-delete-standalone-ghost-tools.md
       estimated_hours: 1-2
-      actual_hours: null
-      completed_date: null
+      actual_hours: 1
+      completed_date: '2026-03-08'
       dependencies: [task-215]
       notes: |
-        Delete 5 ghost tool files, test files, and registrations. Keep ghost-config.
+        ✅ Deleted 5 ghost tool files + ghost-tools.spec.ts
+        ✅ Removed imports, tool list entries, and switch cases from server-factory
+        ✅ Rewrote ghost-persona.e2e.ts to use unified internal tools
+        ✅ Updated tag assertions for ghost source isolation
+        ✅ TypeScript compiles clean, 414 tests pass
 
     - id: task-218
       name: Add Unit and Integration Tests
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-20-unified-internal-memory-tools/task-218-add-tests-unified-internal-tools.md
       estimated_hours: 4-6
-      actual_hours: null
-      completed_date: null
+      actual_hours: 1
+      completed_date: '2026-03-08'
       dependencies: [task-214, task-215, task-216, task-217]
       notes: |
-        Tag builder tests, tool tests, ghost source isolation, agent exclusion.
+        ✅ 8 tag builder unit tests (task-214, internal-tags.spec.ts)
+        ✅ 22 unified tool unit tests (internal-tools.spec.ts)
+        ✅ Context validation, content_type derivation, auto-scoping, tag merging
+        ✅ Ghost source isolation verified (scope tags filter per ghost type)
+        ✅ Agent exclusion from default search verified (task-216)
+        ✅ 436 total tests passing
