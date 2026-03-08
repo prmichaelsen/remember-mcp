@@ -46,13 +46,6 @@ import { moderateTool, handleModerate } from './tools/moderate.js';
 import { ghostConfigTool, handleGhostConfig } from './tools/ghost-config.js';
 import { searchByTool, handleSearchBy } from './tools/search-by.js';
 
-// Import ghost memory tools (legacy — will be deleted in task-217)
-import { createGhostMemoryTool, handleCreateGhostMemory } from './tools/create-ghost-memory.js';
-import { updateGhostMemoryTool, handleUpdateGhostMemory } from './tools/update-ghost-memory.js';
-import { searchGhostMemoryTool, handleSearchGhostMemory } from './tools/search-ghost-memory.js';
-import { queryGhostMemoryTool, handleQueryGhostMemory } from './tools/query-ghost-memory.js';
-import { searchGhostMemoryByTool, handleSearchGhostMemoryBy } from './tools/search-ghost-memory-by.js';
-
 // Import unified internal memory tools
 import { createInternalMemoryTool, handleCreateInternalMemory } from './tools/create-internal-memory.js';
 import { updateInternalMemoryTool, handleUpdateInternalMemory } from './tools/update-internal-memory.js';
@@ -171,29 +164,72 @@ async function ensureDatabasesInitialized(): Promise<void> {
  * });
  * ```
  */
+/**
+ * Normalize flat mcp-auth extras into structured ServerOptions.
+ *
+ * mcp-auth strips X- prefix and converts hyphens to underscores:
+ *   X-Internal-Type → internal_type
+ *   X-Ghost-Owner   → ghost_owner
+ *   X-Ghost-Type    → ghost_type
+ *   X-Ghost-Space   → ghost_space
+ *   X-Ghost-Group   → ghost_group
+ */
+function normalizeOptions(
+  raw: ServerOptions | Record<string, string | string[] | undefined>,
+  userId: string
+): ServerOptions {
+  // Already structured — has internalContext or no internal_type key
+  if ('internalContext' in raw || !('internal_type' in raw)) {
+    return raw as ServerOptions;
+  }
+
+  // Flat extras from mcp-auth
+  const extras = raw as Record<string, string | string[] | undefined>;
+  const internalType = extras.internal_type as string | undefined;
+
+  if (!internalType) {
+    return {};
+  }
+
+  return {
+    internalContext: {
+      type: internalType as 'ghost' | 'agent',
+      ghost_type: extras.ghost_type as 'user' | 'space' | 'group' | undefined,
+      ghost_space: extras.ghost_space as string | undefined,
+      ghost_group: extras.ghost_group as string | undefined,
+      owner_user_id: extras.ghost_owner as string | undefined,
+      accessor_user_id: userId,
+    },
+  };
+}
+
 export async function createServer(
   accessToken: string,
   userId: string,
-  options: ServerOptions = {}
+  options: ServerOptions | Record<string, string | string[] | undefined> = {}
 ): Promise<Server> {
   // Note: accessToken is not used by remember-mcp (self-managed data)
   // but required by mcp-auth contract. Can be any value including empty string.
-  
+
   if (!userId) {
     throw new Error('userId is required');
   }
-  
+
+  // Normalize: mcp-auth passes flat extras (e.g. { internal_type: 'ghost', ghost_owner: 'alice' })
+  // Direct callers pass structured ServerOptions (e.g. { internalContext: { type: 'ghost', ... } })
+  const opts = normalizeOptions(options, userId);
+
   logger.debug('Creating server instance', { userId });
-  
+
   // Ensure databases are initialized (happens once globally)
   // Initialization must succeed or server creation fails
   await ensureDatabasesInitialized();
-  
+
   // Create MCP server
   const server = new Server(
     {
-      name: options.name || 'remember-mcp',
-      version: options.version || '0.2.0',
+      name: opts.name || 'remember-mcp',
+      version: opts.version || '0.2.0',
     },
     {
       capabilities: {
@@ -201,11 +237,11 @@ export async function createServer(
       },
     }
   );
-  
+
   // Resolve internal context with trust level from Firestore if ghost mode
   let resolvedInternalContext: import('./types/auth.js').InternalContext | undefined;
-  if (options.internalContext) {
-    const ic = options.internalContext;
+  if (opts.internalContext) {
+    const ic = opts.internalContext;
     let accessorTrustLevel: number | undefined;
 
     if (ic.type === 'ghost' && ic.owner_user_id) {
@@ -277,12 +313,6 @@ function registerHandlers(
         ghostConfigTool,
         // Search modes
         searchByTool,
-        // Ghost memory tools
-        createGhostMemoryTool,
-        updateGhostMemoryTool,
-        searchGhostMemoryTool,
-        queryGhostMemoryTool,
-        searchGhostMemoryByTool,
         // Unified internal memory tools
         createInternalMemoryTool,
         updateInternalMemoryTool,
@@ -395,26 +425,6 @@ function registerHandlers(
 
         case 'remember_search_by':
           result = await handleSearchBy(args as any, userId, authContext);
-          break;
-
-        case 'remember_create_ghost_memory':
-          result = await handleCreateGhostMemory(args as any, userId, authContext);
-          break;
-
-        case 'remember_update_ghost_memory':
-          result = await handleUpdateGhostMemory(args as any, userId, authContext);
-          break;
-
-        case 'remember_search_ghost_memory':
-          result = await handleSearchGhostMemory(args as any, userId, authContext);
-          break;
-
-        case 'remember_query_ghost_memory':
-          result = await handleQueryGhostMemory(args as any, userId, authContext);
-          break;
-
-        case 'remember_search_ghost_memory_by':
-          result = await handleSearchGhostMemoryBy(args as any, userId, authContext);
           break;
 
         case 'remember_create_internal_memory':

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.16.0] - 2026-03-08
 
+### Added
+
+- `normalizeOptions()` in server-factory — maps flat mcp-auth extras (`internal_type`, `ghost_owner`, etc.) into structured `ServerOptions.internalContext`
+- `createServer` now accepts either structured `ServerOptions` or flat `Record<string, string>` extras from mcp-auth
+
 ### Changed
 
 - Replace `GhostModeContext` and `AuthContext.ghostMode` with unified `InternalContext` on `AuthContext.internalContext`
@@ -14,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Server factory maps `X-Internal-Type`, `X-Ghost-Type`, `X-Ghost-Space`, `X-Ghost-Group` headers into `InternalContext`
 - Trust resolution moved into `InternalContext` construction (accessor_trust_level)
 - All search/query tools (`search-memory`, `query-memory`, `search-by`) rewired from `ghostMode` to `internalContext`
+
+### Removed
+
+- Delete 5 standalone ghost tool files (`create-ghost-memory`, `update-ghost-memory`, `search-ghost-memory`, `query-ghost-memory`, `search-ghost-memory-by`) and `ghost-tools.spec.ts` — replaced by unified `remember_*_internal_memory` tools
+- Remove ghost tool imports, tool list entries, and switch cases from server-factory
 
 ## [3.15.7] - 2026-03-07
 
