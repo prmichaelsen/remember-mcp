@@ -106,35 +106,48 @@ export interface InternalContext {
   ghost_type?: 'user' | 'space' | 'group';
   ghost_space?: string;
   ghost_group?: string;
+  // Absorbed from former GhostModeContext:
+  owner_user_id?: string;        // ghost owner (user ghosts)
+  accessor_user_id: string;      // who is conversing
+  accessor_trust_level?: number;  // resolved trust (ghost only)
 }
 
 export interface AuthContext {
   accessToken: string | null;
   credentials: UserCredentials | null;
-  ghostMode?: GhostModeContext;
   internalContext?: InternalContext;
+  // ghostMode is removed — absorbed into internalContext
 }
 ```
 
-Server factory mapping:
+Server factory mapping (ghostMode removed — all context on internalContext):
 
 ```typescript
 serverFactory: async (accessToken, userId, extras) => {
   const internalType = extras?.internal_type as string | undefined;
-  const ghostType = extras?.ghost_type as string | undefined;
+  let internalContext: InternalContext | undefined;
 
-  return await createRememberServer(accessToken, userId, {
-    ghostMode: extras?.ghost_owner ? {
-      owner_user_id: extras.ghost_owner as string,
-      accessor_user_id: userId,
-    } : undefined,
-    internalContext: internalType ? {
+  if (internalType) {
+    const ghostOwner = extras?.ghost_owner as string | undefined;
+    let accessorTrustLevel: number | undefined;
+
+    if (internalType === 'ghost' && ghostOwner) {
+      const ghostConfig = await getGhostConfig(ghostOwner);
+      accessorTrustLevel = await resolveAccessorTrustLevel(ghostConfig, ghostOwner, userId);
+    }
+
+    internalContext = {
       type: internalType as 'ghost' | 'agent',
-      ghost_type: ghostType as 'user' | 'space' | 'group' | undefined,
+      ghost_type: extras?.ghost_type as 'user' | 'space' | 'group' | undefined,
       ghost_space: extras?.ghost_space as string | undefined,
       ghost_group: extras?.ghost_group as string | undefined,
-    } : undefined,
-  });
+      owner_user_id: ghostOwner,
+      accessor_user_id: userId,
+      accessor_trust_level: accessorTrustLevel,
+    };
+  }
+
+  return await createRememberServer(accessToken, userId, { internalContext });
 },
 ```
 
@@ -150,13 +163,12 @@ function buildInternalTags(authContext: AuthContext): string[] {
   }
 
   const tags = ['ghost'];
-  const ghostMode = authContext.ghostMode;
 
   switch (ctx.ghost_type) {
     case 'user':
       tags.push('ghost_type:user');
-      if (ghostMode?.owner_user_id) {
-        tags.push(`ghost_owner:user:${ghostMode.owner_user_id}`);
+      if (ctx.owner_user_id) {
+        tags.push(`ghost_owner:user:${ctx.owner_user_id}`);
       }
       break;
     case 'space':
