@@ -369,9 +369,9 @@ milestones:
   - id: M20
     name: Unified Internal Memory Tools
     status: in_progress
-    progress: 57%
+    progress: 71%
     estimated_weeks: 1-2
-    tasks_completed: 4
+    tasks_completed: 5
     tasks_total: 7
     notes: |
       Replace 5 standalone ghost tools + future agent tools with 5 unified
@@ -2365,14 +2365,17 @@ task_20_completion:
 
     - id: task-216
       name: Update Default Search Filters for Agent Exclusion
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-20-unified-internal-memory-tools/task-216-update-default-search-filters.md
       estimated_hours: 2-3
       actual_hours: null
-      completed_date: null
+      completed_date: 2026-03-08
       dependencies: [task-212]
       notes: |
-        Exclude 'agent' content type from default search/query results.
+        ✅ search-memory, query-memory: agent excluded alongside ghost
+        ✅ find-similar: post-filter excludes agent
+        ✅ search-space: agent excluded from space searches
+        ✅ 447 tests passing
 
     - id: task-217
       name: Delete Standalone Ghost Tools

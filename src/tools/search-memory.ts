@@ -195,14 +195,17 @@ export async function handleSearchMemory(
       ? buildCombinedSearchFilters(collection, args.filters)
       : buildMemoryOnlyFilters(collection, args.filters);
 
-    // Exclude ghost memories by default (unless explicitly searching for them)
+    // Exclude ghost and agent memories by default (unless explicitly searching for them)
     const hasExplicitTypeFilter = args.filters?.types && args.filters.types.length > 0;
-    const ghostExclusionFilter = !hasExplicitTypeFilter
-      ? collection.filter.byProperty('content_type').notEqual('ghost')
+    const internalExclusionFilter = !hasExplicitTypeFilter
+      ? combineFiltersWithAnd([
+          collection.filter.byProperty('content_type').notEqual('ghost'),
+          collection.filter.byProperty('content_type').notEqual('agent'),
+        ])
       : null;
 
-    // Combine deleted filter, trust filter, ghost exclusion, and search filters
-    const combinedFilters = combineFiltersWithAnd([deletedFilter, trustFilter, ghostExclusionFilter, searchFilters].filter(f => f !== null));
+    // Combine deleted filter, trust filter, internal exclusion, and search filters
+    const combinedFilters = combineFiltersWithAnd([deletedFilter, trustFilter, internalExclusionFilter, searchFilters].filter(f => f !== null));
 
     // Build search options (native offset handled by Weaviate)
     const searchOptions: any = {

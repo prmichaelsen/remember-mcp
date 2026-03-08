@@ -161,6 +161,7 @@ export function buildBaseFilters(collection: any, args: SearchSpaceArgs): any[] 
   if (args.content_type) filterList.push(collection.filter.byProperty('content_type').equal(args.content_type));
   if (!args.include_comments && !args.content_type) filterList.push(collection.filter.byProperty('content_type').notEqual('comment'));
   if (!args.content_type) filterList.push(collection.filter.byProperty('content_type').notEqual('ghost'));
+  if (!args.content_type) filterList.push(collection.filter.byProperty('content_type').notEqual('agent'));
   if (args.tags && args.tags.length > 0) args.tags.forEach(tag => filterList.push(collection.filter.byProperty('tags').containsAny([tag])));
   if (args.min_weight !== undefined) filterList.push(collection.filter.byProperty('weight').greaterOrEqual(args.min_weight));
   if (args.max_weight !== undefined) filterList.push(collection.filter.byProperty('weight').lessOrEqual(args.max_weight));

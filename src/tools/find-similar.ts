@@ -120,9 +120,9 @@ export async function handleFindSimilar(
       deleted_filter: args.deleted_filter,
     });
 
-    // Post-filter ghost content (core doesn't exclude ghosts)
+    // Post-filter internal content types (core doesn't exclude ghost/agent)
     const filteredMemories = coreResult.similar_memories.filter(
-      (m: any) => m.content_type !== 'ghost'
+      (m: any) => m.content_type !== 'ghost' && m.content_type !== 'agent'
     );
 
     const result: FindSimilarResult = {
