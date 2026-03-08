@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.16.0] - 2026-03-08
+
+### Changed
+
+- Replace `GhostModeContext` and `AuthContext.ghostMode` with unified `InternalContext` on `AuthContext.internalContext`
+- `InternalContext` supports ghost (user/space/group) and agent session types via platform HTTP headers
+- Server factory maps `X-Internal-Type`, `X-Ghost-Type`, `X-Ghost-Space`, `X-Ghost-Group` headers into `InternalContext`
+- Trust resolution moved into `InternalContext` construction (accessor_trust_level)
+- All search/query tools (`search-memory`, `query-memory`, `search-by`) rewired from `ghostMode` to `internalContext`
+
 ## [3.15.7] - 2026-03-07
 
 ### Changed

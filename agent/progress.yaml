@@ -5,7 +5,7 @@ project:
   version: 3.15.4
   started: 2026-02-11
   status: in_progress
-  current_milestone: M18
+  current_milestone: M20
   last_updated: 2026-03-07
 
 milestones:
@@ -368,10 +368,10 @@ milestones:
 
   - id: M20
     name: Unified Internal Memory Tools
-    status: not_started
-    progress: 0%
+    status: in_progress
+    progress: 28%
     estimated_weeks: 1-2
-    tasks_completed: 0
+    tasks_completed: 2
     tasks_total: 7
     notes: |
       Replace 5 standalone ghost tools + future agent tools with 5 unified
@@ -2312,24 +2312,29 @@ task_20_completion:
   milestone_20:
     - id: task-212
       name: Add InternalContext Type and Agent Content Type
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-20-unified-internal-memory-tools/task-212-add-internal-context-type.md
       estimated_hours: 2-3
       actual_hours: null
-      completed_date: null
+      completed_date: 2026-03-08
       notes: |
-        Add InternalContext interface to AuthContext, add 'agent' to ContentType enum.
+        ✅ InternalContext interface added to types/auth.ts
+        ✅ GhostModeContext removed, fields absorbed into InternalContext
+        ✅ AuthContext.ghostMode replaced by AuthContext.internalContext
 
     - id: task-213
-      name: Update Server Factory for Internal Context Headers
-      status: not_started
+      name: Update Server Factory — Replace ghostMode with InternalContext
+      status: completed
       file: agent/tasks/milestone-20-unified-internal-memory-tools/task-213-update-server-factory-internal-context.md
-      estimated_hours: 2-3
+      estimated_hours: 3-5
       actual_hours: null
-      completed_date: null
+      completed_date: 2026-03-08
       dependencies: [task-212]
       notes: |
-        Map X-Internal-Type, X-Ghost-Type, X-Ghost-Space, X-Ghost-Group headers into InternalContext.
+        ✅ server-factory.ts: ghostMode → internalContext with trust resolution
+        ✅ search-memory.ts, query-memory.ts, search-by.ts: rewired to internalContext
+        ✅ e2e-helpers.ts: updated ghost auth context
+        ✅ All test fixtures updated, 439 tests passing, TypeScript clean
 
     - id: task-214
       name: Create Tag Builder Utility

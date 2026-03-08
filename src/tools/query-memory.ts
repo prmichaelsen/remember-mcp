@@ -170,18 +170,18 @@ export async function handleQueryMemory(
   userId: string,
   authContext?: AuthContext
 ): Promise<string> {
-  const ghostMode = authContext?.ghostMode;
-  const searchUserId = ghostMode?.owner_user_id ?? userId;
-  const debug = createDebugLogger({ tool: 'remember_query_memory', userId: searchUserId, operation: ghostMode ? 'ghost query' : 'query memory' });
+  const internalContext = authContext?.internalContext;
+  const searchUserId = internalContext?.owner_user_id ?? userId;
+  const debug = createDebugLogger({ tool: 'remember_query_memory', userId: searchUserId, operation: internalContext ? 'internal query' : 'query memory' });
   try {
     debug.info('Tool invoked');
-    debug.trace('Arguments', { args, ghostMode: !!ghostMode });
+    debug.trace('Arguments', { args, internalContext: !!internalContext });
     // Validate query is not empty
     if (!args.query || args.query.trim() === '') {
       throw new Error('Query cannot be empty');
     }
 
-    logger.info('Querying memories', { userId: searchUserId, query: args.query, ghostMode: !!ghostMode });
+    logger.info('Querying memories', { userId: searchUserId, query: args.query, internalContext: !!internalContext });
 
     const collection = getMemoryCollection(searchUserId);
     const limit = args.limit ?? 5;
@@ -193,8 +193,8 @@ export async function handleQueryMemory(
     const deletedFilter = buildDeletedFilter(collection, args.deleted_filter || 'exclude');
 
     // Build trust filter for ghost mode (resolved server-side, never from tool args)
-    const trustFilter = ghostMode
-      ? buildTrustFilter(collection, ghostMode.accessor_trust_level)
+    const trustFilter = internalContext?.accessor_trust_level != null
+      ? buildTrustFilter(collection, internalContext.accessor_trust_level)
       : null;
 
     // Build filters using v3 API - search both memories and relationships

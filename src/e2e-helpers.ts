@@ -24,12 +24,14 @@ export function e2eAuthContext(): AuthContext {
   return { accessToken: null, credentials: null };
 }
 
-/** AuthContext with ghost mode for cross-user tests */
+/** AuthContext with ghost internal context for cross-user tests */
 export function e2eGhostAuthContext(ownerUserId: string, accessorUserId: string, trustLevel = 0.5): AuthContext {
   return {
     accessToken: null,
     credentials: null,
-    ghostMode: {
+    internalContext: {
+      type: 'ghost',
+      ghost_type: 'user',
       owner_user_id: ownerUserId,
       accessor_user_id: accessorUserId,
       accessor_trust_level: trustLevel,

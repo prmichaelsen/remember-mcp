@@ -28,21 +28,35 @@ export interface UserCredentials {
   group_memberships: GroupMembership[];
 }
 
-/** Ghost conversation context — resolved server-side, never from tool args */
-export interface GhostModeContext {
-  /** The ghost owner's user ID (whose memories are being searched) */
-  owner_user_id: string;
-  /** The accessor's user ID (who is chatting with the ghost) */
+/**
+ * Internal context for ghost/agent sessions — resolved server-side from
+ * platform HTTP headers, never from tool args.
+ *
+ * Replaces the former GhostModeContext. All ghost identity, trust, and
+ * agent context is unified here.
+ */
+export interface InternalContext {
+  /** Whether this is a ghost or agent session */
+  type: 'ghost' | 'agent';
+  /** Ghost sub-type (required when type is 'ghost') */
+  ghost_type?: 'user' | 'space' | 'group';
+  /** Space ID (space ghosts only) */
+  ghost_space?: string;
+  /** Group ID (group ghosts only) */
+  ghost_group?: string;
+  /** The ghost owner's user ID (user ghosts — whose memories are searched) */
+  owner_user_id?: string;
+  /** The accessor's user ID (who is conversing) */
   accessor_user_id: string;
   /** Resolved trust level (looked up from GhostConfig, not user-supplied) */
-  accessor_trust_level: number;
+  accessor_trust_level?: number;
 }
 
 export interface AuthContext {
   accessToken: string | null;
   credentials: UserCredentials | null;
-  /** Present when the server is running in ghost conversation mode */
-  ghostMode?: GhostModeContext;
+  /** Present when the server is running in ghost or agent mode */
+  internalContext?: InternalContext;
 }
 
 export type WriteMode = 'owner_only' | 'group_editors' | 'anyone';

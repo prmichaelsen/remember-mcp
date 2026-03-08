@@ -65,18 +65,25 @@ export interface ServerOptions {
   name?: string;
   version?: string;
   /**
-   * Ghost mode configuration. When set, the server operates in ghost mode:
-   * - Search/query tools search the ghost owner's collection
-   * - Trust filtering is applied based on the accessor's trust level
-   * - Trust level is resolved server-side from GhostConfig (Firestore)
+   * Internal context for ghost/agent sessions. When set, the server provides
+   * unified internal memory tools with behavior driven by the context type.
    *
-   * agentbase.me sets this when creating a ghost conversation server.
+   * Populated from platform HTTP headers via mcp-auth extras:
+   *   X-Internal-Type → type ('ghost' | 'agent')
+   *   X-Ghost-Owner   → owner_user_id
+   *   X-Ghost-Type    → ghost_type ('user' | 'space' | 'group')
+   *   X-Ghost-Space   → ghost_space
+   *   X-Ghost-Group   → ghost_group
+   *
+   * Trust level is resolved server-side from GhostConfig (Firestore).
    * The LLM never has access to set or override these values.
    */
-  ghostMode?: {
-    /** Ghost owner's user ID (whose memories to search) */
-    owner_user_id: string;
-    /** Accessor's user ID (who is chatting with the ghost) */
+  internalContext?: {
+    type: 'ghost' | 'agent';
+    ghost_type?: 'user' | 'space' | 'group';
+    ghost_space?: string;
+    ghost_group?: string;
+    owner_user_id?: string;
     accessor_user_id: string;
   };
 }
@@ -188,25 +195,37 @@ export async function createServer(
     }
   );
   
-  // Resolve ghost mode trust level from Firestore if ghost mode is configured
-  let resolvedGhostMode: import('./types/auth.js').GhostModeContext | undefined;
-  if (options.ghostMode) {
-    const ghostConfig = await getGhostConfig(options.ghostMode.owner_user_id);
-    const trustLevel = await resolveAccessorTrustLevel(ghostConfig, options.ghostMode.owner_user_id, options.ghostMode.accessor_user_id);
-    resolvedGhostMode = {
-      owner_user_id: options.ghostMode.owner_user_id,
-      accessor_user_id: options.ghostMode.accessor_user_id,
-      accessor_trust_level: trustLevel,
+  // Resolve internal context with trust level from Firestore if ghost mode
+  let resolvedInternalContext: import('./types/auth.js').InternalContext | undefined;
+  if (options.internalContext) {
+    const ic = options.internalContext;
+    let accessorTrustLevel: number | undefined;
+
+    if (ic.type === 'ghost' && ic.owner_user_id) {
+      const ghostConfig = await getGhostConfig(ic.owner_user_id);
+      accessorTrustLevel = await resolveAccessorTrustLevel(ghostConfig, ic.owner_user_id, ic.accessor_user_id);
+    }
+
+    resolvedInternalContext = {
+      type: ic.type,
+      ghost_type: ic.ghost_type,
+      ghost_space: ic.ghost_space,
+      ghost_group: ic.ghost_group,
+      owner_user_id: ic.owner_user_id,
+      accessor_user_id: ic.accessor_user_id,
+      accessor_trust_level: accessorTrustLevel,
     };
-    logger.info('Ghost mode resolved', {
-      ownerUserId: resolvedGhostMode.owner_user_id,
-      accessorUserId: resolvedGhostMode.accessor_user_id,
-      trustLevel: resolvedGhostMode.accessor_trust_level,
+    logger.info('Internal context resolved', {
+      type: resolvedInternalContext.type,
+      ghostType: resolvedInternalContext.ghost_type,
+      ownerUserId: resolvedInternalContext.owner_user_id,
+      accessorUserId: resolvedInternalContext.accessor_user_id,
+      trustLevel: resolvedInternalContext.accessor_trust_level,
     });
   }
 
   // Register handlers with userId scope
-  registerHandlers(server, userId, accessToken, resolvedGhostMode);
+  registerHandlers(server, userId, accessToken, resolvedInternalContext);
 
   return server;
 }
@@ -218,7 +237,7 @@ function registerHandlers(
   server: Server,
   userId: string,
   accessToken: string,
-  ghostMode?: import('./types/auth.js').GhostModeContext
+  internalContext?: import('./types/auth.js').InternalContext
 ): void {
   // List available tools
   server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -272,7 +291,7 @@ function registerHandlers(
     try {
       // Resolve credentials once per request
       const credentials = await credentialsProvider.getCredentials(accessToken, userId);
-      const authContext: AuthContext = { accessToken, credentials, ghostMode };
+      const authContext: AuthContext = { accessToken, credentials, internalContext };
 
       let result: string;
 

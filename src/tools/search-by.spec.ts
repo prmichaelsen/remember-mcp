@@ -294,7 +294,9 @@ describe('remember_search_by', () => {
       const authContext = {
         accessToken: 'token',
         credentials: null,
-        ghostMode: {
+        internalContext: {
+          type: 'ghost' as const,
+          ghost_type: 'user' as const,
           owner_user_id: 'owner-123',
           accessor_user_id: 'accessor-456',
           accessor_trust_level: 0.7,
@@ -308,7 +310,9 @@ describe('remember_search_by', () => {
       const authContext = {
         accessToken: 'token',
         credentials: null,
-        ghostMode: {
+        internalContext: {
+          type: 'ghost' as const,
+          ghost_type: 'user' as const,
           owner_user_id: 'owner-123',
           accessor_user_id: 'accessor-456',
           accessor_trust_level: 0.7,

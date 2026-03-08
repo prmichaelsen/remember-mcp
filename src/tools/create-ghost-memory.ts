@@ -56,7 +56,7 @@ export async function handleCreateGhostMemory(
     const { memory } = createCoreServices(userId);
 
     // Build ghost-specific tags
-    const accessorUserId = authContext?.ghostMode?.accessor_user_id;
+    const accessorUserId = authContext?.internalContext?.accessor_user_id;
     const ghostTags = ['ghost'];
     if (accessorUserId) {
       ghostTags.push(`ghost:${accessorUserId}`);

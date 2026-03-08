@@ -170,19 +170,19 @@ export async function handleSearchBy(
   userId: string,
   authContext?: AuthContext
 ): Promise<string> {
-  const ghostMode = authContext?.ghostMode;
-  const searchUserId = ghostMode?.owner_user_id ?? userId;
+  const internalContext = authContext?.internalContext;
+  const searchUserId = internalContext?.owner_user_id ?? userId;
   const debug = createDebugLogger({ tool: 'remember_search_by', userId: searchUserId, operation: `search by ${args.mode}` });
   try {
     debug.info('Tool invoked');
-    debug.trace('Arguments', { args, ghostMode: !!ghostMode });
+    debug.trace('Arguments', { args, internalContext: !!internalContext });
 
     const { memory } = createCoreServices(searchUserId);
 
-    const ghostContext = ghostMode
+    const ghostContext = internalContext?.accessor_trust_level != null
       ? {
-          accessor_trust_level: ghostMode.accessor_trust_level as any,
-          owner_user_id: ghostMode.owner_user_id,
+          accessor_trust_level: internalContext.accessor_trust_level as any,
+          owner_user_id: internalContext.owner_user_id!,
         }
       : undefined;
 
