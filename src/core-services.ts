@@ -14,8 +14,9 @@ import {
   ConfirmationTokenService,
   createLogger,
   createModerationClient,
+  createBatchedWebhookService,
 } from '@prmichaelsen/remember-core';
-import type { Logger, ModerationClient } from '@prmichaelsen/remember-core';
+import type { Logger, ModerationClient, EventBus } from '@prmichaelsen/remember-core';
 import { getWeaviateClient } from './weaviate/client.js';
 import { getMemoryCollection } from './weaviate/schema.js';
 
@@ -35,6 +36,16 @@ const moderationClient: ModerationClient | undefined = process.env.ANTHROPIC_API
   ? createModerationClient({ apiKey: process.env.ANTHROPIC_API_KEY })
   : undefined;
 const memoryIndexService = new MemoryIndexService(coreLogger);
+
+// Webhook event bus — fans out events to all configured endpoints
+const eventBus: EventBus | undefined = (() => {
+  const url = process.env.REMEMBER_WEBHOOK_URL;
+  const secret = process.env.REMEMBER_WEBHOOK_SECRET;
+  if (!url || !secret) return undefined;
+  return createBatchedWebhookService(coreLogger, {
+    resolveEndpoint: () => [{ url, signingSecret: secret }],
+  });
+})();
 
 /** Cached CoreServices per userId — avoids re-instantiation on every tool call */
 const coreServicesCache = new Map<string, CoreServices>();
@@ -56,7 +67,7 @@ export function createCoreServices(userId: string): CoreServices {
       weaviateClient,
     }),
     relationship: new RelationshipService(collection, userId, coreLogger),
-    space: new SpaceService(weaviateClient, collection, userId, tokenService, coreLogger, memoryIndexService, { moderationClient }),
+    space: new SpaceService(weaviateClient, collection, userId, tokenService, coreLogger, memoryIndexService, { moderationClient, eventBus }),
     preferences: preferencesService,
     token: tokenService,
   };
