@@ -26,7 +26,7 @@ jobs:
         run: npm run build
 
       - name: Test
-        run: node --max-old-space-size=4096 ./node_modules/.bin/jest --runInBand
+        run: npm test
 
       - name: Check if version changed
         id: version
