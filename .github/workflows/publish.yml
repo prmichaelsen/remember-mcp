@@ -26,9 +26,7 @@ jobs:
         run: npm run build
 
       - name: Test
-        run: npm test
-        env:
-          NODE_OPTIONS: '--max-old-space-size=4096'
+        run: node --max-old-space-size=4096 ./node_modules/.bin/jest --maxWorkers=2
 
       - name: Check if version changed
         id: version
