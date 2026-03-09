@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.17.0] - 2026-03-09
+
+### Added
+
+- Webhook event bus integration — `SpaceService` now emits `memory.published_to_group`, `memory.published_to_space`, `comment.published_to_group`, and `comment.published_to_space` events via `BatchedWebhookService`
+- `REMEMBER_WEBHOOK_URL` and `REMEMBER_WEBHOOK_SECRET` env vars configure outbound webhook delivery
+
+### Changed
+
+- Bump `@prmichaelsen/remember-core` to 0.54.0 (fan-out webhooks, comment events, publish dedupe)
+
+### Fixed
+
+- CI OOM crash in `server-factory.spec.ts` — add `maxWorkers: '50%'` to jest config
+
 ## [3.16.0] - 2026-03-08
 
 ### Added
