@@ -35,7 +35,8 @@
     "test:all": "npm test && npm run test:e2e",
     "lint": "eslint src/**/*.ts",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build",
+    "update:core": "npm i @prmichaelsen/remember-core@latest && git add package* && git commit -m \"bump: remember-core\" && npm version patch && npm publish"
   },
   "keywords": [
     "mcp",
