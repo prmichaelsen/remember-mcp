@@ -83,6 +83,15 @@ export const updateMemoryTool = {
         items: { type: 'string' },
         description: 'Update moderation flags',
       },
+      follow_up_at: {
+        type: ['string', 'null'],
+        description: 'ISO 8601 datetime for follow-up reminder. Set to null to clear.',
+      },
+      follow_up_targets: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Target recipients for follow-up (e.g. ["user:abc"]). Empty = owner only.',
+      },
       // Emotional dimensions — manual corrections, REM re-scores authoritatively
       // Layer 1: Discrete Emotions
       feel_emotional_significance: { type: 'number', minimum: 0, maximum: 1, description: 'Overall emotional weight (0-1). REM re-scores.' },
@@ -187,6 +196,8 @@ export async function handleUpdateMemory(
       parent_id: args.parent_id,
       thread_root_id: args.thread_root_id,
       moderation_flags: args.moderation_flags,
+      follow_up_at: args.follow_up_at,
+      follow_up_targets: args.follow_up_targets,
       ...feelFields,
     } as any);
 

@@ -95,6 +95,15 @@ export const createMemoryTool = {
         description: 'Per-space moderation flags (format: "{space_id}:{flag_type}"). Usually empty.',
         default: [],
       },
+      follow_up_at: {
+        type: 'string',
+        description: 'ISO 8601 datetime for when a follow-up reminder should trigger (e.g. "2026-03-12T21:00:00Z")',
+      },
+      follow_up_targets: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Target recipients for follow-up notifications (e.g. ["user:abc", "group:xyz"]). Empty = owner only.',
+      },
       // Emotional dimensions — create-time hints, REM re-scores authoritatively
       // Layer 1: Discrete Emotions
       feel_emotional_significance: { type: 'number', minimum: 0, maximum: 1, description: 'Overall emotional weight (0-1). REM re-scores.' },
@@ -199,6 +208,8 @@ export async function handleCreateMemory(
       parent_id: args.parent_id,
       thread_root_id: args.thread_root_id,
       moderation_flags: args.moderation_flags,
+      follow_up_at: args.follow_up_at,
+      follow_up_targets: args.follow_up_targets,
       context_summary: context?.summary || 'Memory created via MCP',
       context_conversation_id: context?.conversation_id,
       ...feelFields,
