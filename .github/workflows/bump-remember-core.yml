@@ -45,4 +45,11 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Summary
-        run: echo "Bumped remember-core to ${{ github.event.client_payload.version }}, published remember-mcp@${{ steps.bump.outputs.version }}"
+        run: |
+          CORE_VERSION="${{ github.event.client_payload.version }}"
+          MCP_VERSION="${{ steps.bump.outputs.version }}"
+          echo "::notice::Published @prmichaelsen/remember-mcp@${MCP_VERSION} (remember-core@${CORE_VERSION})"
+          echo "## Published to npm" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Package**: \`@prmichaelsen/remember-mcp@${MCP_VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Dependency bump**: \`@prmichaelsen/remember-core@${CORE_VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Registry**: [npm](https://www.npmjs.com/package/@prmichaelsen/remember-mcp/v/${MCP_VERSION})" >> "$GITHUB_STEP_SUMMARY"

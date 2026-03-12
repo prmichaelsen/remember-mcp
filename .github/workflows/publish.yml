@@ -48,8 +48,16 @@ jobs:
 
       - name: Summary
         if: steps.version.outputs.changed == 'true'
-        run: echo "Published @prmichaelsen/remember-mcp@${{ steps.version.outputs.version }} to npm"
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "::notice::Published @prmichaelsen/remember-mcp@${VERSION} to npm"
+          echo "## Published to npm" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Package**: \`@prmichaelsen/remember-mcp@${VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Registry**: [npm](https://www.npmjs.com/package/@prmichaelsen/remember-mcp/v/${VERSION})" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Skip
         if: steps.version.outputs.changed != 'true'
-        run: echo "Version unchanged, skipping publish"
+        run: |
+          echo "::notice::Version unchanged, skipping publish"
+          echo "## Publish skipped" >> "$GITHUB_STEP_SUMMARY"
+          echo "Version unchanged from previous commit." >> "$GITHUB_STEP_SUMMARY"
