@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.18.1] - 2026-03-13
+
+### Fixed
+- Rename `follow_up_at` to `follow_up_date` in create and update memory tool schemas and args passthrough, matching remember-core 0.70.11 migration from text to date-typed Weaviate property
+
 ## [3.18.0] - 2026-03-12
 
 ### Added

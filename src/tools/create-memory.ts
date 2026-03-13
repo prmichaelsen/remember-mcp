@@ -95,7 +95,7 @@ export const createMemoryTool = {
         description: 'Per-space moderation flags (format: "{space_id}:{flag_type}"). Usually empty.',
         default: [],
       },
-      follow_up_at: {
+      follow_up_date: {
         type: 'string',
         description: 'ISO 8601 datetime for when a follow-up reminder should trigger (e.g. "2026-03-12T21:00:00Z")',
       },
@@ -208,7 +208,7 @@ export async function handleCreateMemory(
       parent_id: args.parent_id,
       thread_root_id: args.thread_root_id,
       moderation_flags: args.moderation_flags,
-      follow_up_at: args.follow_up_at,
+      follow_up_date: args.follow_up_date,
       follow_up_targets: args.follow_up_targets,
       context_summary: context?.summary || 'Memory created via MCP',
       context_conversation_id: context?.conversation_id,

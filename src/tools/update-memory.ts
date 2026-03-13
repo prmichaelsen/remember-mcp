@@ -83,7 +83,7 @@ export const updateMemoryTool = {
         items: { type: 'string' },
         description: 'Update moderation flags',
       },
-      follow_up_at: {
+      follow_up_date: {
         type: ['string', 'null'],
         description: 'ISO 8601 datetime for follow-up reminder. Set to null to clear.',
       },
@@ -196,7 +196,7 @@ export async function handleUpdateMemory(
       parent_id: args.parent_id,
       thread_root_id: args.thread_root_id,
       moderation_flags: args.moderation_flags,
-      follow_up_at: args.follow_up_at,
+      follow_up_date: args.follow_up_date,
       follow_up_targets: args.follow_up_targets,
       ...feelFields,
     } as any);
