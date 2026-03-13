@@ -27,6 +27,7 @@
     "build:watch": "node esbuild.watch.js",
     "clean": "rm -rf dist",
     "dev": "tsx watch src/server.ts",
+    "core:update": "npm i @prmichaelsen/remember-core@latest && git add package* && git commit -m 'bump: remember-core'",
     "start": "node dist/server.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -52,7 +53,7 @@
     "@google-cloud/vision": "^5.3.4",
     "@modelcontextprotocol/sdk": "^1.0.4",
     "@prmichaelsen/firebase-admin-sdk-v8": "^2.2.0",
-    "@prmichaelsen/remember-core": "^0.70.0",
+    "@prmichaelsen/remember-core": "^0.70.10",
     "dotenv": "^16.4.5",
     "uuid": "^13.0.0",
     "weaviate-client": "^3.2.0"
