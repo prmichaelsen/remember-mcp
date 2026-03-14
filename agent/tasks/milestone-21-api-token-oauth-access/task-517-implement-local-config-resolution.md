@@ -9,13 +9,13 @@
 
 ## Objective
 
-Implement `.agentbase/config` file resolution so users can store API tokens and OAuth endpoints in local config files instead of (or in addition to) env vars.
+Implement `.remember/config` file resolution so users can store API tokens and OAuth endpoints in local config files instead of (or in addition to) env vars.
 
 ## Context
 
 Resolution order (first wins):
-1. `./.agentbase/config` (project-level)
-2. `~/.agentbase/config` (global)
+1. `./.remember/config` (project-level)
+2. `~/.remember/config` (global)
 3. `REMEMBER_API_TOKEN` / `REMEMBER_OAUTH_ENDPOINT` env vars
 
 This allows per-project multi-tenancy (different projects → different platforms), similar to `.npmrc` precedence.
@@ -39,8 +39,8 @@ This allows per-project multi-tenancy (different projects → different platform
    ```
 
 3. Resolution logic:
-   - Check `process.cwd() + '/.agentbase/config'`
-   - If not found, check `os.homedir() + '/.agentbase/config'`
+   - Check `process.cwd() + '/.remember/config'`
+   - If not found, check `os.homedir() + '/.remember/config'`
    - If not found, fall back to env vars
    - Merge: file values fill in, env vars override
 

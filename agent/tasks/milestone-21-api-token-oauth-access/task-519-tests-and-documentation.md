@@ -38,7 +38,7 @@ Add unit tests for all new auth modules and update documentation (CHANGELOG, REA
 
 4. **README.md** — add section:
    - New env vars (`REMEMBER_AUTH_SCHEME`, `REMEMBER_OAUTH_ENDPOINT`, `REMEMBER_API_TOKEN`)
-   - `.agentbase/config` file format and resolution order
+   - `.remember/config` file format and resolution order
    - Example: running locally with Claude Code
 
 5. **Version bump** — minor version (feature addition, no breaking changes)

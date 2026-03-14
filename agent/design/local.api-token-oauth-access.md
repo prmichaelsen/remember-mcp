@@ -33,7 +33,7 @@ Introduce a three-layer auth architecture:
 ```
 User generates token on agentbase.me
   → stored hashed in Firestore, raw shown once
-  → user saves to .agentbase/config or REMEMBER_API_TOKEN env var
+  → user saves to .remember/config or REMEMBER_API_TOKEN env var
 
 remember-mcp starts with REMEMBER_AUTH_SCHEME=oauth
   → reads REMEMBER_API_TOKEN + REMEMBER_OAUTH_ENDPOINT
@@ -95,20 +95,20 @@ remember-mcp supports two auth schemes via `REMEMBER_AUTH_SCHEME`:
 | `REMEMBER_AUTH_SCHEME` | `service` (default) | Current behavior — JWT via mcp-auth, deployed behind remember-mcp-server |
 | `REMEMBER_AUTH_SCHEME` | `oauth` | Local mode — exchanges API token for JWT via OAuth endpoint |
 | `REMEMBER_OAUTH_ENDPOINT` | URL | OAuth token exchange endpoint (required when scheme=oauth) |
-| `REMEMBER_API_TOKEN` | token | API token for OAuth exchange (or read from `.agentbase/config`) |
+| `REMEMBER_API_TOKEN` | token | API token for OAuth exchange (or read from `.remember/config`) |
 
 ### Local Configuration Resolution
 
 Token and endpoint are resolved in order (first wins):
 
-1. `./.agentbase/config` (project-level)
-2. `~/.agentbase/config` (global)
+1. `./.remember/config` (project-level)
+2. `~/.remember/config` (global)
 3. `REMEMBER_API_TOKEN` / `REMEMBER_OAUTH_ENDPOINT` env vars (override)
 
 Config file format:
 
 ```yaml
-# .agentbase/config
+# .remember/config
 oauth_endpoint: https://agentbase.me/api/oauth/token
 api_token: ab_live-sk_...
 ```
@@ -176,7 +176,7 @@ Opening browser for authentication...
   → User authenticates via Firebase Auth
   → agentbase.me generates API token
   → Token sent back to CLI via localhost callback
-Authenticated! Token saved to ~/.agentbase/config
+Authenticated! Token saved to ~/.remember/config
 ```
 
 ### agentbase.me UI
@@ -194,7 +194,7 @@ Settings page: "API Tokens"
 - **Platform agnostic**: `REMEMBER_OAUTH_ENDPOINT` can point to any compatible platform, not just agentbase.me
 - **Zero downstream changes**: All existing tool handlers, services, and auth context work unchanged
 - **Security**: Opaque tokens, SHA-256 hashing, 1-hour expiry, emergency disable
-- **Multi-tenant**: Per-project `.agentbase/config` supports different accounts/platforms
+- **Multi-tenant**: Per-project `.remember/config` supports different accounts/platforms
 
 ---
 
@@ -256,7 +256,7 @@ No breaking changes — `REMEMBER_AUTH_SCHEME` defaults to `service` (current be
 | Auth integration | OAuth token exchange (not direct guard validation) | Clean separation; works with mcp-auth; enables self-hosted platforms |
 | Auth scheme env var | `REMEMBER_AUTH_SCHEME=service\|oauth` | remember-mcp stays platform-agnostic; no agentbase.me coupling in core code |
 | Config naming | `REMEMBER_*` (not `AGENTBASE_*`) | Core code must be platform-agnostic; any OAuth endpoint should work |
-| Config resolution | `./.agentbase/config` > `~/.agentbase/config` > env var | Per-project multi-tenancy; similar to `.npmrc` precedence |
+| Config resolution | `./.remember/config` > `~/.remember/config` > env var | Per-project multi-tenancy; similar to `.npmrc` precedence |
 
 ### Observability
 

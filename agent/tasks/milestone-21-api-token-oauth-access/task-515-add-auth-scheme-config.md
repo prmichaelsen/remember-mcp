@@ -22,14 +22,14 @@ remember-mcp currently reads Weaviate, Firestore, and embeddings config from env
    interface AuthSchemeConfig {
      scheme: 'service' | 'oauth';
      oauthEndpoint?: string;  // required when scheme=oauth
-     apiToken?: string;       // required when scheme=oauth (or resolved from .agentbase/config)
+     apiToken?: string;       // required when scheme=oauth (or resolved from .remember/config)
    }
    ```
 
 2. Read from env vars in config module:
    - `REMEMBER_AUTH_SCHEME` → defaults to `'service'`
    - `REMEMBER_OAUTH_ENDPOINT` → required when scheme=oauth
-   - `REMEMBER_API_TOKEN` → optional (can come from .agentbase/config instead)
+   - `REMEMBER_API_TOKEN` → optional (can come from .remember/config instead)
 
 3. Add validation: if `scheme=oauth` and `oauthEndpoint` is missing, throw a clear error at startup
 
