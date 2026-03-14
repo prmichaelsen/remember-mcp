@@ -8,14 +8,12 @@ import {
   ErrorCode,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { config, validateConfig, loadAuthSchemeConfig } from './config.js';
+import { config, validateConfig } from './config.js';
 import { initWeaviateClient, testWeaviateConnection, getWeaviateClient } from './weaviate/client.js';
 import { initFirestore, testFirestoreConnection } from './firestore/init.js';
 import { initFirestore as initCoreFirestore } from '@prmichaelsen/remember-core/database/firestore';
 import { logger } from './utils/logger.js';
 import type { AuthContext } from './types/auth.js';
-import { bootstrapOAuth } from './auth/oauth-bootstrap.js';
-import { createServer } from './server-factory.js';
 
 // Import memory tools
 import { createMemoryTool, handleCreateMemory } from './tools/create-memory.js';
@@ -268,20 +266,8 @@ async function main(): Promise<void> {
   try {
     logger.info('Starting remember-mcp server...');
 
-    const authConfig = loadAuthSchemeConfig();
-    let server: Server;
-
-    if (authConfig.scheme === 'oauth') {
-      // OAuth mode: exchange API token for JWT, then create server via factory
-      logger.info('Auth scheme: oauth');
-      const { accessToken, userId } = await bootstrapOAuth();
-      logger.info(`Authenticated as userId: ${userId}`);
-      server = await createServer(accessToken, userId);
-    } else {
-      // Service mode: standalone server with no auth (used behind mcp-auth)
-      logger.info('Auth scheme: service');
-      server = await initServer();
-    }
+    // Initialize server (standalone mode — used behind mcp-auth or for direct stdio)
+    const server = await initServer();
 
     // Start with stdio transport
     const transport = new StdioServerTransport();

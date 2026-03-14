@@ -24,24 +24,35 @@ This design introduces API tokens as a first-class credential type. Users genera
 
 ## Solution
 
-Introduce a three-layer auth architecture:
+Introduce a **remote MCP server** (`remember-mcp-oauth-server`) that wraps remember-mcp's server factory with API token → OAuth exchange authentication. Users connect to the remote server — no local infra secrets needed.
 
 1. **API Token** (credential) — opaque, prefixed, short-lived (1 hour), stored as SHA-256 hash in Firestore
-2. **OAuth Token Exchange** (flow) — API token is exchanged for a JWT via `REMEMBER_OAUTH_ENDPOINT`
+2. **OAuth Token Exchange** (flow) — API token is exchanged for a JWT via the server's OAuth endpoint
 3. **JWT** (access) — existing downstream code, unchanged
+4. **Remote MCP Server** — holds all infra secrets (Weaviate, Firebase, OpenAI), users never see them
 
 ```
 User generates token on agentbase.me
   → stored hashed in Firestore, raw shown once
-  → user saves to .remember/config or REMEMBER_API_TOKEN env var
 
-remember-mcp starts with REMEMBER_AUTH_SCHEME=oauth
-  → reads REMEMBER_API_TOKEN + REMEMBER_OAUTH_ENDPOINT
-  → exchanges API token for JWT via OAuth endpoint
-  → proceeds with JWT as normal (userId extracted from claims)
+Claude Code connects to remote remember-mcp-oauth-server
+  → sends API token in Authorization header
+  → server exchanges token for JWT, resolves userId
+  → server calls createServer(jwt, userId) from remember-mcp factory
+  → all tool calls proxied through the remote server
 
-All downstream code unchanged — same request.userId, same tool handlers
+User config is minimal:
+  { "url": "https://remember.agentbase.me/mcp",
+    "headers": { "Authorization": "Bearer ab_live-sk_..." } }
 ```
+
+### Architecture Decision: Remote Server vs Local OAuth
+
+Originally considered `REMEMBER_AUTH_SCHEME=oauth` in remember-mcp's `server.ts` for local token exchange. Rejected because:
+- Local mode still requires all infra env vars (Weaviate, Firebase, OpenAI) — defeats the purpose
+- Users shouldn't need to manage infra secrets
+- The wrapper server pattern (like remember-mcp-server with mcp-auth) already solves this cleanly
+- `remember-mcp-oauth-server` holds secrets server-side, user only needs their API token
 
 ### Alternative Considered: Direct Token Validation in Auth Guard
 
@@ -86,20 +97,38 @@ interface ApiToken {
 
 Lookup: `hash(raw_token)` → document → `user_id`
 
-### Auth Scheme Configuration
+### Server Architecture
 
-remember-mcp supports two auth schemes via `REMEMBER_AUTH_SCHEME`:
+The auth scheme is determined by **which wrapper server is deployed**, not by an env var in remember-mcp:
 
-| Env Var | Value | Behavior |
+| Server | Auth Method | Who Runs It |
 |---|---|---|
-| `REMEMBER_AUTH_SCHEME` | `service` (default) | Current behavior — JWT via mcp-auth, deployed behind remember-mcp-server |
-| `REMEMBER_AUTH_SCHEME` | `oauth` | Local mode — exchanges API token for JWT via OAuth endpoint |
-| `REMEMBER_OAUTH_ENDPOINT` | URL | OAuth token exchange endpoint (required when scheme=oauth) |
-| `REMEMBER_API_TOKEN` | token | API token for OAuth exchange (or read from `.remember/config`) |
+| `remember-mcp-server` | mcp-auth (browser OAuth) | Platform operator (agentbase.me) |
+| `remember-mcp-oauth-server` | API token → JWT exchange | Platform operator (agentbase.me) |
+| `server.ts` (stdio) | None (standalone/dev) | Developer locally |
 
-### Local Configuration Resolution
+All three call `createServer(accessToken, userId, options)` from remember-mcp's factory. The factory contract is the clean boundary — auth decisions live in the wrapper, not in remember-mcp core.
 
-Token and endpoint are resolved in order (first wins):
+### Client Configuration
+
+Users connect to the remote server with minimal config. No infra secrets needed:
+
+```json
+{
+  "mcpServers": {
+    "remember": {
+      "url": "https://remember.agentbase.me/mcp",
+      "headers": {
+        "Authorization": "Bearer ab_live-sk_..."
+      }
+    }
+  }
+}
+```
+
+### Local Configuration Resolution (for wrapper servers)
+
+The auth utility modules (`src/auth/`) are available for wrapper servers to use. Config resolution:
 
 1. `./.remember/config` (project-level)
 2. `~/.remember/config` (global)
