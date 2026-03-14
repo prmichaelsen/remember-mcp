@@ -12,7 +12,8 @@ await esbuild.build({
   sourcemap: true,
   external: [
     'weaviate-client',
-    '@prmichaelsen/firebase-admin-sdk-v8',
+    'firebase-admin',
+    '@prmichaelsen/remember-core',
     '@modelcontextprotocol/sdk',
     'unpdf',
     'mammoth',
@@ -37,7 +38,8 @@ await esbuild.build({
   sourcemap: true,
   external: [
     'weaviate-client',
-    '@prmichaelsen/firebase-admin-sdk-v8',
+    'firebase-admin',
+    '@prmichaelsen/remember-core',
     '@modelcontextprotocol/sdk',
     'unpdf',
     'mammoth',

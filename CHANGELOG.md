@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.19.3] - 2026-03-14
+
+### Changed
+- Replace `@prmichaelsen/firebase-admin-sdk-v8` with `@prmichaelsen/remember-core/database/firestore` — single Firebase app instance shared between remember-mcp and remember-core
+- Remove dual-init workaround (`initCoreFirestore` alongside `initFirestore`) from server.ts and server-factory.ts
+- `src/firestore/init.ts` now delegates to remember-core's Firestore helpers instead of wrapping `firebase-admin-sdk-v8` directly
+
+### Removed
+- `@prmichaelsen/firebase-admin-sdk-v8` dependency — no longer needed
+
 ## [3.19.2] - 2026-03-14
 
 ### Changed

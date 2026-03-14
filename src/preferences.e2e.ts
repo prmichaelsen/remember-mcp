@@ -15,7 +15,7 @@ const userId = e2eUserId('pref');
 const auth = e2eAuthContext();
 
 // BUG: remember-core getUserPreferencesPath returns 3-segment Firestore path
-// ({BASE}.users/{userId}/preferences) which fails validation in firebase-admin-sdk-v8.
+// ({BASE}.users/{userId}/preferences) which fails validation in firebase-admin.
 // Fix requires remember-core path update to use 4-segment subcollection paths.
 // These tests WILL FAIL until the core bug is fixed.
 describe('E2E: Preferences', () => {

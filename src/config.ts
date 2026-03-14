@@ -48,7 +48,7 @@ export const config = {
     apiKey: process.env.OPENAI_EMBEDDINGS_API_KEY || process.env.OPENAI_APIKEY || '',
   },
 
-  // Firebase (using firebase-admin-sdk-v8)
+  // Firebase (via remember-core's firebase-admin)
   firebase: {
     serviceAccount: process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT_KEY || '',
     projectId: process.env.FIREBASE_PROJECT_ID || '',
