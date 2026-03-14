@@ -68,6 +68,8 @@ import { isAdmin, adminPermissionError } from './utils/admin.js';
 import { adminGetWeaviateSchemaTool, handleAdminGetWeaviateSchema } from './tools/admin-get-weaviate-schema.js';
 import { adminListCollectionsTool, handleAdminListCollections } from './tools/admin-list-collections.js';
 import { adminCollectionStatsTool, handleAdminCollectionStats } from './tools/admin-collection-stats.js';
+import { adminInspectMemoryTool, handleAdminInspectMemory } from './tools/admin-inspect-memory.js';
+import { adminSearchAcrossUsersTool, handleAdminSearchAcrossUsers } from './tools/admin-search-across-users.js';
 
 export interface ServerOptions {
   name?: string;
@@ -295,6 +297,8 @@ function registerHandlers(
     adminGetWeaviateSchemaTool,
     adminListCollectionsTool,
     adminCollectionStatsTool,
+    adminInspectMemoryTool,
+    adminSearchAcrossUsersTool,
   ];
 
   // List available tools (admin tools conditionally included)
@@ -486,6 +490,14 @@ function registerHandlers(
 
         case 'remember_admin_collection_stats':
           result = await handleAdminCollectionStats(args as any, userId, authContext);
+          break;
+
+        case 'remember_admin_inspect_memory':
+          result = await handleAdminInspectMemory(args as any, userId, authContext);
+          break;
+
+        case 'remember_admin_search_across_users':
+          result = await handleAdminSearchAcrossUsers(args as any, userId, authContext);
           break;
 
         default:

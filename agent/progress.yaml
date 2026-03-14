@@ -406,7 +406,7 @@ milestones:
     status: not_started
     progress: 0%
     estimated_weeks: 1
-    tasks_completed: 2
+    tasks_completed: 3
     tasks_total: 5
     notes: |
       Read-only admin MCP tools gated by ADMIN_USER_IDS env var.
@@ -2520,12 +2520,14 @@ task_20_completion:
 
     - id: task-522
       name: Memory Inspection Tools
-      status: not_started
+      status: completed
+      completed_date: 2026-03-14
       file: agent/tasks/milestone-22-admin-debugging-tools/task-522-memory-inspection-tools.md
       estimated_hours: 3-4
       dependencies: [task-520]
       notes: |
-        📋 inspect_memory (composite ID, include_vector flag), search_across_users (user_id array)
+        ✅ inspect_memory (UUID via index lookup, include_vector flag), search_across_users (user_id array)
+        ✅ 10 unit tests, 477 total tests
 
     - id: task-523
       name: User Inspection Tools
