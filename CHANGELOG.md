@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.19.0] - 2026-03-14
+
+### Added
+- OAuth auth scheme support via `REMEMBER_AUTH_SCHEME=oauth` for local CLI access
+- `src/auth/oauth-exchange.ts` — exchanges API token for JWT via configurable OAuth endpoint
+- `src/auth/config-resolver.ts` — resolves config from `.remember/config` files (project > global > env vars)
+- `src/auth/oauth-bootstrap.ts` — single entry point for OAuth authentication flow
+- Auth scheme discriminated union types (`ServiceAuthConfig | OAuthAuthConfig`) with TypeScript narrowing
+- `server.ts` updated to bootstrap via OAuth when `REMEMBER_AUTH_SCHEME=oauth`
+- 20 new unit tests for auth modules (450 total tests passing)
+
+### Changed
+- `server.ts` now reads `REMEMBER_AUTH_SCHEME` at startup to determine auth mode
+- Default auth scheme is `service` (no behavior change for existing deployments)
+
 ## [3.18.1] - 2026-03-13
 
 ### Fixed

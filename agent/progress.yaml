@@ -2,7 +2,7 @@
 
 project:
   name: remember-mcp
-  version: 3.15.4
+  version: 3.19.0
   started: 2026-02-11
   status: in_progress
   current_milestone: M21
@@ -386,14 +386,20 @@ milestones:
     status: not_started
     progress: 0%
     estimated_weeks: 1
-    tasks_completed: 4
+    tasks_completed: 5
     tasks_total: 5
+    completed: 2026-03-14
+    status: completed
+    progress: 100%
     notes: |
-      Enable local CLI access via API token → OAuth token exchange → JWT.
-      remember-mcp slice of cross-project API Token feature.
+      🎉 MILESTONE COMPLETE! Local CLI access via OAuth token exchange.
+      ✅ Task 515: Auth scheme config (discriminated union, no Zod)
+      ✅ Task 516: OAuth token exchange client (native fetch, JWT decode)
+      ✅ Task 517: .remember/config resolution (project > global > env)
+      ✅ Task 518: Wire OAuth into server.ts startup
+      ✅ Task 519: 20 new tests (450 total), CHANGELOG, README, v3.19.0
       See: agent/milestones/milestone-21-api-token-oauth-access.md
       Design: agent/design/local.api-token-oauth-access.md
-      Clarification: agent/clarifications/clarification-5-api-token-cli-access.md
 
 tasks:
   milestone_1:
@@ -2466,7 +2472,8 @@ task_20_completion:
 
     - id: task-519
       name: Tests and Documentation
-      status: not_started
+      status: completed
+      completed_date: 2026-03-14
       file: agent/tasks/milestone-21-api-token-oauth-access/task-519-tests-and-documentation.md
       estimated_hours: 2-3
       dependencies: [task-515, task-516, task-517, task-518]

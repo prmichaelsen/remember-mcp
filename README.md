@@ -128,7 +128,41 @@ npm run build
 npm start
 ```
 
-### Option 3: With mcp-auth (multi-tenant production)
+### Option 3: Local with OAuth (Claude Code / CLI)
+
+Use an API token to authenticate against a remote platform (e.g. agentbase.me):
+
+```bash
+# Set auth scheme to oauth
+export REMEMBER_AUTH_SCHEME=oauth
+export REMEMBER_OAUTH_ENDPOINT=https://agentbase.me/api/oauth/token
+export REMEMBER_API_TOKEN=ab_live-sk_your_token_here
+
+# Or use a config file instead of env vars:
+mkdir -p ~/.remember
+cat > ~/.remember/config << 'EOF'
+oauth_endpoint: https://agentbase.me/api/oauth/token
+api_token: ab_live-sk_your_token_here
+EOF
+
+# Run — will exchange token for JWT at startup
+npm start
+```
+
+**Config file resolution order** (first wins per field):
+1. `./.remember/config` (project-level — different tokens per project)
+2. `~/.remember/config` (global)
+3. `REMEMBER_API_TOKEN` / `REMEMBER_OAUTH_ENDPOINT` env vars (override)
+
+**Auth env vars:**
+
+| Variable | Default | Description |
+|---|---|---|
+| `REMEMBER_AUTH_SCHEME` | `service` | Auth mode: `service` (JWT via mcp-auth) or `oauth` (local token exchange) |
+| `REMEMBER_OAUTH_ENDPOINT` | — | OAuth token exchange URL (required when scheme=oauth) |
+| `REMEMBER_API_TOKEN` | — | API token for OAuth exchange (or via `.remember/config`) |
+
+### Option 4: With mcp-auth (multi-tenant production)
 
 ```typescript
 import { wrapServer, JWTAuthProvider } from '@prmichaelsen/mcp-auth';
