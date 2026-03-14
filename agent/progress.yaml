@@ -381,6 +381,20 @@ milestones:
       See: agent/milestones/milestone-20-unified-internal-memory-tools.md
       Design: agent/design/local.unified-internal-memory-tools.md
 
+  - id: M21
+    name: API Token & OAuth Access
+    status: not_started
+    progress: 0%
+    estimated_weeks: 1
+    tasks_completed: 0
+    tasks_total: 5
+    notes: |
+      Enable local CLI access via API token → OAuth token exchange → JWT.
+      remember-mcp slice of cross-project API Token feature.
+      See: agent/milestones/milestone-21-api-token-oauth-access.md
+      Design: agent/design/local.api-token-oauth-access.md
+      Clarification: agent/clarifications/clarification-5-api-token-cli-access.md
+
 tasks:
   milestone_1:
     - id: task-1
@@ -2408,3 +2422,49 @@ task_20_completion:
         ✅ Ghost source isolation verified (scope tags filter per ghost type)
         ✅ Agent exclusion from default search verified (task-216)
         ✅ 436 total tests passing
+
+  milestone_21:
+    - id: task-515
+      name: Add Auth Scheme Config
+      status: not_started
+      file: agent/tasks/milestone-21-api-token-oauth-access/task-515-add-auth-scheme-config.md
+      estimated_hours: 2
+      dependencies: []
+      notes: |
+        📋 Add REMEMBER_AUTH_SCHEME, REMEMBER_OAUTH_ENDPOINT, REMEMBER_API_TOKEN to config module
+
+    - id: task-516
+      name: Implement OAuth Token Exchange Client
+      status: not_started
+      file: agent/tasks/milestone-21-api-token-oauth-access/task-516-implement-oauth-token-exchange.md
+      estimated_hours: 3
+      dependencies: [task-515]
+      notes: |
+        📋 Exchange API token for JWT via OAuth endpoint, extract userId from JWT
+
+    - id: task-517
+      name: Implement Local Config Resolution
+      status: not_started
+      file: agent/tasks/milestone-21-api-token-oauth-access/task-517-implement-local-config-resolution.md
+      estimated_hours: 2-3
+      dependencies: [task-515]
+      notes: |
+        📋 .agentbase/config resolution: project > global > env vars
+
+    - id: task-518
+      name: Wire OAuth into Server Factory
+      status: not_started
+      file: agent/tasks/milestone-21-api-token-oauth-access/task-518-wire-oauth-into-server-factory.md
+      estimated_hours: 2-3
+      dependencies: [task-515, task-516, task-517]
+      notes: |
+        📋 Bootstrap OAuth flow at startup when REMEMBER_AUTH_SCHEME=oauth
+
+    - id: task-519
+      name: Tests and Documentation
+      status: not_started
+      file: agent/tasks/milestone-21-api-token-oauth-access/task-519-tests-and-documentation.md
+      estimated_hours: 2-3
+      dependencies: [task-515, task-516, task-517, task-518]
+      notes: |
+        📋 Unit tests for all auth modules, CHANGELOG, README, version bump
