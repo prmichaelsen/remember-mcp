@@ -13,6 +13,7 @@ import {
 import { logger } from './utils/logger.js';
 import { initWeaviateClient } from './weaviate/client.js';
 import { initFirestore } from './firestore/init.js';
+import { initFirestore as initCoreFirestore } from '@prmichaelsen/remember-core/database/firestore';
 import type { AuthContext } from './types/auth.js';
 import { credentialsProvider } from './services/credentials-provider.js';
 
@@ -111,6 +112,10 @@ async function ensureDatabasesInitialized(): Promise<void> {
       logger.info('Initializing databases...');
       await initWeaviateClient();
       initFirestore();
+      initCoreFirestore({
+        serviceAccount: process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT_KEY || '',
+        projectId: process.env.FIREBASE_PROJECT_ID || '',
+      });
       databasesInitialized = true;
       logger.info('Databases initialized successfully');
     } catch (error) {

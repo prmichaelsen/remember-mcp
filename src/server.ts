@@ -11,6 +11,7 @@ import {
 import { config, validateConfig, loadAuthSchemeConfig } from './config.js';
 import { initWeaviateClient, testWeaviateConnection, getWeaviateClient } from './weaviate/client.js';
 import { initFirestore, testFirestoreConnection } from './firestore/init.js';
+import { initFirestore as initCoreFirestore } from '@prmichaelsen/remember-core/database/firestore';
 import { logger } from './utils/logger.js';
 import type { AuthContext } from './types/auth.js';
 import { bootstrapOAuth } from './auth/oauth-bootstrap.js';
@@ -58,6 +59,10 @@ async function initServer(): Promise<Server> {
   logger.info('Connecting to databases...');
   await initWeaviateClient();
   initFirestore();
+  initCoreFirestore({
+    serviceAccount: process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT_KEY || '',
+    projectId: process.env.FIREBASE_PROJECT_ID || '',
+  });
 
   // Test connections in parallel
   const [weaviateOk, firestoreOk] = await Promise.all([

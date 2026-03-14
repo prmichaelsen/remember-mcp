@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.19.1] - 2026-03-14
+
+### Fixed
+- Initialize remember-core's Firestore alongside remember-mcp's own Firestore at startup, fixing silent MemoryIndexService write failures that caused 404s on memory getById via REST service
+
 ## [3.19.0] - 2026-03-14
 
 ### Added
