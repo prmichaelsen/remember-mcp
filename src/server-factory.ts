@@ -64,6 +64,11 @@ import { resolveAccessorTrustLevel } from './services/access-control.js';
 // Admin utilities
 import { isAdmin, adminPermissionError } from './utils/admin.js';
 
+// Admin tools
+import { adminGetWeaviateSchemaTool, handleAdminGetWeaviateSchema } from './tools/admin-get-weaviate-schema.js';
+import { adminListCollectionsTool, handleAdminListCollections } from './tools/admin-list-collections.js';
+import { adminCollectionStatsTool, handleAdminCollectionStats } from './tools/admin-collection-stats.js';
+
 export interface ServerOptions {
   name?: string;
   version?: string;
@@ -285,8 +290,12 @@ function registerHandlers(
   accessToken: string,
   internalContext?: import('./types/auth.js').InternalContext
 ): void {
-  // Collect admin tool definitions (populated by admin tool imports in future tasks)
-  const adminTools: Array<{ name: string; description: string; inputSchema: any }> = [];
+  // Admin tool definitions (hidden from non-admin users)
+  const adminTools = [
+    adminGetWeaviateSchemaTool,
+    adminListCollectionsTool,
+    adminCollectionStatsTool,
+  ];
 
   // List available tools (admin tools conditionally included)
   server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -332,7 +341,7 @@ function registerHandlers(
 
     // Only include admin tools for admin users
     if (isAdmin(userId)) {
-      tools.push(...adminTools);
+      tools.push(...adminTools as typeof tools);
     }
 
     return { tools };
@@ -466,13 +475,25 @@ function registerHandlers(
           result = await handleSearchSpaceBy(args as any, userId, authContext);
           break;
 
+        // Admin tools (gated by isAdmin check inside each handler)
+        case 'remember_admin_get_weaviate_schema':
+          result = await handleAdminGetWeaviateSchema(args as any, userId, authContext);
+          break;
+
+        case 'remember_admin_list_collections':
+          result = await handleAdminListCollections(args as any, userId, authContext);
+          break;
+
+        case 'remember_admin_collection_stats':
+          result = await handleAdminCollectionStats(args as any, userId, authContext);
+          break;
+
         default:
           // Admin tool gate: reject non-admin users calling admin tools
           if (name.startsWith('remember_admin_')) {
             if (!isAdmin(userId)) {
               return adminPermissionError();
             }
-            // Admin tool not yet implemented — will be added in Tasks 521-524
           }
           throw new McpError(
             ErrorCode.MethodNotFound,

@@ -11,7 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Admin gate infrastructure: `isAdmin()` utility and `adminPermissionError()` helper (`src/utils/admin.ts`)
 - Conditional admin tool registration in server-factory.ts — admin tools hidden from non-admin users
 - `ADMIN_USER_IDS` env var support (comma-separated, checked per-request)
-- 9 unit tests for admin gate utilities (460 total tests)
+- `remember_admin_get_weaviate_schema` — inspect collection schema, property types, index config
+- `remember_admin_list_collections` — list all Weaviate collections with type categorization (user/space/group)
+- `remember_admin_collection_stats` — object count, property count, vectorizer config per collection
+- 16 unit tests for admin tools (467 total tests)
 
 ## [3.19.3] - 2026-03-14
 

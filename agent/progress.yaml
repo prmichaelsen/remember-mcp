@@ -406,7 +406,7 @@ milestones:
     status: not_started
     progress: 0%
     estimated_weeks: 1
-    tasks_completed: 1
+    tasks_completed: 2
     tasks_total: 5
     notes: |
       Read-only admin MCP tools gated by ADMIN_USER_IDS env var.
@@ -2509,12 +2509,14 @@ task_20_completion:
 
     - id: task-521
       name: Schema and Collection Tools
-      status: not_started
+      status: completed
+      completed_date: 2026-03-14
       file: agent/tasks/milestone-22-admin-debugging-tools/task-521-schema-and-collection-tools.md
       estimated_hours: 3-4
       dependencies: [task-520]
       notes: |
-        📋 get_weaviate_schema, list_collections, collection_stats
+        ✅ get_weaviate_schema, list_collections, collection_stats implemented
+        ✅ 7 unit tests, 467 total tests
 
     - id: task-522
       name: Memory Inspection Tools
