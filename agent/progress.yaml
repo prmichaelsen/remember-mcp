@@ -2449,7 +2449,7 @@ task_20_completion:
       estimated_hours: 2-3
       dependencies: [task-515]
       notes: |
-        📋 .agentbase/config resolution: project > global > env vars
+        📋 .remember/config resolution: project > global > env vars
 
     - id: task-518
       name: Wire OAuth into Server Factory

@@ -18,7 +18,7 @@ This milestone covers **remember-mcp changes only**. Other projects (agentbase.m
 Changes:
 - `REMEMBER_AUTH_SCHEME` config (`service` | `oauth`)
 - OAuth token exchange client
-- Local config file resolution (`.agentbase/config`)
+- Local config file resolution (`.remember/config`)
 - Wiring into server-factory startup
 - Tests and documentation
 
@@ -26,7 +26,7 @@ Changes:
 
 - [ ] Config module supports `REMEMBER_AUTH_SCHEME`, `REMEMBER_OAUTH_ENDPOINT`, `REMEMBER_API_TOKEN`
 - [ ] OAuth token exchange client exchanges API token for JWT
-- [ ] `.agentbase/config` resolution (project > global > env var)
+- [ ] `.remember/config` resolution (project > global > env var)
 - [ ] server-factory uses OAuth flow when `REMEMBER_AUTH_SCHEME=oauth`
 - [ ] Unit tests for config, exchange client, config resolution
 - [ ] CHANGELOG and README updated
@@ -35,7 +35,7 @@ Changes:
 
 - `REMEMBER_AUTH_SCHEME=service` behaves exactly as today (no regression)
 - `REMEMBER_AUTH_SCHEME=oauth` exchanges token and starts server with resolved userId
-- Config resolution order: `./.agentbase/config` > `~/.agentbase/config` > env vars
+- Config resolution order: `./.remember/config` > `~/.remember/config` > env vars
 - Build passes, all existing tests pass, new tests cover oauth flow
 
 ## Dependencies
