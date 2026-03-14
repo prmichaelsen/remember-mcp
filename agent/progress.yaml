@@ -406,7 +406,7 @@ milestones:
     status: not_started
     progress: 0%
     estimated_weeks: 1
-    tasks_completed: 0
+    tasks_completed: 1
     tasks_total: 5
     notes: |
       Read-only admin MCP tools gated by ADMIN_USER_IDS env var.
@@ -2498,12 +2498,14 @@ task_20_completion:
   milestone_22:
     - id: task-520
       name: Admin Gate Infrastructure
-      status: not_started
+      status: completed
+      completed_date: 2026-03-14
       file: agent/tasks/milestone-22-admin-debugging-tools/task-520-admin-gate-infrastructure.md
       estimated_hours: 3-4
       dependencies: []
       notes: |
-        📋 isAdmin() utility, ADMIN_USER_IDS env var parsing, conditional tool registration
+        ✅ isAdmin() utility, adminPermissionError(), conditional tool listing in server-factory.ts
+        ✅ 9 unit tests passing, 460 total tests (459 passed, 1 skipped)
 
     - id: task-521
       name: Schema and Collection Tools

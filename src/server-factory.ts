@@ -61,6 +61,9 @@ import { searchSpaceByTool, handleSearchSpaceBy } from './tools/search-space-by.
 import { getGhostConfig } from './services/ghost-config.service.js';
 import { resolveAccessorTrustLevel } from './services/access-control.js';
 
+// Admin utilities
+import { isAdmin, adminPermissionError } from './utils/admin.js';
+
 export interface ServerOptions {
   name?: string;
   version?: string;
@@ -282,49 +285,57 @@ function registerHandlers(
   accessToken: string,
   internalContext?: import('./types/auth.js').InternalContext
 ): void {
-  // List available tools
+  // Collect admin tool definitions (populated by admin tool imports in future tasks)
+  const adminTools: Array<{ name: string; description: string; inputSchema: any }> = [];
+
+  // List available tools (admin tools conditionally included)
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    return {
-      tools: [
-        // Memory tools
-        createMemoryTool,
-        searchMemoryTool,
-        deleteMemoryTool,
-        updateMemoryTool,
-        findSimilarTool,
-        queryMemoryTool,
-        // Relationship tools
-        createRelationshipTool,
-        updateRelationshipTool,
-        searchRelationshipTool,
-        deleteRelationshipTool,
-        // Preference tools
-        setPreferenceTool,
-        getPreferencesTool,
-        // Space tools
-        publishTool,
-        retractTool,
-        reviseTool,
-        confirmTool,
-        denyTool,
-        searchSpaceTool,
-        querySpaceTool,
-        moderateTool,
-        ghostConfigTool,
-        // Search modes
-        searchByTool,
-        // Unified internal memory tools
-        createInternalMemoryTool,
-        updateInternalMemoryTool,
-        searchInternalMemoryTool,
-        queryInternalMemoryTool,
-        searchInternalMemoryByTool,
-        // Core introspection
-        getCoreTool,
-        // Space search modes
-        searchSpaceByTool,
-      ],
-    };
+    const tools = [
+      // Memory tools
+      createMemoryTool,
+      searchMemoryTool,
+      deleteMemoryTool,
+      updateMemoryTool,
+      findSimilarTool,
+      queryMemoryTool,
+      // Relationship tools
+      createRelationshipTool,
+      updateRelationshipTool,
+      searchRelationshipTool,
+      deleteRelationshipTool,
+      // Preference tools
+      setPreferenceTool,
+      getPreferencesTool,
+      // Space tools
+      publishTool,
+      retractTool,
+      reviseTool,
+      confirmTool,
+      denyTool,
+      searchSpaceTool,
+      querySpaceTool,
+      moderateTool,
+      ghostConfigTool,
+      // Search modes
+      searchByTool,
+      // Unified internal memory tools
+      createInternalMemoryTool,
+      updateInternalMemoryTool,
+      searchInternalMemoryTool,
+      queryInternalMemoryTool,
+      searchInternalMemoryByTool,
+      // Core introspection
+      getCoreTool,
+      // Space search modes
+      searchSpaceByTool,
+    ];
+
+    // Only include admin tools for admin users
+    if (isAdmin(userId)) {
+      tools.push(...adminTools);
+    }
+
+    return { tools };
   });
 
   // Handle tool calls
@@ -456,6 +467,13 @@ function registerHandlers(
           break;
 
         default:
+          // Admin tool gate: reject non-admin users calling admin tools
+          if (name.startsWith('remember_admin_')) {
+            if (!isAdmin(userId)) {
+              return adminPermissionError();
+            }
+            // Admin tool not yet implemented — will be added in Tasks 521-524
+          }
           throw new McpError(
             ErrorCode.MethodNotFound,
             `Unknown tool: ${name}`

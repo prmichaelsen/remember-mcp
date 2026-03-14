@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.20.0] - 2026-03-14
+
+### Added
+- Admin gate infrastructure: `isAdmin()` utility and `adminPermissionError()` helper (`src/utils/admin.ts`)
+- Conditional admin tool registration in server-factory.ts — admin tools hidden from non-admin users
+- `ADMIN_USER_IDS` env var support (comma-separated, checked per-request)
+- 9 unit tests for admin gate utilities (460 total tests)
+
 ## [3.19.3] - 2026-03-14
 
 ### Changed
