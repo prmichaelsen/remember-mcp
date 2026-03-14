@@ -386,7 +386,7 @@ milestones:
     status: not_started
     progress: 0%
     estimated_weeks: 1
-    tasks_completed: 3
+    tasks_completed: 4
     tasks_total: 5
     notes: |
       Enable local CLI access via API token → OAuth token exchange → JWT.
@@ -2456,7 +2456,8 @@ task_20_completion:
 
     - id: task-518
       name: Wire OAuth into Server Factory
-      status: not_started
+      status: completed
+      completed_date: 2026-03-14
       file: agent/tasks/milestone-21-api-token-oauth-access/task-518-wire-oauth-into-server-factory.md
       estimated_hours: 2-3
       dependencies: [task-515, task-516, task-517]
