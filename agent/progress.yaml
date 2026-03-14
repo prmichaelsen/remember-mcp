@@ -5,7 +5,7 @@ project:
   version: 3.19.0
   started: 2026-02-11
   status: in_progress
-  current_milestone: M21
+  current_milestone: M22
   last_updated: 2026-03-07
 
 milestones:
@@ -400,6 +400,21 @@ milestones:
       ✅ Task 519: 20 new tests (450 total), CHANGELOG, README, v3.19.0
       See: agent/milestones/milestone-21-api-token-oauth-access.md
       Design: agent/design/local.api-token-oauth-access.md
+
+  - id: M22
+    name: Admin Debugging Tools
+    status: not_started
+    progress: 0%
+    estimated_weeks: 1
+    tasks_completed: 0
+    tasks_total: 5
+    notes: |
+      Read-only admin MCP tools gated by ADMIN_USER_IDS env var.
+      11 tools: inspect_memory, get_weaviate_schema, list_collections,
+      collection_stats, 4x inspect_user_*, search_across_users, health,
+      detect_weaviate_drift.
+      See: agent/milestones/milestone-22-admin-debugging-tools.md
+      Design: agent/design/local.admin-debugging-tools.md
 
 tasks:
   milestone_1:
@@ -2479,3 +2494,49 @@ task_20_completion:
       dependencies: [task-515, task-516, task-517, task-518]
       notes: |
         📋 Unit tests for all auth modules, CHANGELOG, README, version bump
+
+  milestone_22:
+    - id: task-520
+      name: Admin Gate Infrastructure
+      status: not_started
+      file: agent/tasks/milestone-22-admin-debugging-tools/task-520-admin-gate-infrastructure.md
+      estimated_hours: 3-4
+      dependencies: []
+      notes: |
+        📋 isAdmin() utility, ADMIN_USER_IDS env var parsing, conditional tool registration
+
+    - id: task-521
+      name: Schema and Collection Tools
+      status: not_started
+      file: agent/tasks/milestone-22-admin-debugging-tools/task-521-schema-and-collection-tools.md
+      estimated_hours: 3-4
+      dependencies: [task-520]
+      notes: |
+        📋 get_weaviate_schema, list_collections, collection_stats
+
+    - id: task-522
+      name: Memory Inspection Tools
+      status: not_started
+      file: agent/tasks/milestone-22-admin-debugging-tools/task-522-memory-inspection-tools.md
+      estimated_hours: 3-4
+      dependencies: [task-520]
+      notes: |
+        📋 inspect_memory (composite ID, include_vector flag), search_across_users (user_id array)
+
+    - id: task-523
+      name: User Inspection Tools
+      status: not_started
+      file: agent/tasks/milestone-22-admin-debugging-tools/task-523-user-inspection-tools.md
+      estimated_hours: 2-3
+      dependencies: [task-520]
+      notes: |
+        📋 4 granular inspect_user tools: preferences, ghost_configs, escalation_records, api_tokens
+
+    - id: task-524
+      name: Health and Drift Tools
+      status: not_started
+      file: agent/tasks/milestone-22-admin-debugging-tools/task-524-health-and-drift-tools.md
+      estimated_hours: 2-3
+      dependencies: [task-520]
+      notes: |
+        📋 health (connectivity check), detect_weaviate_drift (expected vs actual schema)
