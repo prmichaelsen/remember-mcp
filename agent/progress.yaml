@@ -5,7 +5,7 @@ project:
   version: 3.15.4
   started: 2026-02-11
   status: in_progress
-  current_milestone: M20
+  current_milestone: M21
   last_updated: 2026-03-07
 
 milestones:
@@ -386,7 +386,7 @@ milestones:
     status: not_started
     progress: 0%
     estimated_weeks: 1
-    tasks_completed: 0
+    tasks_completed: 1
     tasks_total: 5
     notes: |
       Enable local CLI access via API token → OAuth token exchange → JWT.
@@ -2426,7 +2426,8 @@ task_20_completion:
   milestone_21:
     - id: task-515
       name: Add Auth Scheme Config
-      status: not_started
+      status: completed
+      completed_date: 2026-03-14
       file: agent/tasks/milestone-21-api-token-oauth-access/task-515-add-auth-scheme-config.md
       estimated_hours: 2
       dependencies: []

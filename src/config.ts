@@ -68,6 +68,52 @@ export const config = {
 } as const;
 
 /**
+ * Auth scheme configuration — discriminated union.
+ *
+ * - 'service': Current behavior, JWT via mcp-auth (deployed behind remember-mcp-server)
+ * - 'oauth': Local mode, exchanges API token for JWT via OAuth endpoint
+ */
+type ServiceAuthConfig = { scheme: 'service' };
+type OAuthAuthConfig = {
+  scheme: 'oauth';
+  oauthEndpoint: string;
+  apiToken: string;
+};
+export type AuthSchemeConfig = ServiceAuthConfig | OAuthAuthConfig;
+
+/**
+ * Load auth scheme config from environment variables.
+ * Validates at startup — fails fast with descriptive errors.
+ *
+ * Note: apiToken may be empty here when scheme=oauth.
+ * The config-resolver (T517) fills it from .remember/config if not set via env var.
+ */
+export function loadAuthSchemeConfig(): AuthSchemeConfig {
+  const scheme = process.env.REMEMBER_AUTH_SCHEME ?? 'service';
+
+  if (scheme === 'service') {
+    return { scheme };
+  }
+
+  if (scheme !== 'oauth') {
+    throw new Error(
+      `Invalid REMEMBER_AUTH_SCHEME: "${scheme}". Valid values: "service", "oauth"`
+    );
+  }
+
+  const oauthEndpoint = process.env.REMEMBER_OAUTH_ENDPOINT;
+  if (!oauthEndpoint) {
+    throw new Error(
+      'REMEMBER_OAUTH_ENDPOINT is required when REMEMBER_AUTH_SCHEME=oauth'
+    );
+  }
+
+  const apiToken = process.env.REMEMBER_API_TOKEN ?? '';
+
+  return { scheme, oauthEndpoint, apiToken };
+}
+
+/**
  * Validate required configuration
  */
 export function validateConfig(): void {
