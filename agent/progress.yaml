@@ -386,7 +386,7 @@ milestones:
     status: not_started
     progress: 0%
     estimated_weeks: 1
-    tasks_completed: 1
+    tasks_completed: 2
     tasks_total: 5
     notes: |
       Enable local CLI access via API token → OAuth token exchange → JWT.
@@ -2436,7 +2436,8 @@ task_20_completion:
 
     - id: task-516
       name: Implement OAuth Token Exchange Client
-      status: not_started
+      status: completed
+      completed_date: 2026-03-14
       file: agent/tasks/milestone-21-api-token-oauth-access/task-516-implement-oauth-token-exchange.md
       estimated_hours: 3
       dependencies: [task-515]
