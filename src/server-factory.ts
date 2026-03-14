@@ -70,6 +70,12 @@ import { adminListCollectionsTool, handleAdminListCollections } from './tools/ad
 import { adminCollectionStatsTool, handleAdminCollectionStats } from './tools/admin-collection-stats.js';
 import { adminInspectMemoryTool, handleAdminInspectMemory } from './tools/admin-inspect-memory.js';
 import { adminSearchAcrossUsersTool, handleAdminSearchAcrossUsers } from './tools/admin-search-across-users.js';
+import {
+  adminInspectUserPreferencesTool, handleAdminInspectUserPreferences,
+  adminInspectUserGhostConfigsTool, handleAdminInspectUserGhostConfigs,
+  adminInspectUserEscalationRecordsTool, handleAdminInspectUserEscalationRecords,
+  adminInspectUserApiTokensTool, handleAdminInspectUserApiTokens,
+} from './tools/admin-inspect-user.js';
 
 export interface ServerOptions {
   name?: string;
@@ -299,6 +305,10 @@ function registerHandlers(
     adminCollectionStatsTool,
     adminInspectMemoryTool,
     adminSearchAcrossUsersTool,
+    adminInspectUserPreferencesTool,
+    adminInspectUserGhostConfigsTool,
+    adminInspectUserEscalationRecordsTool,
+    adminInspectUserApiTokensTool,
   ];
 
   // List available tools (admin tools conditionally included)
@@ -498,6 +508,22 @@ function registerHandlers(
 
         case 'remember_admin_search_across_users':
           result = await handleAdminSearchAcrossUsers(args as any, userId, authContext);
+          break;
+
+        case 'remember_admin_inspect_user_preferences':
+          result = await handleAdminInspectUserPreferences(args as any, userId, authContext);
+          break;
+
+        case 'remember_admin_inspect_user_ghost_configs':
+          result = await handleAdminInspectUserGhostConfigs(args as any, userId, authContext);
+          break;
+
+        case 'remember_admin_inspect_user_escalation_records':
+          result = await handleAdminInspectUserEscalationRecords(args as any, userId, authContext);
+          break;
+
+        case 'remember_admin_inspect_user_api_tokens':
+          result = await handleAdminInspectUserApiTokens(args as any, userId, authContext);
           break;
 
         default:
