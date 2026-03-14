@@ -17,23 +17,35 @@ remember-mcp currently reads Weaviate, Firestore, and embeddings config from env
 
 ## Steps
 
-1. Add `AuthSchemeConfig` interface to config types:
+1. Add discriminated union types (no Zod — manual validation, typed config pattern):
    ```typescript
-   interface AuthSchemeConfig {
-     scheme: 'service' | 'oauth';
-     oauthEndpoint?: string;  // required when scheme=oauth
-     apiToken?: string;       // required when scheme=oauth (or resolved from .remember/config)
+   type ServiceAuthConfig = { scheme: 'service' };
+   type OAuthAuthConfig = {
+     scheme: 'oauth';
+     oauthEndpoint: string;
+     apiToken: string;
+   };
+   type AuthSchemeConfig = ServiceAuthConfig | OAuthAuthConfig;
+   ```
+   TypeScript narrows automatically: `if (config.scheme === 'oauth')` guarantees `oauthEndpoint` and `apiToken` are present.
+
+2. Add `loadAuthSchemeConfig()` — validates at startup, fails fast:
+   ```typescript
+   function loadAuthSchemeConfig(): AuthSchemeConfig {
+     const scheme = process.env.REMEMBER_AUTH_SCHEME ?? 'service';
+     if (scheme === 'service') return { scheme };
+     if (scheme !== 'oauth') throw new Error(`Invalid REMEMBER_AUTH_SCHEME: ${scheme}`);
+     const oauthEndpoint = process.env.REMEMBER_OAUTH_ENDPOINT;
+     if (!oauthEndpoint) throw new Error('REMEMBER_OAUTH_ENDPOINT required when REMEMBER_AUTH_SCHEME=oauth');
+     const apiToken = process.env.REMEMBER_API_TOKEN ?? '';
+     return { scheme, oauthEndpoint, apiToken };
    }
    ```
+   `apiToken` may be empty here — T517 (config resolver) fills it from `.remember/config` if not set via env var.
 
-2. Read from env vars in config module:
-   - `REMEMBER_AUTH_SCHEME` → defaults to `'service'`
-   - `REMEMBER_OAUTH_ENDPOINT` → required when scheme=oauth
-   - `REMEMBER_API_TOKEN` → optional (can come from .remember/config instead)
+3. Export `loadAuthSchemeConfig` from config module
 
-3. Add validation: if `scheme=oauth` and `oauthEndpoint` is missing, throw a clear error at startup
-
-4. Export `authSchemeConfig` from config module
+4. Keep types in config module (no separate types file needed for this small addition)
 
 ## Verification
 
