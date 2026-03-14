@@ -20,7 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `remember_admin_inspect_user_ghost_configs` — ghost configurations
 - `remember_admin_inspect_user_escalation_records` — trust escalation records
 - `remember_admin_inspect_user_api_tokens` — API token metadata (no hashes)
-- 36 unit tests for admin tools (487 total tests)
+- `remember_admin_health` — deep health check with Weaviate + Firestore connectivity and latency
+- `remember_admin_detect_weaviate_drift` — compare expected vs actual schema properties per collection
+- 46 unit tests for admin tools (497 total tests)
 
 ## [3.19.3] - 2026-03-14
 

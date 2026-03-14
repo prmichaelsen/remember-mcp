@@ -76,6 +76,8 @@ import {
   adminInspectUserEscalationRecordsTool, handleAdminInspectUserEscalationRecords,
   adminInspectUserApiTokensTool, handleAdminInspectUserApiTokens,
 } from './tools/admin-inspect-user.js';
+import { adminHealthTool, handleAdminHealth } from './tools/admin-health.js';
+import { adminDetectWeaviateDriftTool, handleAdminDetectWeaviateDrift } from './tools/admin-detect-weaviate-drift.js';
 
 export interface ServerOptions {
   name?: string;
@@ -309,6 +311,8 @@ function registerHandlers(
     adminInspectUserGhostConfigsTool,
     adminInspectUserEscalationRecordsTool,
     adminInspectUserApiTokensTool,
+    adminHealthTool,
+    adminDetectWeaviateDriftTool,
   ];
 
   // List available tools (admin tools conditionally included)
@@ -524,6 +528,14 @@ function registerHandlers(
 
         case 'remember_admin_inspect_user_api_tokens':
           result = await handleAdminInspectUserApiTokens(args as any, userId, authContext);
+          break;
+
+        case 'remember_admin_health':
+          result = await handleAdminHealth(args as any, userId, authContext);
+          break;
+
+        case 'remember_admin_detect_weaviate_drift':
+          result = await handleAdminDetectWeaviateDrift(args as any, userId, authContext);
           break;
 
         default:

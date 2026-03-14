@@ -406,8 +406,11 @@ milestones:
     status: not_started
     progress: 0%
     estimated_weeks: 1
-    tasks_completed: 4
+    tasks_completed: 5
     tasks_total: 5
+    status: completed
+    progress: 100%
+    completed: 2026-03-14
     notes: |
       Read-only admin MCP tools gated by ADMIN_USER_IDS env var.
       11 tools: inspect_memory, get_weaviate_schema, list_collections,
@@ -2543,9 +2546,13 @@ task_20_completion:
 
     - id: task-524
       name: Health and Drift Tools
-      status: not_started
+      status: completed
+      completed_date: 2026-03-14
       file: agent/tasks/milestone-22-admin-debugging-tools/task-524-health-and-drift-tools.md
       estimated_hours: 2-3
       dependencies: [task-520]
       notes: |
-        📋 health (connectivity check), detect_weaviate_drift (expected vs actual schema)
+        ✅ health (Weaviate + Firestore connectivity with latency, overall status)
+        ✅ detect_weaviate_drift (expected vs actual schema comparison per collection)
+        ✅ 10 unit tests, 497 total tests
+        ✅ CHANGELOG, README updated

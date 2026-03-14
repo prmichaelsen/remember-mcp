@@ -63,7 +63,7 @@ Multi-tenant memory system MCP server with vector search, relationships, and tru
 
 ## Features
 
-- **18 MCP Tools**: Complete CRUD for memories, relationships, preferences, shared spaces, and content sync
+- **29+ MCP Tools**: Complete CRUD for memories, relationships, preferences, shared spaces, content sync, and 11 admin debugging tools
 - **Soft Delete with Recovery**: Safe deletion with confirmation flow and recovery capability
 - **Multi-Tenant**: Per-user isolation with secure data boundaries
 - **Shared Spaces**: Publish memories to shared discovery spaces like "The Void"
