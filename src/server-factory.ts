@@ -44,6 +44,7 @@ import { searchSpaceTool, handleSearchSpace } from './tools/search-space.js';
 import { querySpaceTool, handleQuerySpace } from './tools/query-space.js';
 import { moderateTool, handleModerate } from './tools/moderate.js';
 import { ghostConfigTool, handleGhostConfig } from './tools/ghost-config.js';
+import { requestSetTrustLevelTool, handleRequestSetTrustLevel } from './tools/request-set-trust-level.js';
 import { searchByTool, handleSearchBy } from './tools/search-by.js';
 
 // Import unified internal memory tools
@@ -343,6 +344,7 @@ function registerHandlers(
       querySpaceTool,
       moderateTool,
       ghostConfigTool,
+      requestSetTrustLevelTool,
       // Search modes
       searchByTool,
       // Unified internal memory tools
@@ -459,6 +461,10 @@ function registerHandlers(
 
         case 'remember_ghost_config':
           result = await handleGhostConfig(args as any, userId, authContext);
+          break;
+
+        case 'remember_request_set_trust_level':
+          result = await handleRequestSetTrustLevel(args as any, userId, authContext);
           break;
 
         case 'remember_search_by':

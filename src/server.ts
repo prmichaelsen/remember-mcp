@@ -42,6 +42,7 @@ import { searchSpaceTool, handleSearchSpace } from './tools/search-space.js';
 import { querySpaceTool, handleQuerySpace } from './tools/query-space.js';
 import { moderateTool, handleModerate } from './tools/moderate.js';
 import { ghostConfigTool, handleGhostConfig } from './tools/ghost-config.js';
+import { requestSetTrustLevelTool, handleRequestSetTrustLevel } from './tools/request-set-trust-level.js';
 
 /**
  * Initialize remember-mcp server
@@ -122,6 +123,7 @@ function registerHandlers(server: Server): void {
         querySpaceTool,
         moderateTool,
         ghostConfigTool,
+        requestSetTrustLevelTool,
       ],
     };
   });
@@ -223,6 +225,10 @@ function registerHandlers(server: Server): void {
 
         case 'remember_ghost_config':
           result = await handleGhostConfig(args as any, userId, authContext);
+          break;
+
+        case 'remember_request_set_trust_level':
+          result = await handleRequestSetTrustLevel(args as any, userId, authContext);
           break;
 
         default:
