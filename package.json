@@ -52,7 +52,7 @@
     "@google-cloud/documentai": "^9.5.0",
     "@google-cloud/vision": "^5.3.4",
     "@modelcontextprotocol/sdk": "^1.0.4",
-    "@prmichaelsen/remember-core": "^0.70.11",
+    "@prmichaelsen/remember-core": "^0.71.1",
     "dotenv": "^16.4.5",
     "uuid": "^13.0.0",
     "weaviate-client": "^3.2.0"
