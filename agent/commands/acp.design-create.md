@@ -6,18 +6,18 @@
 >
 > Follow the steps below to create a design document with proper namespace and automatic package updates.
 
-**Namespace**: acp
-**Version**: 1.0.0
-**Created**: 2026-02-21
-**Last Updated**: 2026-02-21
-**Status**: Active
-**Scripts**: None
+**Namespace**: acp  
+**Version**: 1.0.0  
+**Created**: 2026-02-21  
+**Last Updated**: 2026-02-21  
+**Status**: Active  
+**Scripts**: None  
 
 ---
 
-**Purpose**: Create design documents with namespace enforcement, draft support, and automatic package updates
-**Category**: Creation
-**Frequency**: As Needed
+**Purpose**: Create design documents with namespace enforcement, draft support, and automatic package updates  
+**Category**: Creation  
+**Frequency**: As Needed  
 
 ---
 
@@ -32,7 +32,7 @@ This command creates a new design document with intelligent namespace handling, 
 - Auto-updates package.yaml and README.md
 - Uses design.template.md as base
 
-**Use this when**: Creating a new design document in an ACP project or package.
+**Use this when**: Creating a new design document in an ACP project or package.  
 
 ---
 
@@ -55,6 +55,7 @@ This command creates a new design document with intelligent namespace handling, 
 | `--from-chat-context` | `--from-chat` | Capture decisions from chat conversation |
 | `--from-context` | (none) | Shorthand for all sources (clarifications + chat) |
 | `--include-clarifications` | (none) | Alias for `--from-clars` |
+| `--no-commit` | (none) | Skip the automatic commit step after creation |
 
 **Default behavior** (no flags): Auto-detect clarifications and context in session.
 
@@ -71,13 +72,13 @@ Determine if in package or project directory:
 - If package: Infer namespace from package.yaml, directory, or git remote
 - If project: Use "local" namespace
 
-**Expected Outcome**: Context detected, namespace determined
+**Expected Outcome**: Context detected, namespace determined  
 
 ### 2. Check for Draft File
 
 Check if draft file was provided as argument (same as pattern-create and command-create).
 
-**Expected Outcome**: Draft file read (if provided)
+**Expected Outcome**: Draft file read (if provided)  
 
 ### 2.5. Read Contextual Key Files
 
@@ -90,7 +91,7 @@ Before creating content, load relevant key files from the index.
 - Sort by weight descending, read matching files
 - Produce visible output
 
-**Note**: If `agent/index/` does not exist, skip silently.
+**Note**: If `agent/index/` does not exist, skip silently.  
 
 ### 2.7. Capture Clarification Context
 
@@ -104,7 +105,7 @@ Invoke the `@acp.clarification-capture` shared directive to capture decisions fr
 - Directive returns a "Key Design Decisions" markdown section (or nothing if no context)
 - Hold the generated section for insertion during Step 5 (Generate Design File)
 
-**Expected Outcome**: Key Design Decisions section generated (if context available), or skipped cleanly
+**Expected Outcome**: Key Design Decisions section generated (if context available), or skipped cleanly  
 
 ### 3. Collect Design Information
 
@@ -122,13 +123,13 @@ Gather information from user via chat:
 - Ask: "Describe what you want this design document to cover" OR
 - Offer: "Would you like to create an empty draft file first?"
 
-**Expected Outcome**: All design metadata collected
+**Expected Outcome**: All design metadata collected  
 
 ### 4. Process Draft (If Provided)
 
 If draft file was provided, create clarification if needed (same as pattern-create).
 
-**Expected Outcome**: Clarification created and answered (if needed)
+**Expected Outcome**: Clarification created and answered (if needed)  
 
 ### 5. Generate Design File
 
@@ -143,31 +144,31 @@ Create design file from template:
 - If Key Design Decisions section was generated in Step 2.7: Insert it into the design document
 - Save to `agent/design/{namespace}.{design-name}.md`
 
-**Expected Outcome**: Design file created
+**Expected Outcome**: Design file created  
 
 ### 6. Update package.yaml (If in Package)
 
 Add design to package.yaml contents (same as pattern-create and command-create).
 
-**Expected Outcome**: package.yaml updated
+**Expected Outcome**: package.yaml updated  
 
 ### 7. Update README.md (If in Package)
 
 Update README contents section (same as pattern-create and command-create).
 
-**Expected Outcome**: README.md updated with new design
+**Expected Outcome**: README.md updated with new design  
 
 ### 8. Prompt to Delete Draft (If Used)
 
 If draft file was used, ask to delete it.
 
-**Expected Outcome**: User chooses whether to keep draft
+**Expected Outcome**: User chooses whether to keep draft  
 
 ### 9. Report Success
 
 Display what was created.
 
-**Expected Outcome**: User knows design was created successfully
+**Expected Outcome**: User knows design was created successfully  
 
 ### 10. Prompt to Add to Key File Index
 
@@ -186,6 +187,22 @@ If yes:
 
 **Note**: If `agent/index/` does not exist, skip this step.
 
+### 11. Commit Created Artifacts (MANDATORY unless `--no-commit`)
+
+> **⚠️ CRITICAL**: This step is NOT optional unless `--no-commit` was specified. You MUST commit created artifacts before finishing. Do NOT skip this step. Do NOT ask the user whether to commit. Do NOT defer the commit to a later time. If `--no-commit` was passed, skip this step silently.
+
+**Actions**:
+- Stage all files created or modified during design creation:
+  - Design file (`agent/design/{namespace}.{design-name}.md`)
+  - `package.yaml` (if updated)
+  - `README.md` (if updated)
+  - Key file index (`agent/index/*.yaml`) if updated
+- Do NOT stage clarification files (`agent/clarifications/*.md`) — these are not committed
+- Invoke `@git.commit` with a message summarizing what was created (e.g., `feat(design): create {namespace}.{design-name} design document`)
+- Verify the commit succeeded
+
+**Expected Outcome**: All design artifacts committed to version control.
+
 ---
 
 ## Verification
@@ -199,6 +216,7 @@ If yes:
 - [ ] README.md updated (if package)
 - [ ] Design follows template structure
 - [ ] All metadata filled in correctly
+- [ ] **Design artifacts committed via `@git.commit` (MANDATORY — do not skip)**
 
 ---
 
@@ -218,19 +236,19 @@ If yes:
 
 ### Example 1: Creating Design in Package
 
-**Context**: In acp-firebase package directory
+**Context**: In acp-firebase package directory  
 
-**Invocation**: `@acp.design-create`
+**Invocation**: `@acp.design-create`  
 
-**Result**: Creates `agent/design/firebase.architecture.md`, updates package.yaml and README.md
+**Result**: Creates `agent/design/firebase.architecture.md`, updates package.yaml and README.md  
 
 ### Example 2: Creating Design in Project
 
-**Context**: In regular project (no package.yaml)
+**Context**: In regular project (no package.yaml)  
 
-**Invocation**: `@acp.design-create`
+**Invocation**: `@acp.design-create`  
 
-**Result**: Uses "local" namespace, creates `agent/design/local.my-design.md`, no package updates
+**Result**: Uses "local" namespace, creates `agent/design/local.my-design.md`, no package updates  
 
 ---
 
@@ -276,11 +294,11 @@ Same as @acp.pattern-create and @acp.command-create.
 
 ---
 
-**Namespace**: acp
-**Command**: design-create
-**Version**: 1.0.0
-**Created**: 2026-02-21
-**Last Updated**: 2026-02-21
-**Status**: Active
-**Compatibility**: ACP 2.2.0+
-**Author**: ACP Project
+**Namespace**: acp  
+**Command**: design-create  
+**Version**: 1.0.0  
+**Created**: 2026-02-21  
+**Last Updated**: 2026-02-21  
+**Status**: Active  
+**Compatibility**: ACP 2.2.0+  
+**Author**: ACP Project  

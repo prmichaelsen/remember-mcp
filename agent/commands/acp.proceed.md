@@ -12,9 +12,13 @@
 > - YOU MUST IMMEDIATELY BEGIN IMPLEMENTING THE CURRENT OR NEXT TASK.
 > - Follow **Steps 1-5** (Single-Task Mode).
 >
-> **If autonomous arguments detected (`--complete`, `--auto`, `--autonomous`, `--finish-milestone`, or natural language like "finish milestone", "just finish everything", "complete all tasks"):**
+> **If autonomous arguments detected (`--complete`, `--auto`, `--autonomous`, `--finish-milestone`, `--turbo`, `--yolo`, or natural language like "finish milestone", "just finish everything", "complete all tasks"):**
 > - Follow **Autonomous Mode** section.
-> - Do NOT start implementing individual tasks until confirmation is received.
+> - If `--yes`, `--turbo`, or `--yolo` is present, skip the confirmation prompt (A2).
+> - If `--this` is present (or implied by `--turbo`/`--yolo`), use the task from chat context rather than scanning progress.yaml.
+> - If `--parallel` is present (or implied by `--turbo`/`--yolo`), spin up sub-agents on separate worktrees.
+> - If `--noworktreemerge` / `--holdmerge` / `--safemerge` / `--safe` is present, do NOT auto-merge worktrees; prompt user before each merge (see A10).
+> - Do NOT start implementing individual tasks until confirmation is received (unless `--yes`).
 >
 > **If `--dry-run` detected:**
 > - Follow **Autonomous Mode > Dry-Run** section.
@@ -27,18 +31,18 @@
 >
 > **This is an ACTION command, not a STATUS command.**
 
-**Namespace**: acp
-**Version**: 2.0.0
-**Created**: 2026-02-16
-**Last Updated**: 2026-02-28
-**Status**: Active
-**Scripts**: None
+**Namespace**: acp  
+**Version**: 2.0.0  
+**Created**: 2026-02-16  
+**Last Updated**: 2026-02-28  
+**Status**: Active  
+**Scripts**: None  
 
 ---
 
-**Purpose**: Implement tasks — single-task (default) or autonomous milestone completion (with arguments)
-**Category**: Workflow
-**Frequency**: As Needed
+**Purpose**: Implement tasks — single-task (default) or autonomous milestone completion (with arguments)  
+**Category**: Workflow  
+**Frequency**: As Needed  
 
 ---
 
@@ -63,13 +67,40 @@ This command supports both CLI-style flags and natural language arguments.
 | `--commit-each` | Same as `--commit` (explicit name) |
 | `--with-commits` | Same as `--commit` (modifier style) |
 
-**Note**: `--complete` implies `--commit`. There is no autonomous completion mode without per-task commits.
+**Note**: `--complete` implies `--commit`. There is no autonomous completion mode without per-task commits.  
 
-### Other Flags
+### Targeting Flags
 
 | Flag | Description |
 |------|-------------|
+| `--this` | Work on the task already in chat context or implied by the current conversation, rather than scanning progress.yaml for the next task |
+
+### Execution Flags
+
+| Flag | Description |
+|------|-------------|
+| `--parallel` | Spin up sub-agents on separate git worktrees to work on tasks concurrently |
+| `--yes` | Skip the confirmation prompt (A2) and begin execution immediately |
 | `--dry-run` | Preview what tasks would be completed without executing |
+| `--noworktreemerge` | Do not auto-merge worktrees when sub-agents complete; prompt for permission before each merge (see A10) |
+
+#### `--noworktreemerge` Aliases (all equivalent)
+
+| Flag | Description |
+|------|-------------|
+| `--noworktreemerge` | Canonical form |
+| `--holdmerge` | Short form — "hold the merge until I say go" |
+| `--safemerge` | Emphasizes safety of sequential merging |
+| `--safe` | Shortest form — not overloaded, well-documented |
+
+### Combo Flags
+
+| Flag | Description |
+|------|-------------|
+| `--turbo` | Shorthand for `--auto --this --parallel --yes` |
+| `--yolo` | Same as `--turbo` |
+
+**`--turbo` / `--yolo` expand to**: autonomous mode, targeting the current/contextual task, parallel worktree sub-agents, no confirmation prompt.  
 
 ### Natural Language (Fuzzy Matching)
 
@@ -84,10 +115,16 @@ The agent should detect autonomous intent from natural language following `@acp.
 | `@acp.proceed complete the milestone` | Autonomous |
 | `@acp.proceed complete all tasks` | Autonomous |
 | `@acp.proceed --dry-run` | Dry-Run |
+| `@acp.proceed --turbo` | Autonomous (parallel, no confirm, contextual task) |
+| `@acp.proceed --yolo` | Same as `--turbo` |
+| `@acp.proceed --yolo --safe` | Autonomous parallel, but prompt before each worktree merge |
+| `@acp.proceed --yolo hold merge` | Same as `--yolo --safe` (NLP) |
+| `@acp.proceed --yolo wait before merging` | Same as `--yolo --safe` (NLP) |
 | `@acp.proceed` | Single-Task (default) |
 
 **Matching rules**:
-- Look for keywords: `complete`, `finish`, `auto`, `autonomous`, `all tasks`, `everything`, `milestone`
+- Look for keywords: `complete`, `finish`, `auto`, `autonomous`, `all tasks`, `everything`, `milestone`, `turbo`, `yolo`
+- Look for `--noworktreemerge` keywords: `safe`, `hold merge`, `wait before merging`, `pause before merge`, `defer merge`, `don't auto-merge`, `gate merge`, `prompt before merge`, `no auto merge`
 - Be generous with matching — if the user's intent is clearly "do everything", enter autonomous mode
 - When in doubt, **always show the confirmation prompt** before starting autonomous execution
 - Never enter autonomous mode silently — the confirmation gate is mandatory
@@ -97,6 +134,12 @@ The agent should detect autonomous intent from natural language following `@acp.
 | Combination | Behavior |
 |-------------|----------|
 | `--complete` | Autonomous completion with per-task commits |
+| `--complete --yes` | Autonomous completion, skip confirmation prompt |
+| `--complete --parallel` | Autonomous completion with parallel worktree sub-agents |
+| `--complete --this` | Autonomous completion starting from contextual task |
+| `--turbo` / `--yolo` | `--auto --this --parallel --yes` (full autonomous, no confirm, parallel, contextual) |
+| `--yolo --safe` | Full autonomous parallel, but prompt user before each worktree merge |
+| `--complete --parallel --safe` | Autonomous parallel with merge gating |
 | `--complete --dry-run` | Preview task list, no execution |
 | `--dry-run` (alone) | Preview next task only |
 | `--commit` (alone) | Single-task mode, commit after completion |
@@ -161,6 +204,14 @@ When you invoke `@acp.proceed --complete` (or equivalent):
 - Find first task with status `in_progress` or `not_started` in the current milestone
 - Read the task document
 
+**🚨 MANDATORY STATUS UPDATES (do these NOW, not later):**
+- **Task status**: If task status is `not_started`, set it to `in_progress` in progress.yaml immediately
+- **Task `started`**: If the task's `started` field is `null` or missing, set it to the current ISO 8601 timestamp (e.g., `2026-03-20T10:30:00Z`). Do NOT overwrite an existing `started` value.
+- **Milestone status**: If the milestone's `status` is `not_started`, set it to `in_progress` immediately
+- **Milestone `started`**: If the milestone's `started` field is `null` or missing, set it to today's date (e.g., `2026-03-20`). Do NOT overwrite an existing `started` value.
+
+These updates MUST be written to progress.yaml before moving to Step 2. Do not defer them.
+
 **DO NOT spend time analyzing or planning. MOVE TO STEP 2 IMMEDIATELY.**
 
 ### 1.5. Read Contextual Key Files
@@ -185,7 +236,7 @@ Before implementing, load relevant key files from the index.
   2 key files read for acp.proceed context
 ```
 
-**Note**: If `agent/index/` does not exist, skip silently. Do NOT spend excessive time here — read files quickly and move to implementation.
+**Note**: If `agent/index/` does not exist, skip silently. Do NOT spend excessive time here — read files quickly and move to implementation.  
 
 ### 1.7. Load Design Context
 
@@ -214,7 +265,7 @@ Design Context: No design document found for this task.
   Implementing from task file only.
 ```
 
-**Usage during implementation**: The design context informs implementation decisions when:
+**Usage during implementation**: The design context informs implementation decisions when:  
 - The task step is ambiguous about approach
 - An edge case arises not explicitly covered in the task
 - The agent needs to understand "why" a particular approach was chosen
@@ -285,12 +336,26 @@ Design Context: No design document found for this task.
 ### 4. Update Progress Tracking
 
 **Only after verifying all deliverables**, update `agent/progress.yaml`:
-- Mark task as `completed` (if done) or `in_progress` (if partial)
-- Add completion date (if done)
-- **Ask user for actual hours spent**: "How many hours did this task take? (estimated: X hours)" - Update `actual_hours` field
-- Update milestone progress percentage
+
+**🚨 MANDATORY TASK UPDATES:**
+- Mark task `status` as `completed` (if done) or leave as `in_progress` (if partial)
+- **Set `completed_date`** to the current ISO 8601 timestamp (e.g., `2026-03-20T14:45:00Z`). This is MANDATORY for completed tasks.
+- **Auto-compute `actual_hours`**: If both `started` and `completed_date` are set, calculate `actual_hours = (completed_date - started)` in hours, rounded to 1 decimal place. If `started` is missing, set `actual_hours` to `null`.
+- Increment `tasks_completed` on the milestone
+
+**🚨 MANDATORY MILESTONE UPDATES:**
+- Update milestone `progress` percentage: `(tasks_completed / tasks_total) * 100`
+- **If this was the LAST task in the milestone** (all tasks now completed):
+  - Set milestone `status` to `completed`
+  - Set milestone `completed` to today's date (e.g., `2026-03-20`)
+  - Set milestone `progress` to `100`
+  - Update `current_milestone` to the next incomplete milestone (if any)
+
+**Additional updates:**
 - Add `recent_work` entry describing what was IMPLEMENTED
 - Update `next_steps`
+
+**Do NOT skip timestamp or status updates. Every completed task MUST have a `completed_date`. Every completed milestone MUST have a `completed` date.**
 
 ### 5. Report What Was IMPLEMENTED (Not What Will Be Done)
 
@@ -330,7 +395,7 @@ Design Context: No design document found for this task.
 
 ### A2. Show Confirmation Prompt
 
-**🚨 MANDATORY**: Always show this confirmation before starting autonomous execution. Never skip this step.
+**🚨 MANDATORY**: Always show this confirmation before starting autonomous execution. Never skip this step.  
 
 Display the following to the user:
 
@@ -374,6 +439,9 @@ FOR each remaining task in planned order:
 
   2. READ task document, key files, and design context
      - Re-read progress.yaml at start of each iteration (context freshness)
+     - Set task `status` to `in_progress` and set task `started` timestamp if null — IMMEDIATELY
+     - If milestone `status` is `not_started`, set it to `in_progress` and set milestone `started` to today's date — IMMEDIATELY
+     - Write these updates to progress.yaml NOW before continuing
      - Read contextual key files from agent/index/ (filter by acp.proceed applies)
      - Read the task file
      - Load design context: If task has Design Reference field with a link, read that
@@ -399,10 +467,14 @@ FOR each remaining task in planned order:
      - If E2E tests fail → HALT (see A8)
      - Do NOT commit partial work
 
-  6. UPDATE progress tracking
-     - Mark task as completed in progress.yaml
-     - Add completion date
-     - Update milestone progress percentage
+  6. UPDATE progress tracking (🚨 ALL fields mandatory — do not skip any)
+     - Mark task `status` as `completed`
+     - Set `completed_date` to current ISO 8601 timestamp — MANDATORY
+     - If `started` is `null` or missing, set `started` to current timestamp (same as completed_date)
+     - Auto-compute `actual_hours` from `(completed_date - started)` in hours
+     - Increment milestone `tasks_completed`
+     - Update milestone `progress` percentage: `(tasks_completed / tasks_total) * 100`
+     - If this was the LAST task: set milestone `status` to `completed`, set milestone `completed` to today's date, update `current_milestone` to next incomplete milestone
      - Add recent_work entry
 
   7. RUN @git.commit subroutine
@@ -602,6 +674,48 @@ If the user sends a message during autonomous execution:
 - If unclear → ask the user what they'd like to do
 - **Never ignore user messages** during autonomous execution
 
+### A10. Worktree Merge Gating (`--noworktreemerge` / `--safe`)
+
+When `--noworktreemerge` (or any alias: `--holdmerge`, `--safemerge`, `--safe`) is active, the agent **does NOT auto-merge worktrees** when sub-agents complete. Instead, it queues completed worktrees and prompts the user before each merge.
+
+**Why this exists**: When multiple Claude CLI instances run `--yolo` in parallel across overlapping feature areas, concurrent worktree merges create destructive conflicts. Git worktree merges involve intensive, relatively destructive commands — two inflight merges will constantly collide, produce spurious merge conflicts, and leave each agent seeing state that is inconsistent with its context. `--safe` ensures only one merge happens at a time, controlled by the user.
+
+**Behavior**:
+
+1. **Sub-agents work normally** on their worktrees — no change to task execution
+2. **When a sub-agent completes**, instead of immediately merging:
+   - Mark the worktree as `merge-ready` in the agent's internal tracking
+   - Display a notification:
+     ```
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       Worktree ready to merge (--safe mode)
+
+       Task {id}: {name}
+       Branch: {worktree-branch}
+       Files changed: {N}
+
+       Other agents may be running. Merge when ready:
+         → Reply "merge" to merge this worktree now
+         → Reply "merge all" to merge all ready worktrees
+         → Reply "skip" to defer this merge
+
+       Pending merges: {N} ready, {N} still running
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     ```
+3. **Wait for user permission** before executing any merge
+4. **On "merge"**: Execute the worktree merge for the specified task, then report result
+5. **On "merge all"**: Merge all `merge-ready` worktrees sequentially (one at a time, in completion order)
+6. **On "skip"**: Leave the worktree unmerged; user can merge manually or later
+
+**Without `--safe`** (default `--parallel` behavior): worktrees auto-merge as soon as each sub-agent completes. This is fine when only one agent is running, but risky with concurrent agents.
+
+**`--safe` does NOT change**:
+- How sub-agents are spawned or how they work
+- The task loop, commit flow, or progress tracking
+- The confirmation prompt (A2) or summary report (A6)
+
+**`--safe` only gates the final worktree-to-main merge step.**
+
 ---
 
 ## Verification
@@ -729,43 +843,43 @@ Estimated: 3 hours
 
 ### Example 1: Single-Task (Default)
 
-**Context**: You want to implement the next task
+**Context**: You want to implement the next task  
 
-**Invocation**: `@acp.proceed`
+**Invocation**: `@acp.proceed`  
 
-**Result**: Identifies next task, immediately starts implementing, completes task, updates progress
+**Result**: Identifies next task, immediately starts implementing, completes task, updates progress  
 
 ### Example 2: Autonomous Completion with Flags
 
-**Context**: Milestone has 5 remaining tasks, you want them all done
+**Context**: Milestone has 5 remaining tasks, you want them all done  
 
-**Invocation**: `@acp.proceed --complete`
+**Invocation**: `@acp.proceed --complete`  
 
-**Result**: Shows confirmation with 5 tasks listed, user confirms, agent implements all 5 tasks with per-task commits, displays summary
+**Result**: Shows confirmation with 5 tasks listed, user confirms, agent implements all 5 tasks with per-task commits, displays summary  
 
 ### Example 3: Autonomous with Natural Language
 
-**Context**: Same as above but using natural language
+**Context**: Same as above but using natural language  
 
-**Invocation**: `@acp.proceed just finish everything`
+**Invocation**: `@acp.proceed just finish everything`  
 
-**Result**: Same as `--complete` — agent detects autonomous intent, shows confirmation, implements all tasks
+**Result**: Same as `--complete` — agent detects autonomous intent, shows confirmation, implements all tasks  
 
 ### Example 4: Dry-Run Preview
 
-**Context**: You want to see what would be done without executing
+**Context**: You want to see what would be done without executing  
 
-**Invocation**: `@acp.proceed --complete --dry-run`
+**Invocation**: `@acp.proceed --complete --dry-run`  
 
-**Result**: Shows task list with estimates, exits without making changes
+**Result**: Shows task list with estimates, exits without making changes  
 
 ### Example 5: Autonomous with Halt
 
-**Context**: Milestone has 5 tasks, task 3 fails
+**Context**: Milestone has 5 tasks, task 3 fails  
 
-**Invocation**: `@acp.proceed --complete`
+**Invocation**: `@acp.proceed --complete`  
 
-**Result**: Completes tasks 1-2 with commits, halts at task 3, shows summary with 2 completed + 1 failed, waits for user guidance
+**Result**: Completes tasks 1-2 with commits, halts at task 3, shows summary with 2 completed + 1 failed, waits for user guidance  
 
 ### Example 6: Single-Task with Commit
 
@@ -774,6 +888,14 @@ Estimated: 3 hours
 **Invocation**: `@acp.proceed --commit`
 
 **Result**: Implements next task, runs `@git.commit` after completion
+
+### Example 7: Yolo with Safe Merge (Multiple Agents)
+
+**Context**: You have 3 Claude CLI instances working on different milestones. You want parallel worktree execution but need to control when merges happen to avoid collisions.
+
+**Invocation**: `@acp.proceed --yolo --safe`
+
+**Result**: Sub-agents spin up on worktrees and work in parallel. When each finishes, instead of auto-merging, the agent notifies you and waits. You reply "merge" when no other agent is mid-merge, ensuring clean sequential merges.
 
 ---
 
@@ -791,51 +913,51 @@ Estimated: 3 hours
 
 ### Issue 1: No current task found
 
-**Symptom**: Error message "No current task identified"
+**Symptom**: Error message "No current task identified"  
 
-**Cause**: All tasks are completed or progress.yaml doesn't have a current task
+**Cause**: All tasks are completed or progress.yaml doesn't have a current task  
 
-**Solution**: Review progress.yaml and either mark a task as `in_progress` or create new tasks for the next milestone
+**Solution**: Review progress.yaml and either mark a task as `in_progress` or create new tasks for the next milestone  
 
 ### Issue 2: Task document not found
 
-**Symptom**: Error message "Cannot read task file"
+**Symptom**: Error message "Cannot read task file"  
 
-**Cause**: Task file path in progress.yaml is incorrect or file doesn't exist
+**Cause**: Task file path in progress.yaml is incorrect or file doesn't exist  
 
-**Solution**: Verify the file path in progress.yaml matches the actual task file location, or create the missing task document
+**Solution**: Verify the file path in progress.yaml matches the actual task file location, or create the missing task document  
 
 ### Issue 3: Prerequisites not met
 
-**Symptom**: Command reports missing prerequisites
+**Symptom**: Command reports missing prerequisites  
 
-**Cause**: Task has dependencies that aren't satisfied yet
+**Cause**: Task has dependencies that aren't satisfied yet  
 
-**Solution**: Complete prerequisite tasks first, or resolve the dependencies, then run `@acp.proceed` again
+**Solution**: Complete prerequisite tasks first, or resolve the dependencies, then run `@acp.proceed` again  
 
 ### Issue 4: Verification fails
 
-**Symptom**: Some verification items don't pass
+**Symptom**: Some verification items don't pass  
 
-**Cause**: Task steps weren't completed correctly or there are errors
+**Cause**: Task steps weren't completed correctly or there are errors  
 
-**Solution**: Review the failed verification items, fix issues, then re-run verification steps
+**Solution**: Review the failed verification items, fix issues, then re-run verification steps  
 
 ### Issue 5: Autonomous mode not detected
 
-**Symptom**: Agent starts single-task mode despite passing `--complete`
+**Symptom**: Agent starts single-task mode despite passing `--complete`  
 
-**Cause**: Arguments not parsed correctly or natural language not recognized
+**Cause**: Arguments not parsed correctly or natural language not recognized  
 
-**Solution**: Use explicit flag `--complete` instead of natural language. Ensure flag appears after `@acp.proceed`.
+**Solution**: Use explicit flag `--complete` instead of natural language. Ensure flag appears after `@acp.proceed`.  
 
 ### Issue 6: Context window exhaustion during autonomous run
 
-**Symptom**: Agent loses context after completing several tasks
+**Symptom**: Agent loses context after completing several tasks  
 
-**Cause**: Long autonomous runs consume context window
+**Cause**: Long autonomous runs consume context window  
 
-**Solution**: Agent re-reads progress.yaml and task files at the start of each iteration to maintain context freshness. If context is truly exhausted, the run will halt and can be resumed with `@acp.proceed --complete` in a new session.
+**Solution**: Agent re-reads progress.yaml and task files at the start of each iteration to maintain context freshness. If context is truly exhausted, the run will halt and can be resumed with `@acp.proceed --complete` in a new session.  
 
 ---
 
@@ -872,11 +994,11 @@ Estimated: 3 hours
 
 ---
 
-**Namespace**: acp
-**Command**: proceed
-**Version**: 2.0.0
-**Created**: 2026-02-16
-**Last Updated**: 2026-02-28
-**Status**: Active
-**Compatibility**: ACP 5.0.0+
-**Author**: ACP Project
+**Namespace**: acp  
+**Command**: proceed  
+**Version**: 2.0.0  
+**Created**: 2026-02-16  
+**Last Updated**: 2026-02-28  
+**Status**: Active  
+**Compatibility**: ACP 5.0.0+  
+**Author**: ACP Project  
