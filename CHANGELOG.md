@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-03-20
+
+### BREAKING CHANGES
+- **Trust removed from create/update**: `trust` parameter removed from `remember_create_memory`, `remember_update_memory`, `remember_create_internal_memory`, `remember_update_internal_memory`. Trust now defaults to SECRET (5) on creation.
+- **Trust scale changed**: All trust references updated from 0-1 float to 1-5 integer scale (1=PUBLIC, 2=INTERNAL, 3=CONFIDENTIAL, 4=RESTRICTED, 5=SECRET).
+
+### Added
+- `remember_request_set_trust_level` tool — two-phase confirmation flow to change a memory's trust level (request → token → confirm)
+- `secret_token` optional parameter on `remember_confirm` and `remember_deny` for ConfirmationGuardService support
+- `set_trust_level` action handler in `remember_confirm` for confirming trust level changes
+- 15 new tests: request-set-trust-level (7), confirm (3), deny (2), trust-validator (3 updated)
+
+### Changed
+- Updated `@prmichaelsen/remember-core` to 1.0.0
+- Trust filter schemas (`trust_min`) updated to integer 1-5 range in search-memory and query-memory
+- Ghost config tool schemas updated to 1-5 integer trust scale
+- Local trust-validator rewritten for 1-5 integer scale
+- 510 total tests (509 passed, 1 skipped)
+
 ## [3.20.0] - 2026-03-14
 
 ### Added

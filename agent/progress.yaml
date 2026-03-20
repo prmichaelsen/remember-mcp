@@ -2,11 +2,11 @@
 
 project:
   name: remember-mcp
-  version: 3.19.0
+  version: 4.0.0
   started: 2026-02-11
   status: in_progress
-  current_milestone: M22
-  last_updated: 2026-03-07
+  current_milestone: M23
+  last_updated: 2026-03-20
 
 milestones:
   - id: M1
@@ -421,10 +421,12 @@ milestones:
 
   - id: M23
     name: Trust Level Protection (Breaking)
-    status: not_started
-    progress: 0%
+    status: completed
+    progress: 100%
+    started: 2026-03-20
+    completed: 2026-03-20
     estimated_weeks: 1
-    tasks_completed: 0
+    tasks_completed: 5
     tasks_total: 5
     file: agent/milestones/milestone-23-trust-level-protection.md
     notes: |
@@ -2574,53 +2576,76 @@ task_20_completion:
   milestone_23:
     - id: task-525
       name: Remove Trust from Create/Update Tools
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-23-trust-level-protection/task-525-remove-trust-from-create-update.md
       estimated_hours: 2-3
-      started: null
-      actual_hours: null
+      started: 2026-03-20T10:00:00Z
+      completed_date: 2026-03-20T10:30:00Z
+      actual_hours: 0.5
       notes: |
-        📋 Remove trust parameter from 4 MCP tool schemas and handlers
+        ✅ Removed trust from create-memory, update-memory, create-internal-memory, update-internal-memory
+        ✅ Updated tool description to reference remember_request_set_trust_level
+        ✅ Updated create-memory.spec.ts (trust no longer in schema)
+        ✅ 502 tests passing
 
     - id: task-526
       name: Add remember_request_set_trust_level Tool
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-23-trust-level-protection/task-526-add-request-set-trust-level-tool.md
       estimated_hours: 3-4
       dependencies: [task-525]
-      started: null
-      actual_hours: null
+      started: 2026-03-20T10:30:00Z
+      completed_date: 2026-03-20T11:00:00Z
+      actual_hours: 0.5
       notes: |
-        📋 New two-phase trust change MCP tool (request → token → confirm)
+        ✅ Created request-set-trust-level.ts with tool and handler
+        ✅ Registered in server.ts and server-factory.ts
+        ✅ 7 tests (schema validation, valid request, invalid trust levels)
+        ✅ 510 tests passing
 
     - id: task-527
       name: Update Confirm/Deny for Secret Token
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-23-trust-level-protection/task-527-update-confirm-deny-secret-token.md
       estimated_hours: 2-3
-      started: null
-      actual_hours: null
+      started: 2026-03-20T10:00:00Z
+      completed_date: 2026-03-20T10:30:00Z
+      actual_hours: 0.5
       notes: |
-        📋 Add optional secret_token to confirm/deny tools for ConfirmationGuardService
+        ✅ Added secret_token to confirm and deny tool schemas
+        ✅ Added set_trust_level action handler in confirm tool
+        ✅ Created confirm.spec.ts (3 tests) and deny.spec.ts (2 tests)
+        ✅ 502 tests passing
 
     - id: task-528
       name: Update Trust Scale References
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-23-trust-level-protection/task-528-update-trust-scale-references.md
       estimated_hours: 2-3
       dependencies: [task-525]
-      started: null
-      actual_hours: null
+      started: 2026-03-20T10:30:00Z
+      completed_date: 2026-03-20T11:00:00Z
+      actual_hours: 0.5
       notes: |
-        📋 Update 0-1 float trust scale → 1-5 integer across all tool descriptions, validators, tests
+        ✅ trust-validator.ts rewritten for 1-5 integer scale
+        ✅ trust-validator.spec.ts updated (all tests pass)
+        ✅ search-memory, query-memory trust_min schemas updated
+        ✅ ghost-config tool descriptions and schemas updated to 1-5
+        ✅ types/memory.ts trust comment updated
+        ✅ 510 tests passing
 
     - id: task-529
       name: Version Bump and Release
-      status: not_started
+      status: completed
       file: agent/tasks/milestone-23-trust-level-protection/task-529-version-bump-and-release.md
       estimated_hours: 2-3
       dependencies: [task-525, task-526, task-527, task-528]
-      started: null
-      actual_hours: null
+      started: 2026-03-20T11:00:00Z
+      completed_date: 2026-03-20T11:30:00Z
+      actual_hours: 0.5
       notes: |
-        📋 Bump remember-core >= 0.72.0, version 4.0.0, CHANGELOG, README, tests
+        ✅ remember-core updated to 1.0.0 (has requestSetTrustLevel, confirmSetTrustLevel, secret_token)
+        ✅ Removed all `as any` casts — proper types now
+        ✅ Version bumped to 4.0.0
+        ✅ CHANGELOG.md with breaking change documentation
+        ✅ 510 tests passing

@@ -71,9 +71,7 @@ export async function handleRequestSetTrustLevel(
 
     const { memory } = createCoreServices(userId);
 
-    // Use (memory as any) since requestSetTrustLevel may not be in current types (0.71.1)
-    // Will be properly typed after remember-core bump to 0.72.0+
-    const result = await (memory as any).requestSetTrustLevel({
+    const result = await memory.requestSetTrustLevel({
       memory_id: args.memory_id,
       trust_level: args.trust_level,
     });

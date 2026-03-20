@@ -73,7 +73,7 @@ export async function handleDeny(
     debug.trace('Arguments', { args });
 
     const { space } = createCoreServices(userId);
-    const result = await space.deny({ token: args.token, secret_token: args.secret_token } as any);
+    const result = await space.deny({ token: args.token, secret_token: args.secret_token });
 
     return JSON.stringify(
       {

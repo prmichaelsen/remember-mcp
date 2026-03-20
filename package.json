@@ -1,6 +1,6 @@
 {
   "name": "@prmichaelsen/remember-mcp",
-  "version": "3.20.1",
+  "version": "4.0.0",
   "description": "Multi-tenant memory system MCP server with vector search and relationships",
   "main": "dist/server.js",
   "type": "module",
@@ -52,7 +52,7 @@
     "@google-cloud/documentai": "^9.5.0",
     "@google-cloud/vision": "^5.3.4",
     "@modelcontextprotocol/sdk": "^1.0.4",
-    "@prmichaelsen/remember-core": "^0.71.1",
+    "@prmichaelsen/remember-core": "^1.0.0",
     "dotenv": "^16.4.5",
     "uuid": "^13.0.0",
     "weaviate-client": "^3.2.0"

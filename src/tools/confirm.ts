@@ -148,7 +148,7 @@ export async function handleConfirm(
     // Handle set_trust_level via MemoryService
     if (request.action === 'set_trust_level') {
       const { memory } = createCoreServices(userId);
-      const result = await (memory as any).confirmSetTrustLevel(args.token);
+      const result = await memory.confirmSetTrustLevel(args.token);
       return JSON.stringify(
         {
           success: true,
@@ -164,7 +164,7 @@ export async function handleConfirm(
     }
 
     // Delegate publish/retract/revise to core SpaceService
-    const result = await space.confirm({ token: args.token, secret_token: args.secret_token } as any);
+    const result = await space.confirm({ token: args.token, secret_token: args.secret_token });
 
     // Format response based on action type
     if (result.action === 'retract_memory') {
