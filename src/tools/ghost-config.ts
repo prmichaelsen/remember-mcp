@@ -29,17 +29,17 @@ export const ghostConfigTool: Tool = {
 Actions:
 - get: View current ghost configuration
 - set: Update ghost settings (enabled, trust defaults, enforcement mode)
-- set_trust: Set a per-user trust level override (0-1)
+- set_trust: Set a per-user trust level override (1-5 integer)
 - remove_trust: Remove a per-user trust override (revert to default)
 - block: Block a user from ghost access entirely
 - unblock: Unblock a previously blocked user
 
-Trust levels control what information your ghost can share:
-- 0.0: Existence only ("A memory exists about this")
-- 0.25: Metadata only (tags, type, dates — no content)
-- 0.5: Summary only (AI-generated summary, no raw content)
-- 0.75: Partial access (content with sensitive fields redacted)
-- 1.0: Full access (all content revealed)
+Trust levels (1-5 integer scale) control what information your ghost can share:
+- 1 (PUBLIC): Full access (all content revealed)
+- 2 (INTERNAL): Partial access (content with sensitive fields redacted)
+- 3 (CONFIDENTIAL): Summary only (AI-generated summary, no raw content)
+- 4 (RESTRICTED): Metadata only (tags, type, dates — no content)
+- 5 (SECRET): Existence only ("A memory exists about this")
 
 Ghost is disabled by default. Enable it to allow others to chat with your AI representation.`,
   inputSchema: {
@@ -60,16 +60,16 @@ Ghost is disabled by default. Enable it to allow others to chat with your AI rep
         description: 'Allow non-friends to chat with ghost (for "set" action)',
       },
       default_friend_trust: {
-        type: 'number',
-        description: 'Default trust level for friends (0-1, for "set" action)',
-        minimum: 0,
-        maximum: 1,
+        type: 'integer',
+        description: 'Default trust level for friends (1-5 integer, for "set" action)',
+        minimum: 1,
+        maximum: 5,
       },
       default_public_trust: {
-        type: 'number',
-        description: 'Default trust level for strangers (0-1, for "set" action)',
-        minimum: 0,
-        maximum: 1,
+        type: 'integer',
+        description: 'Default trust level for strangers (1-5 integer, for "set" action)',
+        minimum: 1,
+        maximum: 5,
       },
       enforcement_mode: {
         type: 'string',
@@ -82,10 +82,10 @@ Ghost is disabled by default. Enable it to allow others to chat with your AI rep
         description: 'Target user ID (for set_trust, remove_trust, block, unblock)',
       },
       trust_level: {
-        type: 'number',
-        description: 'Trust level to assign (0-1, for "set_trust" action)',
-        minimum: 0,
-        maximum: 1,
+        type: 'integer',
+        description: 'Trust level to assign (1-5 integer, for "set_trust" action)',
+        minimum: 1,
+        maximum: 5,
       },
     },
     required: ['action'],

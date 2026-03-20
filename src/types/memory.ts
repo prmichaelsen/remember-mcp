@@ -159,7 +159,7 @@ export interface Memory {
 
   // Significance & Trust
   weight: number; // 0-1, significance/priority
-  trust: number; // 0-1, access control level
+  trust: number; // 1-5 integer, access control level (1=PUBLIC, 5=SECRET)
   confidence?: number; // 0-1, system confidence in accuracy
 
   // Location (from platform)

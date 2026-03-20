@@ -101,8 +101,10 @@ export const searchMemoryTool = {
             description: 'Minimum weight (0-1)',
           },
           trust_min: {
-            type: 'number',
-            description: 'Minimum trust level (0-1)',
+            type: 'integer',
+            description: 'Minimum trust level (1-5: 1=PUBLIC, 2=INTERNAL, 3=CONFIDENTIAL, 4=RESTRICTED, 5=SECRET)',
+            minimum: 1,
+            maximum: 5,
           },
           date_from: {
             type: 'string',
