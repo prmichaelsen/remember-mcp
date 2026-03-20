@@ -21,7 +21,6 @@ export const updateInternalMemoryTool = {
       title: { type: 'string' },
       tags: { type: 'array', items: { type: 'string' } },
       weight: { type: 'number', minimum: 0, maximum: 1 },
-      trust: { type: 'number', minimum: 0, maximum: 1 },
     },
     required: ['memory_id'],
   },
@@ -33,7 +32,6 @@ export interface UpdateInternalMemoryArgs {
   title?: string;
   tags?: string[];
   weight?: number;
-  trust?: number;
 }
 
 export async function handleUpdateInternalMemory(
@@ -70,7 +68,6 @@ export async function handleUpdateInternalMemory(
       title: args.title,
       tags: args.tags,
       weight: args.weight,
-      trust: args.trust,
     });
 
     return JSON.stringify({

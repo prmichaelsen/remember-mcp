@@ -29,7 +29,6 @@ export const createInternalMemoryTool = {
       title: { type: 'string', description: 'Optional title' },
       tags: { type: 'array', items: { type: 'string' }, description: 'Additional tags (internal tags added automatically)' },
       weight: { type: 'number', minimum: 0, maximum: 1, description: 'Significance (0-1)' },
-      trust: { type: 'number', minimum: 0, maximum: 1, description: 'Trust level (0-1)' },
       feel_salience: { type: 'number', minimum: 0, maximum: 1 },
       feel_social_weight: { type: 'number', minimum: 0, maximum: 1 },
       feel_narrative_importance: { type: 'number', minimum: 0, maximum: 1 },
@@ -43,7 +42,6 @@ export interface CreateInternalMemoryArgs {
   title?: string;
   tags?: string[];
   weight?: number;
-  trust?: number;
   [key: string]: any;
 }
 
@@ -81,7 +79,6 @@ export async function handleCreateInternalMemory(
       title: args.title,
       type: ctx.type as any,
       weight: args.weight,
-      trust: args.trust,
       tags: mergedTags,
       context_summary: `Internal memory created via MCP (${ctx.type})`,
       ...feelFields,

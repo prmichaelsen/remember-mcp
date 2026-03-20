@@ -18,7 +18,7 @@ export const createMemoryTool = {
   description: `Create a new memory with optional template.
   
   Memories can store any type of information: notes, events, people, recipes, etc.
-  Each memory has a weight (significance 0-1) and trust level (access control 0-1).
+  Each memory has a weight (significance 0-1). Trust defaults to SECRET (level 5) and can be changed via remember_request_set_trust_level.
   Location and context are automatically captured from the request.
   
   **IMPORTANT - Content vs Summary**:
@@ -53,12 +53,6 @@ export const createMemoryTool = {
       weight: {
         type: 'number',
         description: 'Significance/priority (0-1, default: 0.5)',
-        minimum: 0,
-        maximum: 1,
-      },
-      trust: {
-        type: 'number',
-        description: 'Access control level (0-1, default: 0.25)',
         minimum: 0,
         maximum: 1,
       },
@@ -149,7 +143,6 @@ export interface CreateMemoryArgs {
   title?: string;
   type?: ContentType;
   weight?: number;
-  trust?: number;
   tags?: string[];
   references?: string[];
   template_id?: string;
@@ -201,7 +194,6 @@ export async function handleCreateMemory(
       title: args.title,
       type: args.type,
       weight: args.weight,
-      trust: args.trust,
       tags: args.tags,
       references: args.references,
       template_id: args.template_id,

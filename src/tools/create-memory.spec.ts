@@ -114,13 +114,17 @@ describe('updateMemoryTool definition', () => {
     expect(required).not.toContain('group_ids');
   });
 
-  it('has optional content, title, type, weight, trust, tags properties', () => {
+  it('has optional content, title, type, weight, tags properties', () => {
     const props = updateMemoryTool.inputSchema.properties as Record<string, any>;
     expect(props.content).toBeDefined();
     expect(props.title).toBeDefined();
     expect(props.type).toBeDefined();
     expect(props.weight).toBeDefined();
-    expect(props.trust).toBeDefined();
     expect(props.tags).toBeDefined();
+  });
+
+  it('does not expose trust in schema', () => {
+    const props = updateMemoryTool.inputSchema.properties as Record<string, any>;
+    expect(props.trust).toBeUndefined();
   });
 });

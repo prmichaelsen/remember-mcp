@@ -50,12 +50,6 @@ export const updateMemoryTool = {
         minimum: 0,
         maximum: 1,
       },
-      trust: {
-        type: 'number',
-        description: 'Updated access control level (0-1)',
-        minimum: 0,
-        maximum: 1,
-      },
       tags: {
         type: 'array',
         items: { type: 'string' },
@@ -138,7 +132,6 @@ export interface UpdateMemoryArgs {
   title?: string;
   type?: string;
   weight?: number;
-  trust?: number;
   tags?: string[];
   references?: string[];
   structured_content?: Record<string, any>;
@@ -190,7 +183,6 @@ export async function handleUpdateMemory(
       title: args.title,
       type: args.type,
       weight: args.weight,
-      trust: args.trust,
       tags: args.tags,
       references: args.references,
       parent_id: args.parent_id,
