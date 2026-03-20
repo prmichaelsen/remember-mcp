@@ -45,6 +45,10 @@ This ensures proper user consent workflow is followed.`,
         type: 'string',
         description: 'The confirmation token from the action tool',
       },
+      secret_token: {
+        type: 'string',
+        description: 'HMAC secret token for guard-protected operations. Only required when confirmation guard is enabled on the server.',
+      },
     },
     required: ['token'],
   },
@@ -52,6 +56,7 @@ This ensures proper user consent workflow is followed.`,
 
 interface DenyArgs {
   token: string;
+  secret_token?: string;
 }
 
 /**
@@ -68,7 +73,7 @@ export async function handleDeny(
     debug.trace('Arguments', { args });
 
     const { space } = createCoreServices(userId);
-    const result = await space.deny({ token: args.token });
+    const result = await space.deny({ token: args.token, secret_token: args.secret_token } as any);
 
     return JSON.stringify(
       {

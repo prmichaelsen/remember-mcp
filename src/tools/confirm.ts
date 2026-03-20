@@ -53,6 +53,10 @@ Violating these requirements bypasses user consent and is a security violation.`
         type: 'string',
         description: 'The confirmation token from the action tool',
       },
+      secret_token: {
+        type: 'string',
+        description: 'HMAC secret token for guard-protected operations. Only required when confirmation guard is enabled on the server.',
+      },
     },
     required: ['token'],
   },
@@ -60,6 +64,7 @@ Violating these requirements bypasses user consent and is a security violation.`
 
 interface ConfirmArgs {
   token: string;
+  secret_token?: string;
 }
 
 /**
@@ -140,8 +145,26 @@ export async function handleConfirm(
       );
     }
 
+    // Handle set_trust_level via MemoryService
+    if (request.action === 'set_trust_level') {
+      const { memory } = createCoreServices(userId);
+      const result = await (memory as any).confirmSetTrustLevel(args.token);
+      return JSON.stringify(
+        {
+          success: true,
+          memory_id: result.memory_id,
+          previous_trust_level: result.previous_trust_level,
+          new_trust_level: result.new_trust_level,
+          updated_at: result.updated_at,
+          message: `Trust level changed from ${result.previous_trust_level} to ${result.new_trust_level}`,
+        },
+        null,
+        2
+      );
+    }
+
     // Delegate publish/retract/revise to core SpaceService
-    const result = await space.confirm({ token: args.token });
+    const result = await space.confirm({ token: args.token, secret_token: args.secret_token } as any);
 
     // Format response based on action type
     if (result.action === 'retract_memory') {
