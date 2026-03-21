@@ -92,6 +92,8 @@ export async function handleRetract(
       {
         success: true,
         token: result.token,
+        request_id: result.request_id,
+        created_at: result.created_at,
         action: 'retract_memory',
         memory_id: args.memory_id,
         confirmation_required: true,

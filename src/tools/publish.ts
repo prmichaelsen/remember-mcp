@@ -102,6 +102,8 @@ export async function handlePublish(
       {
         success: true,
         token: result.token,
+        request_id: result.request_id,
+        created_at: result.created_at,
       },
       null,
       2

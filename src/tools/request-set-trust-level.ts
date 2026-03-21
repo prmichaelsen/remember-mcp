@@ -86,6 +86,8 @@ export async function handleRequestSetTrustLevel(
 
     return JSON.stringify({
       token: result.token,
+      request_id: result.request_id,
+      created_at: result.created_at,
       memory_id: result.memory_id,
       current_trust_level: result.current_trust_level,
       requested_trust_level: result.requested_trust_level,
