@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2026-03-23
+
+### Added
+- MCP elicitation support for protected operations (publish, retract, revise, delete, set-trust-level)
+- `src/utils/elicitation.ts` — shared helper that checks client capabilities and issues confirmation prompts
+- When elicitation is supported, protected tools confirm with the user directly and execute inline (no token round-trip)
+- Graceful fallback to existing token + `remember_confirm`/`remember_deny` flow for non-elicitation clients
+
+### Changed
+- Protected tool handlers (`handlePublish`, `handleRetract`, `handleRevise`, `handleDeleteMemory`, `handleRequestSetTrustLevel`) accept optional `server` parameter
+- `server.ts` and `server-factory.ts` pass `Server` instance to protected tool handlers
+
 ## [4.0.0] - 2026-03-20
 
 ### BREAKING CHANGES

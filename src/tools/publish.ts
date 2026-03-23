@@ -12,11 +12,13 @@
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { SUPPORTED_SPACES } from '../types/space-memory.js';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 import { createCoreServices } from '../core-services.js';
+import { elicitConfirmation } from '../utils/elicitation.js';
 
 /**
  * Tool definition for remember_publish
@@ -78,7 +80,8 @@ interface PublishArgs {
 export async function handlePublish(
   args: PublishArgs,
   userId: string,
-  authContext?: AuthContext
+  authContext?: AuthContext,
+  server?: Server
 ): Promise<string> {
   const debug = createDebugLogger({
     tool: 'remember_publish',
@@ -98,6 +101,39 @@ export async function handlePublish(
       additional_tags: args.additional_tags,
     });
 
+    // Try elicitation for direct user confirmation
+    const destinations = [...(args.spaces || []), ...(args.groups || [])].join(', ');
+    const confirmation = await elicitConfirmation({
+      server,
+      message: `Publish memory "${args.memory_id}" to ${destinations || 'default space'}?`,
+    });
+
+    if (confirmation.type === 'confirmed') {
+      const confirmResult = await space.confirm({ token: result.token });
+      return JSON.stringify(
+        {
+          success: confirmResult.success,
+          composite_id: confirmResult.composite_id,
+          published_to: confirmResult.published_to,
+          failed: confirmResult.failed?.length ? confirmResult.failed : undefined,
+          space_ids: confirmResult.space_ids,
+          group_ids: confirmResult.group_ids,
+        },
+        null,
+        2
+      );
+    }
+
+    if (confirmation.type === 'declined') {
+      await space.deny({ token: result.token });
+      return JSON.stringify(
+        { success: false, message: 'Publication cancelled by user.' },
+        null,
+        2
+      );
+    }
+
+    // Fallback: return token for legacy confirm/deny flow
     return JSON.stringify(
       {
         success: true,

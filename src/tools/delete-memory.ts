@@ -4,10 +4,13 @@
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 import { createCoreServices } from '../core-services.js';
+import { getWeaviateClient, getMemoryCollectionName } from '../weaviate/client.js';
+import { elicitConfirmation } from '../utils/elicitation.js';
 
 /**
  * Tool definition for remember_delete_memory
@@ -57,7 +60,8 @@ export interface DeleteMemoryArgs {
 export async function handleDeleteMemory(
   args: DeleteMemoryArgs,
   userId: string,
-  authContext?: AuthContext
+  authContext?: AuthContext,
+  server?: Server
 ): Promise<string> {
   const debug = createDebugLogger({ tool: 'remember_delete_memory', userId, operation: 'delete memory' });
   try {
@@ -76,9 +80,53 @@ export async function handleDeleteMemory(
       }
     );
 
-    // Calculate expiry time (5 minutes from now)
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const confirmation = await elicitConfirmation({
+      server,
+      message: `Delete memory "${args.memory_id}"${args.reason ? ` (reason: ${args.reason})` : ''}?`,
+    });
 
+    if (confirmation.type === 'confirmed') {
+      // Consume the token and execute deletion
+      const confirmed = await tokenService.confirmRequest(userId, token);
+      if (!confirmed) {
+        return JSON.stringify(
+          { success: false, error: 'Token already consumed', message: 'The confirmation token has already been used.' },
+          null,
+          2
+        );
+      }
+
+      const { memory_id, reason } = confirmed.payload;
+      const client = getWeaviateClient();
+      const collectionName = getMemoryCollectionName(userId);
+      const collection = client.collections.get(collectionName);
+
+      await collection.data.update({
+        id: memory_id,
+        properties: {
+          deleted_at: new Date().toISOString(),
+          deleted_by: userId,
+          deletion_reason: reason || null,
+        },
+      });
+
+      return JSON.stringify(
+        { success: true, memory_id, message: 'Memory deleted successfully' },
+        null,
+        2
+      );
+    }
+
+    if (confirmation.type === 'declined') {
+      return JSON.stringify(
+        { success: false, message: 'Deletion cancelled by user.' },
+        null,
+        2
+      );
+    }
+
+    // Fallback: return token for legacy confirm/deny flow
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
     return JSON.stringify(
       {
         success: true,

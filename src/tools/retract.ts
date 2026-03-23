@@ -12,10 +12,12 @@
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 import { createCoreServices } from '../core-services.js';
+import { elicitConfirmation } from '../utils/elicitation.js';
 
 /**
  * Tool definition for remember_retract
@@ -69,7 +71,8 @@ interface RetractArgs {
 export async function handleRetract(
   args: RetractArgs,
   userId: string,
-  authContext?: AuthContext
+  authContext?: AuthContext,
+  server?: Server
 ): Promise<string> {
   const debug = createDebugLogger({
     tool: 'remember_retract',
@@ -88,6 +91,39 @@ export async function handleRetract(
       groups: args.groups,
     });
 
+    const destinations = [...(args.spaces || []), ...(args.groups || [])].join(', ');
+    const confirmation = await elicitConfirmation({
+      server,
+      message: `Retract memory "${args.memory_id}" from ${destinations || 'all destinations'}?`,
+    });
+
+    if (confirmation.type === 'confirmed') {
+      const confirmResult = await space.confirm({ token: result.token });
+      return JSON.stringify(
+        {
+          success: confirmResult.success,
+          composite_id: confirmResult.composite_id,
+          retracted_from: confirmResult.retracted_from,
+          failed: confirmResult.failed?.length ? confirmResult.failed : undefined,
+          space_ids: confirmResult.space_ids,
+          group_ids: confirmResult.group_ids,
+          is_orphaned: (confirmResult.space_ids?.length === 0) && (confirmResult.group_ids?.length === 0),
+        },
+        null,
+        2
+      );
+    }
+
+    if (confirmation.type === 'declined') {
+      await space.deny({ token: result.token });
+      return JSON.stringify(
+        { success: false, message: 'Retraction cancelled by user.' },
+        null,
+        2
+      );
+    }
+
+    // Fallback: return token for legacy confirm/deny flow
     return JSON.stringify(
       {
         success: true,

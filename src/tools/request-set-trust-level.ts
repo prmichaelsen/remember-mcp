@@ -3,10 +3,12 @@
  * Requests a trust level change for a memory via confirmation flow.
  */
 
+import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 import { createCoreServices } from '../core-services.js';
+import { elicitConfirmation } from '../utils/elicitation.js';
 
 export const requestSetTrustLevelTool = {
   name: 'remember_request_set_trust_level',
@@ -49,7 +51,8 @@ interface RequestSetTrustLevelArgs {
 export async function handleRequestSetTrustLevel(
   args: RequestSetTrustLevelArgs,
   userId: string,
-  authContext?: AuthContext
+  authContext?: AuthContext,
+  server?: Server
 ): Promise<string> {
   const debug = createDebugLogger({
     tool: 'remember_request_set_trust_level',
@@ -84,6 +87,34 @@ export async function handleRequestSetTrustLevel(
       5: 'SECRET',
     };
 
+    const currentName = TRUST_NAMES[result.current_trust_level] || 'UNKNOWN';
+    const requestedName = TRUST_NAMES[result.requested_trust_level] || 'UNKNOWN';
+
+    const confirmation = await elicitConfirmation({
+      server,
+      message: `Change trust level for memory "${args.memory_id}" from ${currentName} (${result.current_trust_level}) to ${requestedName} (${result.requested_trust_level})?`,
+    });
+
+    if (confirmation.type === 'confirmed') {
+      const confirmResult = await memory.confirmSetTrustLevel(result.token);
+      return JSON.stringify({
+        success: true,
+        memory_id: confirmResult.memory_id,
+        previous_trust_level: confirmResult.previous_trust_level,
+        new_trust_level: confirmResult.new_trust_level,
+        updated_at: confirmResult.updated_at,
+        message: `Trust level changed from ${TRUST_NAMES[confirmResult.previous_trust_level] || confirmResult.previous_trust_level} to ${TRUST_NAMES[confirmResult.new_trust_level] || confirmResult.new_trust_level}`,
+      }, null, 2);
+    }
+
+    if (confirmation.type === 'declined') {
+      return JSON.stringify({
+        success: false,
+        message: 'Trust level change cancelled by user.',
+      }, null, 2);
+    }
+
+    // Fallback: return token for legacy confirm/deny flow
     return JSON.stringify({
       token: result.token,
       request_id: result.request_id,
@@ -91,10 +122,10 @@ export async function handleRequestSetTrustLevel(
       memory_id: result.memory_id,
       current_trust_level: result.current_trust_level,
       requested_trust_level: result.requested_trust_level,
-      current_trust_name: TRUST_NAMES[result.current_trust_level] || 'UNKNOWN',
-      requested_trust_name: TRUST_NAMES[result.requested_trust_level] || 'UNKNOWN',
+      current_trust_name: currentName,
+      requested_trust_name: requestedName,
       expires_at: result.expires_at,
-      message: `Trust level change requested: ${TRUST_NAMES[result.current_trust_level] || result.current_trust_level} (${result.current_trust_level}) → ${TRUST_NAMES[result.requested_trust_level] || result.requested_trust_level} (${result.requested_trust_level}). Confirm with token to apply.`,
+      message: `Trust level change requested: ${currentName} (${result.current_trust_level}) → ${requestedName} (${result.requested_trust_level}). Confirm with token to apply.`,
     }, null, 2);
   } catch (error) {
     debug.error('Tool failed', { error: error instanceof Error ? error.message : String(error) });

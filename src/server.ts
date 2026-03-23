@@ -152,7 +152,7 @@ function registerHandlers(server: Server): void {
           break;
 
         case 'remember_delete_memory':
-          result = await handleDeleteMemory(args as any, userId, authContext);
+          result = await handleDeleteMemory(args as any, userId, authContext, server);
           break;
 
         case 'remember_update_memory':
@@ -192,15 +192,15 @@ function registerHandlers(server: Server): void {
           break;
 
         case 'remember_publish':
-          result = await handlePublish(args as any, userId, authContext);
+          result = await handlePublish(args as any, userId, authContext, server);
           break;
 
         case 'remember_retract':
-          result = await handleRetract(args as any, userId, authContext);
+          result = await handleRetract(args as any, userId, authContext, server);
           break;
 
         case 'remember_revise':
-          result = await handleRevise(args as any, userId, authContext);
+          result = await handleRevise(args as any, userId, authContext, server);
           break;
 
         case 'remember_confirm':
@@ -228,7 +228,7 @@ function registerHandlers(server: Server): void {
           break;
 
         case 'remember_request_set_trust_level':
-          result = await handleRequestSetTrustLevel(args as any, userId, authContext);
+          result = await handleRequestSetTrustLevel(args as any, userId, authContext, server);
           break;
 
         default:

@@ -9,10 +9,12 @@
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
+import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { handleToolError } from '../utils/error-handler.js';
 import { createDebugLogger } from '../utils/debug.js';
 import type { AuthContext } from '../types/auth.js';
 import { createCoreServices } from '../core-services.js';
+import { elicitConfirmation } from '../utils/elicitation.js';
 
 /** Maximum number of revision history entries to retain */
 const MAX_REVISION_HISTORY = 10;
@@ -108,7 +110,8 @@ export function buildRevisionHistory(
 export async function handleRevise(
   args: ReviseArgs,
   userId: string,
-  authContext?: AuthContext
+  authContext?: AuthContext,
+  server?: Server
 ): Promise<string> {
   const debug = createDebugLogger({
     tool: 'remember_revise',
@@ -125,6 +128,41 @@ export async function handleRevise(
       memory_id: args.memory_id,
     });
 
+    const confirmation = await elicitConfirmation({
+      server,
+      message: `Revise all published copies of memory "${args.memory_id}"?`,
+    });
+
+    if (confirmation.type === 'confirmed') {
+      const confirmResult = await space.confirm({ token: result.token });
+      const results = confirmResult.results || [];
+      const successCount = results.filter((r: any) => r.status === 'success').length;
+      const failedCount = results.filter((r: any) => r.status === 'failed').length;
+      const skippedCount = results.filter((r: any) => r.status === 'skipped').length;
+      return JSON.stringify(
+        {
+          success: confirmResult.success,
+          composite_id: confirmResult.composite_id,
+          revised_at: confirmResult.revised_at,
+          summary: { total: results.length, success: successCount, failed: failedCount, skipped: skippedCount },
+          results,
+          ...(failedCount > 0 ? { warnings: [`Failed to revise ${failedCount} of ${results.length} location(s)`] } : {}),
+        },
+        null,
+        2
+      );
+    }
+
+    if (confirmation.type === 'declined') {
+      await space.deny({ token: result.token });
+      return JSON.stringify(
+        { success: false, message: 'Revision cancelled by user.' },
+        null,
+        2
+      );
+    }
+
+    // Fallback: return token for legacy confirm/deny flow
     return JSON.stringify(
       {
         success: true,
