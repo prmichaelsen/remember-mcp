@@ -5,14 +5,19 @@ project:
   version: 4.0.0
   started: 2026-02-11
   status: in_progress
-  current_milestone: M23
-  last_updated: 2026-03-20
+  current_milestone: M24
+  last_updated: 2026-03-23
+  description: |
+    Multi-tenant memory system MCP server with vector search, relationships,
+    shared spaces, trust levels, ghost system, and moderation.
 
 milestones:
   - id: M1
     name: Project Foundation
+    priority: 0
+    file: agent/milestones/milestone-1-project-foundation.md
     status: completed
-    progress: 100%
+    progress: 100
     started: 2026-02-11
     completed: 2026-02-11
     estimated_weeks: 1
@@ -40,8 +45,10 @@ milestones:
     
   - id: M2
     name: Core Memory System
+    priority: 1
+    file: agent/milestones/milestone-2-core-memory-system.md
     status: completed
-    progress: 100%
+    progress: 100
     started: 2026-02-11
     completed: 2026-02-11
     estimated_weeks: 2
@@ -65,8 +72,10 @@ milestones:
     
   - id: M3
     name: Relationships & Graph
+    priority: 2
+    file: agent/milestones/milestone-3-relationships-graph.md
     status: completed
-    progress: 100%
+    progress: 100
     started: 2026-02-11
     completed: 2026-02-11
     estimated_weeks: 1
@@ -88,8 +97,10 @@ milestones:
     
   - id: M4
     name: User Preferences
+    priority: 3
+    file: agent/milestones/milestone-4-user-preferences.md
     status: completed
-    progress: 100%
+    progress: 100
     started: 2026-02-11
     completed: 2026-02-11
     estimated_weeks: 1
@@ -113,20 +124,26 @@ milestones:
     
   - id: M5
     name: Template System
+    priority: 4
+    file: agent/milestones/milestone-5-template-system.md
     status: not_started
-    progress: 0%
+    progress: 0
     estimated_weeks: 2
     
   - id: M6
     name: Auth & Multi-Tenancy
+    priority: 5
+    file: agent/milestones/milestone-6-auth-multi-tenancy.md
     status: not_started
-    progress: 0%
+    progress: 0
     estimated_weeks: 1
     
   - id: M10
     name: Shared Spaces & Confirmation Flow
+    priority: 6
+    file: agent/milestones/milestone-10-shared-spaces.md
     status: completed
-    progress: 100%
+    progress: 100
     started: 2026-02-16
     completed: 2026-02-16
     estimated_weeks: 2-3
@@ -144,8 +161,10 @@ milestones:
       
   - id: M11
     name: Unified Public Collection
+    priority: 7
+    file: agent/milestones/milestone-11-unified-public-collection.md
     status: completed
-    progress: 100%
+    progress: 100
     started: 2026-02-16
     completed: 2026-02-16
     estimated_weeks: 1-2
@@ -165,8 +184,10 @@ milestones:
      
   - id: M12
     name: Comment System (Phase 1)
+    priority: 8
+    file: agent/milestones/milestone-12-comment-system.md
     status: completed
-    progress: 100%
+    progress: 100
     started: 2026-02-16
     completed: 2026-02-27
     estimated_weeks: 1
@@ -183,8 +204,10 @@ milestones:
       
   - id: M13
     name: Soft Delete System
+    priority: 9
+    file: agent/milestones/milestone-13-soft-delete-system.md
     status: completed
-    progress: 100%
+    progress: 100
     started: 2026-02-25
     completed: 2026-02-25
     estimated_weeks: 2-3
@@ -207,8 +230,10 @@ milestones:
      
   - id: M14
     name: Memory Collection Pattern v2
+    priority: 10
+    file: agent/milestones/milestone-14-memory-collection-v2.md
     status: completed
-    progress: 100%
+    progress: 100
     started: 2026-02-26
     completed: 2026-02-27
     estimated_weeks: 2-3
@@ -243,8 +268,10 @@ milestones:
      
   - id: M15
     name: Moderation & Space Config
+    priority: 11
+    file: agent/milestones/milestone-15-moderation-space-config.md
     status: completed
-    progress: 100%
+    progress: 100
     started: 2026-02-27
     completed: 2026-03-06
     estimated_weeks: 2
@@ -264,8 +291,10 @@ milestones:
 
   - id: M7
     name: Trust & Permissions
+    priority: 12
+    file: agent/milestones/milestone-7-trust-permissions.md
     status: completed
-    progress: 100%
+    progress: 100
     estimated_weeks: 2
     tasks_completed: 4
     tasks_total: 4
@@ -284,8 +313,10 @@ milestones:
     
   - id: M8
     name: Testing & Quality
+    priority: 13
+    file: agent/milestones/milestone-8-testing-quality.md
     status: completed
-    progress: 100%
+    progress: 100
     estimated_weeks: 2
     started: 2026-02-25
     completed: 2026-02-27
@@ -301,8 +332,10 @@ milestones:
     
   - id: M16
     name: Ghost System
+    priority: 14
+    file: agent/milestones/milestone-16-ghost-system.md
     status: completed
-    progress: 100%
+    progress: 100
     estimated_weeks: 2
     started: 2026-02-27
     completed: 2026-02-27
@@ -321,14 +354,18 @@ milestones:
 
   - id: M9
     name: Deployment & Documentation
+    priority: 15
+    file: agent/milestones/milestone-9-deployment-documentation.md
     status: not_started
-    progress: 0%
+    progress: 0
     estimated_weeks: 1
 
   - id: M17
     name: remember-core Migration
+    priority: 16
+    file: agent/milestones/milestone-17-remember-core-migration.md
     status: completed
-    progress: 100%
+    progress: 100
     estimated_weeks: 2-3
     tasks_completed: 8
     tasks_total: 8
@@ -343,8 +380,10 @@ milestones:
 
   - id: M18
     name: Performance Tuning
+    priority: 17
+    file: agent/milestones/milestone-18-performance-tuning.md
     status: in_progress
-    progress: 87%
+    progress: 87
     estimated_weeks: 1
     tasks_completed: 7
     tasks_total: 8
@@ -354,8 +393,10 @@ milestones:
 
   - id: M19
     name: New Search Modes, Ghost Tools & Emotional Exposure
+    priority: 18
+    file: agent/milestones/milestone-19-new-search-ghost-tools.md
     status: completed
-    progress: 100%
+    progress: 100
     estimated_weeks: 2-3
     tasks_completed: 9
     tasks_total: 9
@@ -368,8 +409,10 @@ milestones:
 
   - id: M20
     name: Unified Internal Memory Tools
+    priority: 19
+    file: agent/milestones/milestone-20-unified-internal-memory-tools.md
     status: in_progress
-    progress: 100%
+    progress: 100
     status: completed
     estimated_weeks: 1-2
     tasks_completed: 7
@@ -383,14 +426,16 @@ milestones:
 
   - id: M21
     name: API Token & OAuth Access
+    priority: 20
+    file: agent/milestones/milestone-21-api-token-oauth-access.md
     status: not_started
-    progress: 0%
+    progress: 0
     estimated_weeks: 1
     tasks_completed: 5
     tasks_total: 5
     completed: 2026-03-14
     status: completed
-    progress: 100%
+    progress: 100
     notes: |
       🎉 MILESTONE COMPLETE! Local CLI access via OAuth token exchange.
       ✅ Task 515: Auth scheme config (discriminated union, no Zod)
@@ -403,13 +448,15 @@ milestones:
 
   - id: M22
     name: Admin Debugging Tools
+    priority: 21
+    file: agent/milestones/milestone-22-admin-debugging-tools.md
     status: not_started
-    progress: 0%
+    progress: 0
     estimated_weeks: 1
     tasks_completed: 5
     tasks_total: 5
     status: completed
-    progress: 100%
+    progress: 100
     completed: 2026-03-14
     notes: |
       Read-only admin MCP tools gated by ADMIN_USER_IDS env var.
@@ -421,8 +468,9 @@ milestones:
 
   - id: M23
     name: Trust Level Protection (Breaking)
+    priority: 22
     status: completed
-    progress: 100%
+    progress: 100
     started: 2026-03-20
     completed: 2026-03-20
     estimated_weeks: 1
@@ -437,8 +485,9 @@ milestones:
 
   - id: M24
     name: MCP Elicitation Confirmation Flow
+    priority: 23
     status: not_started
-    progress: 0%
+    progress: 0
     estimated_weeks: 1
     tasks_completed: 0
     tasks_total: 5
@@ -449,9 +498,10 @@ milestones:
       Fallback to token flow for clients without elicitation support.
 
 tasks:
-  milestone_1:
+  M1:
     - id: task-1
       name: Initialize Project Structure
+      priority: 0
       status: completed
       file: agent/tasks/task-1-initialize-project-structure.md
       estimated_hours: 2
@@ -467,6 +517,7 @@ tasks:
       
     - id: task-2
       name: Install Dependencies
+      priority: 0
       status: completed
       file: agent/tasks/task-2-install-dependencies.md
       estimated_hours: 1
@@ -479,6 +530,7 @@ tasks:
       
     - id: task-3
       name: Setup Weaviate Client
+      priority: 0
       status: completed
       file: agent/tasks/task-3-setup-weaviate-client.md
       estimated_hours: 3
@@ -494,6 +546,7 @@ tasks:
       
     - id: task-4
       name: Setup Firestore Client
+      priority: 0
       status: completed
       file: agent/tasks/task-4-setup-firestore-client.md
       estimated_hours: 2
@@ -507,6 +560,7 @@ tasks:
       
     - id: task-5
       name: Create Basic MCP Server
+      priority: 0
       status: completed
       file: agent/tasks/task-5-create-basic-mcp-server.md
       estimated_hours: 3
@@ -524,6 +578,7 @@ tasks:
       
     - id: task-6
       name: Create Integration Tests
+      priority: 0
       status: deferred
       file: agent/tasks/task-6-create-integration-tests.md
       estimated_hours: 2
@@ -535,6 +590,7 @@ tasks:
       
     - id: task-7
       name: Finalize Milestone 1
+      priority: 0
       status: deferred
       file: agent/tasks/task-7-finalize-milestone-1.md
       estimated_hours: 1
@@ -545,6 +601,7 @@ tasks:
       
     - id: task-9
       name: Create Server Factory for mcp-auth
+      priority: 0
       status: completed
       file: agent/tasks/task-9-create-server-factory.md
       estimated_hours: 2
@@ -560,9 +617,10 @@ tasks:
         ✅ Updated README.md with usage examples
         ✅ Factory export verified working
 
-  milestone_2:
+  M2:
     - id: task-10
       name: Implement Memory Type Definitions
+      priority: 0
       status: completed
       file: agent/tasks/task-10-memory-types.md
       estimated_hours: 2
@@ -575,6 +633,7 @@ tasks:
         
     - id: task-11
       name: Implement Weaviate Schema
+      priority: 0
       status: completed
       file: agent/tasks/task-11-weaviate-schema.md
       estimated_hours: 3
@@ -588,6 +647,7 @@ tasks:
         
     - id: task-12
       name: Implement remember_create_memory
+      priority: 0
       status: completed
       file: agent/tasks/task-12-create-memory-tool.md
       estimated_hours: 3
@@ -601,6 +661,7 @@ tasks:
         
     - id: task-13
       name: Implement remember_search_memory
+      priority: 0
       status: completed
       file: agent/tasks/task-13-search-memory-tool.md
       estimated_hours: 4
@@ -615,6 +676,7 @@ tasks:
         
     - id: task-14
       name: Implement remember_delete_memory
+      priority: 0
       status: completed
       file: agent/tasks/task-14-delete-memory-tool.md
       estimated_hours: 2
@@ -628,6 +690,7 @@ tasks:
         
     - id: task-15
       name: Implement remember_update_memory
+      priority: 0
       status: completed
       file: agent/tasks/task-15-update-memory-tool.md
       estimated_hours: 3
@@ -644,6 +707,7 @@ tasks:
       
     - id: task-16
       name: Implement remember_find_similar
+      priority: 0
       status: completed
       file: agent/tasks/task-16-find-similar-tool.md
       estimated_hours: 3
@@ -659,6 +723,7 @@ tasks:
       
     - id: task-17
       name: Implement remember_query_memory
+      priority: 0
       status: completed
       file: agent/tasks/task-17-query-memory-tool.md
       estimated_hours: 4
@@ -673,9 +738,10 @@ tasks:
         ✅ Context inclusion toggle
         ✅ Integrated into server.ts and server-factory.ts
 
-  milestone_12:
+  M12:
     - id: task-55
       name: Add Comment Fields to Weaviate Schema
+      priority: 0
       status: completed
       file: agent/tasks/task-55-add-comment-fields-to-schema.md
       estimated_hours: 2
@@ -689,6 +755,7 @@ tasks:
       
     - id: task-56
       name: Update remember_search_space for Comments
+      priority: 0
       status: completed
       file: agent/tasks/task-56-update-search-space-for-comments.md
       estimated_hours: 2
@@ -702,6 +769,7 @@ tasks:
       
     - id: task-57
       name: Update remember_query_space for Comments
+      priority: 0
       status: completed
       file: agent/tasks/task-57-update-query-space-for-comments.md
       estimated_hours: 1
@@ -714,6 +782,7 @@ tasks:
       
     - id: task-58
       name: Add Comment Unit Tests
+      priority: 0
       status: completed
       file: agent/tasks/task-58-add-comment-unit-tests.md
       estimated_hours: 3
@@ -726,6 +795,7 @@ tasks:
       
     - id: task-59
       name: Update Documentation for Comments
+      priority: 0
       status: completed
       file: agent/tasks/task-59-update-documentation-for-comments.md
       estimated_hours: 2
@@ -734,9 +804,10 @@ tasks:
         ✅ Design doc status set to "Implemented — Phase 1 Complete"
         ✅ Progress tracking updated (M12 complete)
         
-  milestone_15:
+  M15:
     - id: task-174
       name: Add Moderation Schema Fields
+      priority: 0
       status: completed
       file: agent/tasks/milestone-15-moderation-space-config/task-174-add-moderation-schema-fields.md
       estimated_hours: 2-3
@@ -746,6 +817,7 @@ tasks:
 
     - id: task-175
       name: Create SpaceConfig Service
+      priority: 0
       status: completed
       file: agent/tasks/milestone-15-moderation-space-config/task-175-create-space-config-service.md
       estimated_hours: 3-4
@@ -755,6 +827,7 @@ tasks:
 
     - id: task-176
       name: Wire Moderation into Publish Flow
+      priority: 0
       status: completed
       file: agent/tasks/milestone-15-moderation-space-config/task-176-wire-moderation-publish-flow.md
       estimated_hours: 3-4
@@ -766,6 +839,7 @@ tasks:
 
     - id: task-177
       name: Add Moderation Filters to Search Tools
+      priority: 0
       status: completed
       file: agent/tasks/milestone-15-moderation-space-config/task-177-add-moderation-search-filters.md
       estimated_hours: 4-6
@@ -778,6 +852,7 @@ tasks:
 
     - id: task-178
       name: Create remember_moderate Tool
+      priority: 0
       status: completed
       file: agent/tasks/milestone-15-moderation-space-config/task-178-create-remember-moderate-tool.md
       estimated_hours: 4-6
@@ -790,6 +865,7 @@ tasks:
 
     - id: task-179
       name: Documentation and Integration Tests
+      priority: 0
       status: completed
       file: agent/tasks/milestone-15-moderation-space-config/task-179-documentation-integration-tests.md
       estimated_hours: 2-3
@@ -800,6 +876,7 @@ tasks:
 
     - id: task-202
       name: Wire LLM Moderation Client to SpaceService
+      priority: 0
       status: completed
       completed_date: 2026-03-06
       file: agent/tasks/milestone-15-moderation-space-config/task-202-wire-llm-moderation-client.md
@@ -811,9 +888,10 @@ tasks:
         📋 Auto-create when ANTHROPIC_API_KEY env var is present
         📋 ~5 lines of code change
 
-  milestone_7:
+  M7:
     - id: task-180
       name: Access Result & Permission Types
+      priority: 0
       status: completed
       file: agent/tasks/milestone-7-trust-permissions/task-180-access-result-permission-types.md
       estimated_hours: 2-3
@@ -823,6 +901,7 @@ tasks:
 
     - id: task-181
       name: Firestore Permissions & Access Logs
+      priority: 0
       status: deferred
       file: agent/tasks/milestone-7-trust-permissions/task-181-firestore-permissions-access-logs.md
       estimated_hours: 4-6
@@ -834,6 +913,7 @@ tasks:
 
     - id: task-182
       name: Trust Enforcement Service
+      priority: 0
       status: completed
       file: agent/tasks/milestone-7-trust-permissions/task-182-trust-enforcement-service.md
       estimated_hours: 3-4
@@ -844,6 +924,7 @@ tasks:
 
     - id: task-183
       name: Access Control Service
+      priority: 0
       status: completed
       file: agent/tasks/milestone-7-trust-permissions/task-183-access-control-service.md
       estimated_hours: 4-6
@@ -855,6 +936,7 @@ tasks:
 
     - id: task-184
       name: Permission Tools (5 tools)
+      priority: 0
       status: deferred
       file: agent/tasks/milestone-7-trust-permissions/task-184-permission-tools.md
       estimated_hours: 6-8
@@ -865,6 +947,7 @@ tasks:
 
     - id: task-185
       name: Wire Trust into Search/Query Tools
+      priority: 0
       status: deferred
       file: agent/tasks/milestone-7-trust-permissions/task-185-wire-trust-into-search-query.md
       estimated_hours: 4-6
@@ -875,6 +958,7 @@ tasks:
 
     - id: task-186
       name: Documentation & Verification
+      priority: 0
       status: completed
       file: agent/tasks/milestone-7-trust-permissions/task-186-documentation-verification.md
       estimated_hours: 2-3
@@ -883,9 +967,10 @@ tasks:
         📋 CHANGELOG, version bump, design doc status updates
         📋 All tests pass, build succeeds
 
-  milestone_8:
+  M8:
     - id: task-69
       name: Add Comprehensive Tool Debugging
+      priority: 0
       status: completed
       file: agent/tasks/task-69-add-comprehensive-tool-debugging.md
       estimated_hours: 4-6
@@ -905,6 +990,7 @@ tasks:
       
     - id: task-60
       name: Standardize Structured Logging
+      priority: 0
       status: completed
       file: agent/tasks/task-60-standardize-structured-logging.md
       estimated_hours: 3
@@ -918,6 +1004,7 @@ tasks:
       
     - id: task-61
       name: Enhance Confirmation Tool Safety Guidelines
+      priority: 0
       status: completed
       file: agent/tasks/task-61-enhance-confirmation-tool-descriptions.md
       estimated_hours: 1
@@ -930,9 +1017,10 @@ tasks:
         ✅ Visual indicators (⚠️) for critical requirements
         ✅ Released in v2.6.2
 
-  milestone_16:
+  M16:
     - id: task-187
       name: GhostConfig Firestore CRUD
+      priority: 0
       status: completed
       file: agent/tasks/milestone-16-ghost-system/task-187-ghost-config-firestore.md
       estimated_hours: 3
@@ -947,6 +1035,7 @@ tasks:
 
     - id: task-188
       name: Trust Filter Integration into Search/Query
+      priority: 0
       status: completed
       file: agent/tasks/milestone-16-ghost-system/task-188-trust-filter-integration.md
       estimated_hours: 4
@@ -962,6 +1051,7 @@ tasks:
 
     - id: task-189
       name: Ghost Memory Content Type Filtering
+      priority: 0
       status: completed
       file: agent/tasks/milestone-16-ghost-system/task-189-ghost-memory-filtering.md
       estimated_hours: 3
@@ -977,6 +1067,7 @@ tasks:
 
     - id: task-190
       name: Ghost Configuration MCP Tools
+      priority: 0
       status: completed
       file: agent/tasks/milestone-16-ghost-system/task-190-ghost-config-tools.md
       estimated_hours: 4
@@ -991,6 +1082,7 @@ tasks:
 
     - id: task-191
       name: Escalation Store Firestore Implementation
+      priority: 0
       status: completed
       file: agent/tasks/milestone-16-ghost-system/task-191-escalation-firestore.md
       estimated_hours: 2
@@ -1004,6 +1096,7 @@ tasks:
 
     - id: task-192
       name: M16 Documentation & Verification
+      priority: 0
       status: completed
       file: agent/tasks/milestone-16-ghost-system/task-192-documentation-verification.md
       estimated_hours: 1
@@ -1015,9 +1108,10 @@ tasks:
         ✅ Design doc status updated to Implemented
         ✅ 454 tests passing, typecheck clean, build clean
 
-  milestone_17:
+  M17:
     - id: task-193
       name: Foundation Setup
+      priority: 0
       status: completed
       file: agent/tasks/milestone-17-remember-core-migration/task-193-foundation-setup.md
       estimated_hours: 2-3
@@ -1029,6 +1123,7 @@ tasks:
 
     - id: task-194
       name: Migrate Relationship Tools
+      priority: 0
       status: completed
       completed_date: 2026-02-28
       file: agent/tasks/milestone-17-remember-core-migration/task-194-migrate-relationship-tools.md
@@ -1039,6 +1134,7 @@ tasks:
 
     - id: task-195
       name: Migrate Preference Tools
+      priority: 0
       status: completed
       completed_date: 2026-02-28
       file: agent/tasks/milestone-17-remember-core-migration/task-195-migrate-preference-tools.md
@@ -1049,6 +1145,7 @@ tasks:
 
     - id: task-196
       name: Migrate Memory Tools
+      priority: 0
       status: completed
       completed_date: 2026-02-28
       file: agent/tasks/milestone-17-remember-core-migration/task-196-migrate-memory-tools.md
@@ -1061,6 +1158,7 @@ tasks:
 
     - id: task-197
       name: Migrate Space Confirmation Tools
+      priority: 0
       status: completed
       completed_date: 2026-02-28
       file: agent/tasks/milestone-17-remember-core-migration/task-197-migrate-space-confirmation-tools.md
@@ -1072,6 +1170,7 @@ tasks:
 
     - id: task-198
       name: Migrate Space Search/Moderate Tools
+      priority: 0
       status: completed
       completed_date: 2026-02-28
       file: agent/tasks/milestone-17-remember-core-migration/task-198-migrate-space-search-moderate.md
@@ -1084,6 +1183,7 @@ tasks:
 
     - id: task-199
       name: Migrate delete_memory Tool
+      priority: 0
       status: completed
       completed_date: 2026-02-28
       file: agent/tasks/milestone-17-remember-core-migration/task-199-migrate-delete-memory.md
@@ -1095,6 +1195,7 @@ tasks:
 
     - id: task-200
       name: Code Cleanup & Verification
+      priority: 0
       status: completed
       completed_date: 2026-02-28
       file: agent/tasks/milestone-17-remember-core-migration/task-200-code-cleanup-verification.md
@@ -1106,9 +1207,10 @@ tasks:
         ✅ Removed empty src/constants/ and src/collections/ directories.
         ✅ Build passing, 390 tests (389 passed, 1 skipped).
 
-  milestone_18:
+  M18:
     - id: task-77
       name: Parallelize checkIfFriend Firestore Queries
+      priority: 0
       status: completed
       completed_date: 2026-03-04
       file: agent/tasks/task-77-parallelize-checkiffriend.md
@@ -1118,6 +1220,7 @@ tasks:
 
     - id: task-78
       name: Add TTL Cache to checkIfFriend
+      priority: 0
       status: completed
       completed_date: 2026-03-04
       file: agent/tasks/task-78-cache-checkiffriend.md
@@ -1128,6 +1231,7 @@ tasks:
 
     - id: task-79
       name: Memoize createCoreServices per userId
+      priority: 0
       status: completed
       completed_date: 2026-03-04
       file: agent/tasks/task-79-memoize-core-services.md
@@ -1137,6 +1241,7 @@ tasks:
 
     - id: task-80
       name: Parallelize Startup Health Checks
+      priority: 0
       status: completed
       completed_date: 2026-03-04
       file: agent/tasks/task-80-parallelize-startup-health-checks.md
@@ -1146,6 +1251,7 @@ tasks:
 
     - id: task-81
       name: Optimize ghost-config block/unblock with FieldValue
+      priority: 0
       status: completed
       completed_date: 2026-03-04
       file: agent/tasks/task-81-optimize-ghost-config-block-unblock.md
@@ -1155,6 +1261,7 @@ tasks:
 
     - id: task-82
       name: Use Native Weaviate Offset in search-memory
+      priority: 0
       status: completed
       completed_date: 2026-03-04
       file: agent/tasks/task-82-native-weaviate-offset.md
@@ -1164,6 +1271,7 @@ tasks:
 
     - id: task-83
       name: Eliminate Redundant validateToken in Confirm Flow
+      priority: 0
       status: deferred
       file: agent/tasks/task-83-eliminate-redundant-validatetoken.md
       estimated_hours: 1
@@ -1172,6 +1280,7 @@ tasks:
 
     - id: task-84
       name: Convert Dynamic Imports to Static in server-factory
+      priority: 0
       status: completed
       completed_date: 2026-03-04
       file: agent/tasks/task-84-static-imports-server-factory.md
@@ -1179,9 +1288,10 @@ tasks:
       notes: |
         Static imports for ghost-config and access-control
 
-  milestone_19:
+  M19:
     - id: task-203
       name: Create remember_search_by Tool
+      priority: 0
       status: completed
       completed_date: 2026-03-07
       file: agent/tasks/milestone-19-new-search-ghost-tools/task-203-create-search-by-tool.md
@@ -1196,6 +1306,7 @@ tasks:
 
     - id: task-204
       name: Add New Filters to Existing Tool Schemas
+      priority: 0
       status: completed
       completed_date: 2026-03-07
       file: agent/tasks/milestone-19-new-search-ghost-tools/task-204-add-new-filters-existing-tools.md
@@ -1210,6 +1321,7 @@ tasks:
 
     - id: task-205
       name: Add feel_* Fields to create_memory and update_memory
+      priority: 0
       status: completed
       completed_date: 2026-03-07
       file: agent/tasks/milestone-19-new-search-ghost-tools/task-205-add-feel-fields-create-update.md
@@ -1224,6 +1336,7 @@ tasks:
 
     - id: task-206
       name: Add byProperty and bySignificance Modes
+      priority: 0
       status: completed
       completed_date: 2026-03-07
       file: agent/tasks/milestone-19-new-search-ghost-tools/task-206-add-byproperty-bysignificance-modes.md
@@ -1239,6 +1352,7 @@ tasks:
 
     - id: task-207
       name: Add Emotional Composites to Search Results
+      priority: 0
       status: completed
       completed_date: 2026-03-07
       file: agent/tasks/milestone-19-new-search-ghost-tools/task-207-add-emotional-composites-search-results.md
@@ -1253,6 +1367,7 @@ tasks:
 
     - id: task-208
       name: Add byBroad and byRandom Modes
+      priority: 0
       status: completed
       completed_date: 2026-03-07
       file: agent/tasks/milestone-19-new-search-ghost-tools/task-208-add-bybroad-byrandom-modes.md
@@ -1266,6 +1381,7 @@ tasks:
 
     - id: task-209
       name: Create Ghost Memory Tool Suite (5 Tools)
+      priority: 0
       status: completed
       file: agent/tasks/milestone-19-new-search-ghost-tools/task-209-create-ghost-memory-tools.md
       estimated_hours: 4-6
@@ -1278,6 +1394,7 @@ tasks:
 
     - id: task-210
       name: Create remember_get_core Tool
+      priority: 0
       status: completed
       file: agent/tasks/milestone-19-new-search-ghost-tools/task-210-create-get-core-tool.md
       estimated_hours: 2-3
@@ -1289,6 +1406,7 @@ tasks:
 
     - id: task-211
       name: Create remember_search_space_by Tool
+      priority: 0
       status: completed
       file: agent/tasks/milestone-19-new-search-ghost-tools/task-211-create-search-space-by-tool.md
       estimated_hours: 3-4
@@ -1302,6 +1420,7 @@ tasks:
   unassigned:
     - id: task-201
       name: Auto-bump remember-core via GitHub Actions
+      priority: 0
       status: not_started
       file: agent/tasks/unassigned/task-201-auto-bump-remember-core-ci.md
       estimated_hours: 2
@@ -1311,14 +1430,16 @@ tasks:
 
 documentation:
   design_documents: 31
-  milestone_documents: 15
+  milestone_documents: 24
   pattern_documents: 7
   task_documents: 101
+  command_documents: 48
+  last_updated: 2026-03-23
 
 progress:
-  planning: 100%
-  implementation: 80%
-  overall: 85%
+  planning: 100
+  implementation: 80
+  overall: 85
 
 recent_work:
   - date: 2026-03-07
@@ -2111,7 +2232,7 @@ recent_work:
       - ✅ TypeScript compiles without errors
       - ✅ Build successful
 
-  milestone_24:
+  M24:
     - id: task-530
       name: Create Elicitation Helper Utility
       status: not_started
@@ -2217,119 +2338,9 @@ notes:
   - ✅ Firestore storage for user preferences
   - 📋 Ready for M5: Template System
   
-current_blockers:
-  - ✅ RESOLVED: Weaviate v3 filter API fixed (Task 20 completed)
-  - No Weaviate instance running for end-to-end testing
-  - Environment variables need to be configured (.env file with WEAVIATE_URL, OPENAI_APIKEY, etc.)
-  - M5 not started: Template System
-  
-environment_configured:
-  - ⚠️  .env file needs to be created from .env.example
-  - ⚠️  WEAVIATE_URL needs to be set (e.g., http://localhost:8080)
-  - ⚠️  OPENAI_APIKEY needs to be set (for text-embedding-3-small)
-  - ⚠️  FIREBASE_ADMIN_SERVICE_ACCOUNT_KEY needs to be set (path to JSON file)
-  - ⚠️  FIREBASE_PROJECT_ID needs to be set
-  - 📋 Weaviate instance needs to be started (local Docker or cloud)
-  - 📋 Firebase project needs to be created with Firestore enabled
+current_blockers: []
 
-test_status:
-  - ✅ 53 unit tests passing
-  - ✅ 1 test skipped (integration test requiring live Weaviate)
-  - ✅ Test coverage: 29.26% overall
-  - ✅ All critical paths covered: config, client, factory, paths, content-types, weaviate-filters
-  - ✅ 32 tests for weaviate-filters (filter builders and edge cases)
-  - ✅ 9 tests for server-factory (async initialization)
-  - ✅ 7 tests for firestore paths
-  - ✅ 5 tests for weaviate client
-  - 📋 Integration tests deferred (Task 6)
-  - 📋 E2E tests not yet created
-
-build_status:
-  - ✅ TypeScript compiles without errors
-  - ✅ ESLint configured (not blocking)
-  - ✅ Dual build successful: dist/server.js + dist/server-factory.js
-  - ✅ Source maps generated
-  - ✅ Type definitions generated (.d.ts files)
-  - ✅ Package exports configured for both entry points
-  - ✅ Version 2.6.2 published (patch release - safety guidelines)
-  - ✅ Version 2.6.1 published (patch release - structured logging)
-  - ✅ Version 2.6.0 published (minor release - comment system)
-  - ✅ 30 TypeScript source files
-  - ✅ All 12 tools implemented
-  - ✅ Weaviate v3 filter API implemented
-  - ✅ Or/And operator validation implemented
-  - ✅ Async createServer pattern (breaking change in v2.0.0)
-  - ✅ Centralized error handling framework
-
-tools_status:
-  memory_tools:
-    - ✅ remember_create_memory (src/tools/create-memory.ts)
-    - ✅ remember_search_memory (src/tools/search-memory.ts) - v3 filters + searches relationships!
-    - ✅ remember_delete_memory (src/tools/delete-memory.ts)
-    - ✅ remember_update_memory (src/tools/update-memory.ts)
-    - ✅ remember_find_similar (src/tools/find-similar.ts)
-    - ✅ remember_query_memory (src/tools/query-memory.ts) - v3 filters
-  relationship_tools:
-    - ✅ remember_create_relationship (src/tools/create-relationship.ts)
-    - ✅ remember_update_relationship (src/tools/update-relationship.ts)
-    - ✅ remember_search_relationship (src/tools/search-relationship.ts)
-    - ✅ remember_delete_relationship (src/tools/delete-relationship.ts)
-  preference_tools:
-    - ✅ remember_set_preference (src/tools/set-preference.ts)
-    - ✅ remember_get_preferences (src/tools/get-preferences.ts)
-  space_tools:
-    - ✅ remember_publish (src/tools/publish.ts) - Multi-space support
-    - ✅ remember_confirm (src/tools/confirm.ts) - Enhanced safety guidelines
-    - ✅ remember_deny (src/tools/deny.ts) - Enhanced safety guidelines
-    - ✅ remember_search_space (src/tools/search-space.ts) - Comment filtering
-    - ✅ remember_query_space (src/tools/query-space.ts) - Comment filtering
-
-implementation_notes:
-  - All 12 core tools implemented and integrated
-  - Server supports both stdio (standalone) and factory (mcp-auth) modes
-  - Dual export: main server + factory for multi-tenant
-  - README.md has comprehensive setup instructions
-  - Works with Claude Desktop, standalone, or mcp-auth wrapper
-  - ✅ Weaviate v3 filter API implemented with OR logic for combined search
-  - ✅ remember_search_memory now searches BOTH memories AND relationships
-  - ✅ Results separated into memories and relationships arrays
-  - ✅ Backward compatible: can search only memories with include_relationships: false
-  - Filter builder utility (src/utils/weaviate-filters.ts) provides reusable filter construction
-
-task_20_completion:
-  status: completed
-  date: 2026-02-12
-  files_created:
-    - src/utils/weaviate-filters.ts
-    - src/utils/weaviate-filters.spec.ts
-    - CHANGELOG.md
-  files_modified:
-    - src/tools/search-memory.ts
-    - src/tools/query-memory.ts
-    - src/server-factory.ts
-    - src/server-factory.spec.ts
-    - tsconfig.json
-    - package.json
-  key_changes:
-    - Replaced v2 filter format with v3 fluent API
-    - Implemented OR logic to search both memories and relationships
-    - Added buildCombinedSearchFilters() function
-    - Added buildMemoryOnlyFilters() for backward compatibility
-    - Updated search-memory to return both memories and relationships
-    - Fixed gRPC "paths needs to have an uneven number of components" error
-    - Fixed "no children for operator Or" error with validation
-    - Made createServer async for proper initialization (BREAKING CHANGE)
-    - Added 32 new unit tests (29 filter tests + 3 edge case tests)
-  tests_passing: 57/58 (1 skipped integration test)
-  build_status: successful
-  releases:
-    - v1.0.0: Major release with breaking change (async createServer)
-    - v1.0.1: Patch release with Or operator bug fix
-    - v2.6.0: Minor release with comment system foundation
-    - v2.6.1: Patch release with structured logging
-    - v2.6.2: Patch release with confirmation tool safety guidelines
-
-  milestone_14:
+  M14:
     - id: task-165
       name: Core Infrastructure Setup
       status: completed
@@ -2423,7 +2434,7 @@ task_20_completion:
       notes: |
         API docs, architecture docs, usage examples.
 
-  milestone_20:
+  M20:
     - id: task-212
       name: Add InternalContext Type and Agent Content Type
       status: completed
@@ -2522,7 +2533,7 @@ task_20_completion:
         ✅ Agent exclusion from default search verified (task-216)
         ✅ 436 total tests passing
 
-  milestone_21:
+  M21:
     - id: task-515
       name: Add Auth Scheme Config
       status: completed
@@ -2573,7 +2584,7 @@ task_20_completion:
       notes: |
         📋 Unit tests for all auth modules, CHANGELOG, README, version bump
 
-  milestone_22:
+  M22:
     - id: task-520
       name: Admin Gate Infrastructure
       status: completed
@@ -2632,7 +2643,7 @@ task_20_completion:
         ✅ 10 unit tests, 497 total tests
         ✅ CHANGELOG, README updated
 
-  milestone_23:
+  M23:
     - id: task-525
       name: Remove Trust from Create/Update Tools
       status: completed
