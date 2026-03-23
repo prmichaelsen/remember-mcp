@@ -39,6 +39,22 @@ Unlike `@acp.sync` which compares docs to code, `@acp.validate` checks the inter
 
 ## Steps
 
+### 0. Display Command Header
+
+```
+⚡ @acp.validate
+  Validate all ACP documents for structure, consistency, correctness, and namespace conventions
+
+  Related:
+    @acp.package-validate  Package-specific validation
+    @acp.sync              Sync documentation with code
+    @acp.update            Update progress tracking
+    @acp.report            Generate report with validation results
+    @acp.init              Can include validation during init
+```
+
+This step is informational only — do not wait for user input.
+
 ### 1. Validate Directory Structure
 
 Check that all required directories and files exist.
@@ -239,10 +255,17 @@ Check index files in `agent/index/` for schema correctness and referential integ
   - Parse the index entries under the top-level key
   - For each entry, verify required fields present: `path`, `weight`, `kind`, `description`, `rationale`, `applies`
   - Validate `weight` is a number in range 0.0-1.0
-  - Validate `kind` is one of: pattern, command, design, requirements, artifact
+  - Validate `kind` is one of: `pattern`, `command`, `design`, `note`, `directive`
+    - `requirements` is accepted as a deprecated alias for `design` (warn: "use `design` instead")
+    - `artifact` is also accepted for backward compatibility
+  - Validate path/kind consistency:
+    - If `path` is `null`: `kind` must be `note` or `directive`
+    - If `path` is a string: `kind` must be `pattern`, `command`, or `design`
+    - For `path: null` entries, `description` must be non-empty (it IS the content)
   - Validate `applies` values use fully qualified command names (contain a dot, e.g. `acp.proceed`)
-  - Check that each `path` actually exists in the project
+  - For entries where `path` is a string: check that the path actually exists in the project
   - Warn on missing paths (file may have been moved or deleted)
+  - Skip path existence check for `path: null` entries
 - Check total indexed entries across all files (warn if > 20)
 - Check per-namespace entry count (warn if > 10)
 

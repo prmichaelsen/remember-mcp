@@ -4,9 +4,9 @@
 packages:
   acp-core:
     source: https://github.com/prmichaelsen/agent-context-protocol.git
-    package_version: 5.28.9
+    package_version: 5.30.0
     installed_at: 2026-03-14T06:27:55Z
-    updated_at: 2026-03-20T10:17:51Z
+    updated_at: 2026-03-23T00:09:35Z
     files:
       commands:
         - name: acp.clarification-address.md
@@ -61,4 +61,4 @@ packages:
         - name: requirements.template.md
 
 manifest_version: 1.0.0
-last_updated: 2026-03-20T10:17:51Z
+last_updated: 2026-03-23T00:09:35Z

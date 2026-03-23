@@ -70,6 +70,25 @@ Unlike `@acp-status` which only reads progress.yaml, or `@acp-proceed` which foc
 
 ## Steps
 
+### 0. Display Command Header
+
+Display the following informational header, then continue immediately:
+
+```
+⚡ @acp.init
+  Initialize agent context by loading documentation, reviewing source code, and preparing for work
+
+  Usage:
+    @acp.init                                      Full initialization
+    @acp.init --quick                              Skip version checks, files, sync
+    @acp.init --skip <items>                       Skip specific steps
+
+  Related:
+    @acp.proceed                     Start working on current task
+    @acp.status                      Quick status check without full init
+    @acp.version-check-for-updates   Part of init process
+```
+
 ### 1. Check for ACP Updates
 
 **Skip item**: `checks` | **Skipped by**: `--quick`  
@@ -211,13 +230,17 @@ Load critical project files from the key file index.
 
 **Display format**:
 ```
-📑 Reading Key Files...
+📑 Reading Key Files & Context...
   ✓ agent/design/acp-commands-design.md (weight: 0.9, design)
   ✓ agent/patterns/local.e2e-testing.md (weight: 0.8, pattern)
+  📝 "Migration files MUST be numbered sequentia..." (weight: 1.0, note)
+  ⚡ "Never modify files in src/legacy/ without..." (weight: 0.9, directive)
   ○ agent/patterns/local.tracked-untracked-directories.md (weight: 0.7, skipped — below threshold)
 
-  2 index files scanned, 2 key files read, 1 skipped
+  2 index files scanned, 2 files read, 2 inline entries loaded, 1 skipped
 ```
+
+**Inline entries** (`path: null`): For entries with `kind: note` or `kind: directive`, the `description` field IS the content. Display the first ~40 characters of the description in quotes. Use 📝 for notes, ⚡ for directives.
 
 **Expected Outcome**: High-importance key files loaded into context  
 
