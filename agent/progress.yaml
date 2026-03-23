@@ -1428,810 +1428,6 @@ tasks:
         Set up repository_dispatch CI/CD: remember-core publish triggers remember-mcp bump + publish.
         Draft workflow files already created in both repos (not yet committed).
 
-documentation:
-  design_documents: 31
-  milestone_documents: 24
-  pattern_documents: 7
-  task_documents: 101
-  command_documents: 48
-  last_updated: 2026-03-23
-
-progress:
-  planning: 100
-  implementation: 80
-  overall: 85
-
-recent_work:
-  - date: 2026-03-07
-    description: M19 Complete — New Search Modes, Ghost Tools & Emotional Exposure
-    items:
-      - Implemented all 9 tasks (task-203 through task-211)
-      - 8 new MCP tools (22 → 30 total): search_by, 5 ghost tools, get_core, search_space_by
-      - 29 feel_* emotional dimensions on create/update memory
-      - New filters (exclude_types, rating_min) on search/query/space tools
-      - 432 tests passing (431 passed, 1 skipped), TypeScript clean, build passing
-      - Tool count 21 → 29 (8 new tools + schema enhancements to 3 existing)
-      - Authoritative design doc in remember-core/agent/design/local.new-search-tools.md
-      - Consolidated get_mood + get_perception → get_core, removed get_classifications (REST API)
-
-  - date: 2026-03-07
-    description: Documentation Sync (@acp.sync)
-    items:
-      - Updated progress.yaml version 3.12.0 → 3.15.4
-      - Updated progress.yaml current_milestone M17 → M18
-      - Fixed M16 status in_progress → completed
-      - Rewrote complete-tool-set.md to reflect actual 21-tool implementation
-      - Updated user-preferences.md status and tool name (remember_update_preferences → remember_set_preference)
-      - All 21 tools verified against server-factory.ts implementation
-
-  - date: 2026-02-28
-    description: M17 remember-core Migration COMPLETED
-    items:
-      - ✅ All 8 tasks completed (task-193 through task-200)
-      - ✅ 18 tool handlers migrated to thin adapters calling core services
-      - ✅ 10 duplicated files removed, 2 imports updated to use core
-      - ✅ Build passing, 390 tests (389 passed, 1 skipped)
-      - 📋 3 tools deferred (search_memory, query_memory, ghost_config)
-      - 📋 Phased approach: foundation → relationships → preferences → memory → space → cleanup
-
-  - date: 2026-02-27
-    description: M16 Ghost System COMPLETE (v3.12.0)
-    items:
-      - ✅ GhostConfig Firestore CRUD service (get, set, setUserTrust, blockUser, etc.)
-      - ✅ FirestoreGhostConfigProvider replaces StubGhostConfigProvider for production
-      - ✅ FirestoreEscalationStore for persistent trust escalation tracking
-      - ✅ Ghost memory filtering — excluded from all default searches
-      - ✅ ghost_context parameter on search-memory and query-memory tools
-      - ✅ buildTrustFilter wired for cross-user ghost searches
-      - ✅ remember_ghost_config tool — 6 actions (get, set, set_trust, remove_trust, block, unblock)
-      - ✅ 21 MCP tools, 454 tests (453 passed, 1 skipped)
-      - ✅ Version 3.12.0 released
-
-  - date: 2026-02-27
-    description: M8 Complete — Task 69 Comprehensive Tool Debugging
-    items:
-      - ✅ Task 69: Added debug logging to all 13 remaining tools
-      - ✅ All 18 MCP tools + weaviate client have createDebugLogger integration
-      - ✅ Pattern: debug.info at entry, debug.trace for args, debug.error in catch
-      - ✅ 394 tests passing, typecheck clean, build passing
-      - ✅ M8 Testing & Quality milestone COMPLETE (3/3 tasks)
-
-  - date: 2026-02-27
-    description: V1→V2 Collection Migration Code Switch + Dry Run (v3.8.0)
-    items:
-      - ✅ Complete V1→V2 code switch across all 22 files (v3.8.0)
-      - ✅ Schema reconciliation: v2-collections.ts is superset of v1 (both property names supported)
-      - ✅ All tools now use v2 collection names (Memory_users_{userId}, Memory_spaces_public)
-      - ✅ All tools now use v2 property names (content_type, trust_score, relationship_ids, etc.)
-      - ✅ Migration script built: scripts/migrate-v1-to-v2.ts (--dry-run, --verify-only, --skip-backup)
-      - ✅ Dry run tested against production: 3 collections, ~6,596 documents
-      - ✅ Collections discovered: Memory_public (11), Memory_MnOyIarhz5b8n06TsTovM582NSG2 (6,584), Memory_Default_user (1)
-      - ✅ Fixed migration verify step to skip during dry-run mode
-      - ✅ Design doc updated: agent/design/local.v2-migration-guide.md
-      - ✅ CHANGELOG.md updated with v3.8.0 entry
-      - ✅ 233 tests (232 passed, 1 skipped)
-      - ✅ Build passing, pushed to mainline
-      - ✅ e1.agentbase.me tested — publish flow working after Firebase credentials fix
-      - ⏳ Real migration pending — holding for e1 feature testing
-      - 📋 Next: Run real migration, then M7 Trust & Permissions
-
-  - date: 2026-02-27
-    description: Memory-Level ACL Schema Design + M14 Completion
-    items:
-      - ✅ M14 Memory Collection Pattern v2 COMPLETE (8/8 tasks, v3.7.0)
-      - ✅ Created agent/design/local.memory-acl-schema.md (remember-mcp)
-      - ✅ 4 new Weaviate fields designed (write_mode, overwrite_allowed_ids, last_revised_by, owner_id)
-      - ✅ Three-layer permission resolution algorithm (memory → group credentials → user)
-      - ✅ Space configuration Firestore collection designed
-      - ✅ Null-fallback migration strategy (zero backfill)
-      - ✅ Created local.group-credentials-for-remember-mcp.md (agentbase.me)
-      - ✅ Credentials endpoint extended with group_memberships_v2 (resolved permissions)
-      - ✅ New editor role defined (between admin and member)
-      - ✅ Updated local.v2-api-reference.md with upcoming ACL fields section
-      - ✅ Updated local.collaborative-memory-sync.md with ACL schema cross-references
-      - ✅ Both commits pushed (remember-mcp mainline, agentbase.me dev/prmichaelsen/e1)
-      - 📋 Next: M7 Trust & Permissions (implements the ACL schema)
-
-  - date: 2026-02-27
-    description: M14 Task 169 - remember_search_space Updated to v2 Architecture
-    items:
-      - ✅ Updated src/tools/search-space.ts for Memory Collection Pattern v2
-      - ✅ Now queries Memory_spaces_public (was Memory_public)
-      - ✅ Filters by space_ids.containsAny() (was spaces field)
-      - ✅ spaces parameter now optional; added groups array parameter
-      - ✅ Added search_type parameter (hybrid | bm25 | semantic)
-      - ✅ Multi-source merge + dedup by UUID + score-sorted results
-      - ✅ All-public fallback when neither spaces nor groups specified
-      - ✅ Soft-delete aware (deleted_at isNull filter)
-      - ✅ Created src/tools/search-space.spec.ts with 23 unit tests
-      - ✅ All 179 tests passing (was 156)
-      - 📋 M14 now 62% complete (5/8 tasks)
-      - 📋 Next: Task 170 - remember_create_memory + remember_update_memory
-
-  - date: 2026-02-26
-    description: M14 Task 168 - remember_revise Tool Implemented (v3.4.0)
-    items:
-      - ✅ Created src/tools/revise.ts - direct action tool (no confirmation flow)
-      - ✅ parseRevisionHistory() - safe JSON parsing of revision history field
-      - ✅ buildRevisionHistory() - prepends old content, trims to 10 entries max
-      - ✅ Reads space_ids/group_ids from source memory tracking arrays
-      - ✅ Updates Memory_spaces_public and Memory_groups_{groupId} in sequence
-      - ✅ Preserves old content in revision_history (JSON string field)
-      - ✅ Sets revised_at timestamp and increments revision_count per copy
-      - ✅ Partial success: each location reported independently
-      - ✅ Registered in src/server.ts and src/server-factory.ts
-      - ✅ 19 new unit tests (src/tools/revise.spec.ts)
-      - ✅ All 156 tests passing (was 137)
-      - ✅ Build passing (v3.4.0)
-      - 📋 M14 now 50% complete (4/8 tasks)
-      - 📋 Next: Task 169 - remember_search_space updates
-
-  - date: 2026-02-26
-    description: ACP Initialization - M14 Task 167 (remember_retract) Implemented
-    items:
-      - ✅ ACP init workflow executed - context fully loaded
-      - ⚠️  ACP update available (v4.2.1 - critical rule: never force-add gitignored files)
-      - ✅ Task 167: Implemented remember_retract tool (src/tools/retract.ts)
-      - ✅ Task 167: Added executeRetractMemory() handler in src/tools/confirm.ts
-      - ✅ Task 167: Registered retract tool in src/server.ts and src/server-factory.ts
-      - ✅ Orphan strategy: retracted memories preserved with cleared tracking arrays
-      - ✅ Fixed documentation drift: milestone-14 now shows In Progress
-      - ✅ Fixed documentation drift: task-167 now shows Completed
-      - ✅ Fixed version drift: progress.yaml now shows v3.2.0
-      - ✅ Build: passing (v3.2.0)
-      - ✅ Tests: 137 passed, 1 skipped (138 total)
-      - 📋 Uncommitted changes pending (retract.ts + confirm.ts + server registrations)
-      - 📋 Next: Task 168 - Implement remember_revise Tool
-
-  - date: 2026-02-25
-    description: CRITICAL BUG FIX - indexNullState Schema Configuration (v3.0.1)
-    items:
-      - 🐛 CRITICAL: Fixed "Nullstate must be indexed to be filterable" error
-      - ✅ Added indexNullState: true to inverted index configuration
-      - ✅ Fixed src/weaviate/schema.ts (Memory collections)
-      - ✅ Fixed src/weaviate/space-schema.ts (Memory_public collection)
-      - ✅ Used correct API: weaviate.configure.invertedIndex()
-      - ✅ Root cause: Task 70 added deleted_at field without null state indexing
-      - ✅ Impact: All memory searches were failing with gRPC error
-      - ✅ Solution: Collections must be recreated to apply fix
-      - ✅ All 93 tests passing
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful
-      - ✅ Created Task 76 documentation
-      - ⚠️  Users must delete and recreate collections to apply fix
-      - 📋 Ready for v3.0.1 patch release
-      
-  - date: 2026-02-25
-    description: ACP Initialization Complete - Project Context Loaded (v3.0.0)
-    items:
-      - ✅ Executed @acp.init command workflow
-      - ⚠️  ACP updates available (v4.1.1 with task subdirectory structure)
-      - ✅ Global packages discovered: acp-core v3.10.1 (28 commands, 2 patterns, 2 designs)
-      - ✅ All agent documentation reviewed (30 design docs, 13 milestones, 75 tasks, 7 patterns)
-      - ✅ Key source files reviewed (server.ts, progress.yaml, requirements.md, CHANGELOG.md)
-      - ✅ Project status verified - M1-M4, M10-M11, M13 complete (100%), M12 in progress (60%)
-      - ✅ Current version 3.0.0 (latest - soft delete system)
-      - ✅ All 93 unit tests passing (1 skipped integration test)
-      - ✅ Test coverage 33.12% overall
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful (dual export: server + factory)
-      - ✅ All 17 MCP tools implemented and operational
-      - ✅ Multi-tenant architecture with per-user isolation working
-      - ✅ Vector search (Weaviate) + metadata (Firestore) operational
-      - ✅ Shared spaces with multi-space support functional
-      - ✅ Soft delete system with confirmation flow complete (v3.0.0)
-      - ✅ Comment system foundation implemented (v2.6.0)
-      - 📋 M12 Comment System: 3/5 tasks complete (schema, search, query updates)
-      - 📋 Remaining M12 tasks: Task 58 (unit tests), Task 59 (documentation)
-      - 📋 Ready to complete M12 milestone
-      - 📋 Git status: Clean working directory
-      
-  - date: 2026-02-25
-    description: M13 COMPLETED - Soft Delete System Released (v3.0.0)
-    items:
-      - 🎉 MILESTONE 13 COMPLETE: Soft Delete System
-      - ✅ Task 75 COMPLETED: Updated documentation and CHANGELOG
-      - ✅ Added comprehensive CHANGELOG entry for v3.0.0
-      - ✅ Documented breaking changes and migration guide
-      - ✅ Added soft delete workflow section to README.md
-      - ✅ Documented deletion confirmation flow
-      - ✅ Documented deleted_filter parameter usage
-      - ✅ Updated package.json to v3.0.0
-      - ✅ Updated progress.yaml to v3.0.0
-      - ✅ All 93 tests passing
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful
-      - 🚀 Ready for v3.0.0 release
-      - 📋 Breaking change: Deletion requires confirmation
-      - 📋 Breaking change: Deleted memories excluded by default
-      
-  - date: 2026-02-25
-    description: Tasks 70-73 COMPLETED - Soft Delete Core + Validation (67% M13)
-    items:
-      - 🎉 Task 73 COMPLETED: Updated relationship handling for deleted memories
-      - ✅ Added deleted_at validation to remember_create_relationship
-      - ✅ Prevents creating relationships with deleted memories
-      - ✅ Error message includes deletion timestamp
-      - ✅ Added deleted_at validation to remember_update_memory
-      - ✅ Prevents updating deleted memories
-      - ✅ Clear error messages with deletion date
-      - ✅ All 93 tests passing (1 skipped integration test)
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful
-      - 📋 M13: 67% complete (4/6 tasks done)
-      - 📋 Remaining: Task 74 (unit tests), Task 75 (documentation)
-      
-  - date: 2026-02-25
-    description: Tasks 70-72 COMPLETED - Soft Delete Core Implementation (50% M13)
-    items:
-      - 🎉 Task 72 COMPLETED: Added deleted_filter to all search tools
-      - ✅ Added deleted_filter parameter to remember_search_memory
-      - ✅ Added deleted_filter parameter to remember_query_memory
-      - ✅ Added deleted_filter parameter to remember_find_similar
-      - ✅ Added deleted_filter parameter to remember_search_relationship
-      - ✅ Created buildDeletedFilter helper function
-      - ✅ Exported combineFiltersWithAnd for reuse
-      - ✅ Added DeletedFilter type to memory.ts
-      - ✅ Filter applied at Weaviate query level (not post-processing)
-      - ✅ Default behavior: exclude deleted memories
-      - ✅ Three modes: "exclude", "include", "only"
-      - ✅ All 93 tests passing (1 skipped integration test)
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful
-      - 📋 M13: 50% complete (3/6 tasks done)
-      
-  - date: 2026-02-25
-    description: Task 71 COMPLETED - Delete Confirmation Flow Implemented
-    items:
-      - ✅ Modified remember_delete_memory to create confirmation token
-      - ✅ Tool now returns preview with content, type, relationship count
-      - ✅ Preview shows which relationships will be orphaned
-      - ✅ Enhanced remember_confirm to handle delete_memory action
-      - ✅ Confirmation sets deleted_at, deleted_by, deletion_reason fields
-      - ✅ Added executeDeleteMemory function to confirm.ts
-      - ✅ Validates memory ownership before deletion
-      - ✅ Prevents deleting already-deleted memories
-      - ✅ Token expires after 5 minutes (reuses existing service)
-      - ✅ Fixed space-schema test (removed deprecated space_id check)
-      - ✅ All 93 tests passing (1 skipped integration test)
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful
-      - 📋 M13: 33% complete (2/6 tasks done)
-      
-  - date: 2026-02-25
-    description: Task 70 COMPLETED - Added Soft Delete Schema Fields
-    items:
-      - ✅ Added 3 fields to Memory schema (deleted_at, deleted_by, deletion_reason)
-      - ✅ Added same 3 fields to Memory_public schema
-      - ✅ Updated Memory interface in src/types/memory.ts
-      - ✅ Updated SpaceMemory interface in src/types/space-memory.ts
-      - ✅ Added fields to ALL_MEMORY_PROPERTIES constant
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful (dual export: server + factory)
-      - ✅ No breaking changes to existing code
-      - ✅ Schema ready for soft delete implementation
-      - 📋 M13: 17% complete (1/6 tasks done)
-      
-  - date: 2026-02-25
-    description: ACP Initialization Complete - Full Project Context Loaded
-    items:
-      - ✅ Executed @acp.init command workflow
-      - ⚠️  ACP updates available (v3.14.0 → current v3.10.1)
-      - ✅ Global packages discovered: acp-core v3.10.1 (28 commands, 2 patterns, 2 designs)
-      - ✅ All agent documentation reviewed (30 design docs, 12 milestones, 69 tasks, 7 patterns)
-      - ✅ Key source files reviewed (server.ts, search-space.ts, schema.ts, package.json, README.md)
-      - ✅ Project status verified - M1-M4, M10-M11 complete (100%), M12 in progress (60%)
-      - ✅ Current version 2.8.0 (latest)
-      - ✅ All 93 unit tests passing (1 skipped integration test)
-      - ✅ Test coverage 33.12% overall
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful (dual export: server + factory)
-      - ✅ All 17 MCP tools implemented and operational
-      - ✅ Multi-tenant architecture with per-user isolation working
-      - ✅ Vector search (Weaviate) + metadata (Firestore) operational
-      - ✅ Shared spaces with multi-space support functional
-      - ✅ Comment system foundation implemented (v2.6.0)
-      - ✅ Task 69 IN PROGRESS: Comprehensive Tool Debugging (70% complete)
-      - 📋 M12 Comment System: 3/5 tasks complete (schema, search, query updates)
-      - 📋 Remaining M12 tasks: Task 58 (unit tests), Task 59 (documentation)
-      - 📋 Ready to complete M12 milestone
-      
-  - date: 2026-02-25
-    description: Task 69 IN PROGRESS - Comprehensive Tool Debugging (70% complete)
-    items:
-      - ✅ Core infrastructure complete (Steps 1-2, 5-7)
-      - ✅ Added DebugLevel enum and debugConfig to src/config.ts
-      - ✅ Created src/utils/debug.ts with DebugLogger class
-      - ✅ Implemented 5 debug levels: NONE, ERROR, WARN, INFO, DEBUG, TRACE
-      - ✅ Added time() method for performance profiling
-      - ✅ Added dump() method for parameter inspection (TRACE only)
-      - ✅ Created 12 unit tests with 100% coverage on debug utility
-      - ✅ Updated .env.example with REMEMBER_MCP_DEBUG_LEVEL variable
-      - ✅ Updated README.md with debugging section and examples
-      - ✅ Integrated 5 tools: publish, confirm, search-space, query-space, weaviate-client
-      - ✅ All 93 tests passing (12 new debug tests)
-      - ✅ Build successful, TypeScript compiles without errors
-      - ✅ Zero performance overhead when debug disabled (NONE)
-      - ✅ Space tools now have comprehensive debug tracing
-      - ✅ Performance timing on all database operations
-      - 📋 Remaining: 12 tools (6 memory, 4 relationship, 2 preference)
-      - 📋 Progress: 70% complete (5/17 tools + client integrated)
-      
-  - date: 2026-02-25
-    description: CRITICAL BUG FIX - Missing Space Properties (v2.7.12)
-    items:
-      - 🐛 CRITICAL: Fixed published memories not appearing in space search results
-      - ✅ Added 8 missing space-related properties to ALL_MEMORY_PROPERTIES constant
-      - ✅ Properties: spaces, space_id, author_id, ghost_id, attribution, published_at, discovery_count, space_memory_id
-      - ✅ Root cause: Properties added to schema (v2.4.0) but not to fetch constant (v2.6.3)
-      - ✅ Impact: Published memories now properly include all space fields
-      - ✅ Search filtering by spaces array now works correctly
-      - ✅ Memories now discoverable in The Void and other shared spaces
-      - ✅ Build successful, all 81 tests passing
-      - ✅ Created Task 68 documentation
-      - 📋 Ready for v2.7.12 release
-      
-  - date: 2026-02-25
-    description: ACP Initialization Complete - Full Context Loaded
-    items:
-      - ✅ ACP initialization workflow executed via @acp.init command
-      - ⚠️  ACP updates available (v3.14.0 with script-command binding system)
-      - ✅ Global ACP packages discovered: acp-core v3.10.1 (28 commands, 2 patterns, 2 designs)
-      - ✅ All agent documentation reviewed (30 design docs, 12 milestones, 67 tasks, 7 patterns)
-      - ✅ Key source files reviewed (server.ts, search-space.ts, schema.ts)
-      - ✅ Project status verified: M1-M4, M10-M11 complete (100%), M12 in progress (60%)
-      - ✅ Current version: 2.7.11 (latest published)
-      - ✅ 81 unit tests passing (1 skipped integration test)
-      - ✅ Test coverage: 33.12% overall
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful (dual export: server + factory)
-      - ✅ All 17 MCP tools implemented and working
-      - ✅ M12 Comment System: 3/5 tasks complete (schema, search, query updates)
-      - 📋 Remaining M12 tasks: Task 58 (unit tests), Task 59 (documentation)
-      - 📋 Ready to complete M12 milestone
-      - 📋 Multi-tenant architecture with per-user isolation operational
-      - 📋 Vector search with Weaviate + metadata with Firestore working
-      - 📋 Shared spaces with multi-space support functional
-      - 📋 Comment system foundation implemented (v2.6.0)
-      
-  - date: 2026-02-22
-    description: ACP Initialization Complete - Project Context Loaded
-    items:
-      - ✅ ACP initialization workflow executed via @acp.init command
-      - ⚠️  ACP updates available (v3.9.0 with global package installation system)
-      - ✅ All agent documentation reviewed (30 design docs, 12 milestones, 67 tasks, 7 patterns)
-      - ✅ Project status verified: M1-M4, M10-M11 complete (100%), M12 in progress (60%)
-      - ✅ Current version: 2.7.11 (latest published)
-      - ✅ 81 unit tests passing (1 skipped integration test)
-      - ✅ Test coverage: 33.12% overall
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful (dual export: server + factory)
-      - ✅ All 17 MCP tools implemented and working
-      - ✅ M12 Comment System: 3/5 tasks complete (schema, search, query updates)
-      - 📋 Remaining M12 tasks: Task 58 (unit tests), Task 59 (documentation)
-      - 📋 Ready to complete M12 milestone
-      - 📋 Multi-tenant architecture with per-user isolation operational
-      - 📋 Vector search with Weaviate + metadata with Firestore working
-      - 📋 Shared spaces with multi-space support functional
-      - 📋 Comment system foundation implemented (v2.6.0)
-      
-  - date: 2026-02-17
-    description: CRITICAL BUG FIX - Shared Space Discovery Now Works (v2.7.8)
-    items:
-      - 🐛 CRITICAL: Fixed shared space discovery bug
-      - ✅ Search/query tools now filter by doc_type: 'memory' (was 'space_memory')
-      - ✅ space_memory concept was removed from architecture
-      - ✅ All users can now discover memories in The Void
-      - ✅ Root cause: search-space.ts and query-space.ts filtered for wrong doc_type
-      - ✅ Changed filters from 'space_memory' to 'memory'
-      - ✅ Build successful, all 81 tests passing
-      - ✅ No data migration needed - existing memories are correct
-      - 📋 Released v2.7.8 with critical bug fix
-      
-  - date: 2026-02-17
-    description: Fixed Build Error & Completed Task 66 - Comment Field Initialization
-    items:
-      - ✅ Fixed critical TypeScript build error in content-types.ts
-      - ✅ Added missing 'poetry' content type metadata
-      - ✅ Build now successful - TypeScript compiles without errors
-      - ✅ Task 66 COMPLETED: Initialize comment fields in create/update tools
-      - ✅ Updated remember_create_memory tool schema with comment fields
-      - ✅ Updated CreateMemoryArgs interface with parent_id, thread_root_id, moderation_flags
-      - ✅ Initialized comment fields to defaults in handleCreateMemory (null, null, [])
-      - ✅ Updated remember_update_memory tool schema with comment fields
-      - ✅ Updated UpdateMemoryArgs interface with comment fields
-      - ✅ Added comment field update logic in handleUpdateMemory
-      - ✅ All 81 tests passing (1 skipped integration test)
-      - ✅ Test coverage: 33.12% overall
-      - ✅ New memories now created with comment fields initialized
-      - ✅ Can create comments with parent_id and thread_root_id set
-      - ✅ Can update comment fields via remember_update_memory
-      - 📋 Ready for M12 completion: Tasks 58-59 remaining
-      
-  - date: 2026-02-17
-    description: ACP Initialization Complete - Ready for M12 Completion
-    items:
-      - ✅ ACP initialization workflow executed via @acp.init command
-      - ⚠️  ACP updates available (v1.4.3 with improved script color output)
-      - ✅ All agent documentation reviewed (30 design docs, 12 milestones, 67 tasks, 7 patterns)
-      - ✅ Project status verified: M1-M4, M10-M11 complete (100%), M12 in progress (60%)
-      - ✅ Version 2.7.7 confirmed (latest release)
-      - ✅ 81 unit tests passing (1 skipped integration test)
-      - ✅ Test coverage: 33.12% overall
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful (dual export: server + factory)
-      - ✅ All 17 MCP tools implemented and working
-      - ✅ M12 Comment System: 3/5 tasks complete (schema, search, query updates)
-      - ✅ Task 66 completed: Comment fields initialized in create/update tools
-      - 📋 Remaining M12 tasks: Task 58 (unit tests), Task 59 (documentation)
-      - 📋 Ready to complete M12 milestone
-      - 📋 Multi-tenant architecture with per-user isolation operational
-      - 📋 Vector search with Weaviate + metadata with Firestore working
-      - 📋 Shared spaces with multi-space support functional
-      
-  - date: 2026-02-16
-    description: Comment System, Structured Logging, and Safety Guidelines (v2.6.0-v2.6.2)
-    items:
-      - 🎉 M12 STARTED: Comment System (Phase 1) - 60% complete (3/5 tasks)
-      - ✅ Task 55: Added 3 comment fields to Weaviate schema
-      - ✅ parent_id, thread_root_id, moderation_flags fields added
-      - ✅ Enables infinite comment nesting with no depth limit
-      - ✅ Per-space moderation flags support
-      - ✅ Task 56: Updated remember_search_space with include_comments parameter
-      - ✅ Comments excluded by default for clean discovery
-      - ✅ Opt-in via include_comments: true
-      - ✅ Task 57: Updated remember_query_space with include_comments parameter
-      - ✅ Same filtering logic as search_space
-      - ✅ Released v2.6.0 with comment system foundation
-      - ✅ Task 60: Standardized structured logging across 8 files
-      - ✅ Replaced 54 console.log/error/warn calls with logger.info/error/warn/debug
-      - ✅ All logs include context objects (service, module, tool names)
-      - ✅ Fixed circular dependency in config.ts with dynamic import
-      - ✅ Released v2.6.1 with structured logging
-      - ✅ Task 61: Enhanced confirmation tool safety guidelines
-      - ✅ Added 5 critical safety requirements to remember_confirm and remember_deny
-      - ✅ Prevents agents from chaining confirmations without user consent
-      - ✅ Visual indicators (⚠️) and JSDoc comments added
-      - ✅ Released v2.6.2 with safety enhancements
-      - 📋 Next: Complete M12 with Tasks 58-59 (tests + documentation)
-      - 📋 6 commits ready to push to origin
-      
-  - date: 2026-02-16
-    description: ACP Initialization Complete - Multi-Space Architecture Verified (v2.5.1)
-    items:
-      - ✅ ACP initialization workflow executed via @acp.init command
-      - ✅ AGENT.md confirmed up-to-date (v1.0.3)
-      - ✅ All agent documentation reviewed (29 design docs, 11 milestones, 54 tasks, 5 patterns)
-      - ✅ Project status verified: M1-M4, M10-M11 complete (100%)
-      - ✅ Version 2.5.1 confirmed (latest release with error handling fix)
-      - ✅ All unit tests passing
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful (dual export: server + factory)
-      - ✅ All 17 MCP tools implemented and working
-      - 🎉 M10 COMPLETED: Shared Spaces & Confirmation Flow
-      - ✅ Token-based confirmation system operational
-      - ✅ 5 space tools: publish, confirm, deny, search_space, query_space
-      - ✅ Confirmation token service with 5-minute expiry and comprehensive error handling
-      - ✅ Firestore request validation and diagnostic logging
-      - 🎉 M11 COMPLETED: Unified Public Collection Architecture
-      - ✅ Multi-space architecture implemented (spaces: string[] array)
-      - ✅ Memory_public unified collection replaces per-space collections
-      - ✅ Multi-space search with containsAny filter
-      - ✅ No memory duplication across spaces
-      - ✅ remember_publish supports publishing to multiple spaces
-      - ✅ remember_search_space supports multi-space queries
-      - ✅ remember_query_space supports multi-space RAG
-      - ✅ All tests updated for multi-space support
-      - ✅ Documentation updated with multi-space examples
-      - ✅ Multi-tenant architecture with per-user isolation
-      - ✅ Vector search with Weaviate + metadata with Firestore
-      - ✅ 45 content types with dynamic descriptions
-      - ✅ N-way relationships with bidirectional tracking
-      - ✅ User preferences system (6 categories)
-      - 📋 Ready for deployment testing and verification
-      - 📋 Next: Deploy v2.5.1 and test multi-space functionality
-      
-  - date: 2026-02-16
-    description: ACP Initialization Complete - Project Status Verified
-    items:
-      - ✅ ACP initialization workflow executed via @acp.init command
-      - ⚠️  ACP updates available (v1.2.1 with new command format)
-      - ✅ All agent documentation reviewed (23 design docs, 10 milestones, 33 tasks, 5 patterns)
-      - ✅ Project status verified: M1-M4 complete (100%), M10 in progress
-      - ✅ Version 2.3.1 confirmed (latest patch release)
-      - ✅ 53 unit tests passing (1 skipped integration test)
-      - ✅ Test coverage: 29.76% overall
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful (dual export: server + factory)
-      - ✅ All 17 MCP tools implemented and working
-      - ✅ M10 Shared Spaces: 5 tools implemented (publish, confirm, deny, search_space, query_space)
-      - ✅ Token-based confirmation system operational
-      - ✅ Space collections: Memory_the_void with snake_case naming
-      - ✅ Confirmation token service with 5-minute expiry
-      - ✅ Space memory types and schema complete
-      - ✅ Multi-tenant architecture with per-user isolation
-      - ✅ Vector search with Weaviate + metadata with Firestore
-      - ✅ 45 content types with dynamic descriptions
-      - ✅ N-way relationships with bidirectional tracking
-      - ✅ User preferences system (6 categories)
-      - 📋 M10 implementation appears complete - needs verification
-      - 📋 Ready to verify M10 completion and update documentation
-      
-  - date: 2026-02-16
-    description: Created Milestone 10 and Tasks for Shared Spaces
-    items:
-      - ✅ Created M10: Shared Spaces & Confirmation Flow milestone
-      - ✅ Created Task 34: Confirmation Token Service
-      - ✅ Created Task 35: Space Memory Types and Schema
-      - ✅ Created Task 36: Implement remember_publish
-      - ✅ Created Task 37: Implement remember_confirm
-      - ✅ Created Task 38: Implement remember_deny
-      - ✅ Created Task 39: Implement remember_search_space
-      - ✅ Created Task 40: Implement remember_query_space
-      - ✅ Created Task 41: Configure Firestore TTL
-      - ✅ Created Task 42: Create Tests
-      - ✅ Created Task 43: Update Documentation
-      - ✅ Updated naming convention: snake_case for space IDs
-      - ✅ "The Void" → `the_void` → `Memory_the_void`
-      - ✅ Token-based confirmation pattern documented
-      - ✅ 5 new tools planned (publish, confirm, deny, search_space, query_space)
-      - 📋 Ready to begin M10 implementation
-      - 📋 10 tasks, estimated 30 hours total
-      
-  - date: 2026-02-16
-    description: ACP Initialization Complete - Firebase SDK Reverted
-    items:
-      - ✅ AGENT.md confirmed up-to-date (v1.0.3)
-      - ⚠️  ACP updates available (v1.0.3 with new templates and scripts)
-      - ✅ All agent documentation reviewed and current
-      - ✅ Project status verified: 4 milestones complete (M1-M4: 100%)
-      - ✅ Version 2.2.1 confirmed (latest release)
-      - ✅ Reverted commit 328abd3 (Firebase Admin SDK migration)
-      - ✅ Restored @prmichaelsen/firebase-admin-sdk-v8@2.2.0
-      - ✅ 53 unit tests passing (1 skipped integration test)
-      - ✅ Test coverage: 29.76% overall
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful
-      - ✅ All 12 MCP tools implemented and working
-      - ✅ Comprehensive error handling framework in place
-      - ✅ Dual export: standalone server + factory for mcp-auth
-      - ✅ Multi-tenant architecture with per-user isolation
-      - ✅ Vector search with Weaviate + metadata with Firestore
-      - ✅ 45 content types with dynamic descriptions
-      - ✅ N-way relationships with bidirectional tracking
-      - ✅ User preferences system (6 categories)
-      - 📋 Ready to begin M5: Template System
-      - 📋 Project structure follows ACP and bootstrap patterns
-      - 📋 Documentation comprehensive and accurate
-      
-  - date: 2026-02-16
-    description: ACP Initialization - Complete Project Context Review
-    items:
-      - ✅ AGENT.md confirmed up-to-date (v1.0.3)
-      - ✅ All agent documentation reviewed and current
-      - ✅ Project status verified: 4 milestones complete (M1-M4: 100%)
-      - ✅ Version 2.2.1 confirmed (latest release)
-      - ✅ 53 unit tests passing (1 skipped integration test)
-      - ✅ Test coverage: 24.68% overall
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful
-      - ✅ All 12 MCP tools implemented and working
-      - ✅ Comprehensive error handling framework in place
-      - ✅ Dual export: standalone server + factory for mcp-auth
-      - ✅ Multi-tenant architecture with per-user isolation
-      - ✅ Vector search with Weaviate + metadata with Firestore
-      - ✅ 45 content types with dynamic descriptions
-      - ✅ N-way relationships with bidirectional tracking
-      - ✅ User preferences system (6 categories)
-      - ✅ LLM provider abstraction (Bedrock implemented)
-      - ✅ Background job service for async operations
-      - ✅ Production-ready with Cloud Run deployment
-      - 📋 Ready to begin M5: Template System
-      - 📋 Project structure follows ACP and bootstrap patterns
-      - 📋 Documentation comprehensive and accurate
-      
-  - date: 2026-02-15
-    description: All Production Error Tasks COMPLETED (Tasks 23-25)
-    items:
-      - 🎉 Task 165 (Core Infrastructure Setup) COMPLETED!
-      - ✅ Fixed 3 failing tests in core-infrastructure.spec.ts
-      - ✅ Added ID validation for dots in getCollectionName()
-      - ✅ Updated error message in parseCompositeId() to include "must be exactly 2 parts"
-      - ✅ Changed validateCompositeId() to return true instead of void
-      - ✅ All 138 tests passing (137 passed, 1 skipped)
-      - ✅ 79% coverage on new collections code
-      - 🚀 M14: Memory Collection Pattern v2 now in progress (1/8 tasks complete)
-      
-  - date: 2026-02-26
-    description: Task 165 COMPLETED - Core Infrastructure Setup
-    items:
-      - 🎉 Task 25 (Fix Update Memory Errors) COMPLETED!
-      - 🎉 Task 23 (Fix Relationship Creation Errors) COMPLETED!
-      - 🎉 Task 24 (Fix Weaviate Filter Path Error) COMPLETED!
-      - ✅ All 3 production error categories addressed
-      - ✅ Enhanced error logging across all affected tools
-      - ✅ Standardized error handling with handleToolError
-      - ✅ Added detailed context to all error messages
-      - ✅ Fixed critical Weaviate v3 filter API bug
-      - ✅ All 53 tests passing
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful
-      - 📊 Production errors should now have actionable diagnostics
-      
-  - date: 2026-02-15
-    description: Task 24 COMPLETED - Fixed Weaviate Filter Path Error
-    items:
-      - 🎉 Task 24 (Fix Weaviate Filter Path Error) COMPLETED!
-      - 🐛 Fixed critical "paths needs to have a uneven number of components" gRPC error
-      - ✅ Updated search-relationship.ts to use Weaviate v3 filter API
-      - ✅ Replaced old v2 format (path/operator/valueText) with v3 fluent API
-      - ✅ Now uses collection.filter.byProperty() and Filters.and()/or()
-      - ✅ Fixed method name: greaterThanOrEqual -> greaterOrEqual
-      - ✅ Root cause: search-relationship.ts was never updated in Task 20
-      - ✅ All 53 tests passing
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful
-      - 🚀 remember_search_relationship tool now works correctly
-      
-  - date: 2026-02-15
-    description: Production Error Analysis - Created Task Documents
-    items:
-      - 📊 Analyzed 300 Cloud Run logs from remember-mcp-server
-      - 🔍 Identified 63 error occurrences across 3 categories
-      - ✅ Created Task 23: Fix Relationship Creation Errors (High Priority)
-      - ✅ Created Task 24: Fix Weaviate Filter Path Error (Critical Priority)
-      - ✅ Created Task 25: Fix Update Memory Errors (Medium Priority)
-      - 📋 Service is operational but has intermittent errors
-      - 📋 Most errors in relationship creation (~20+ occurrences)
-      - 📋 Critical Weaviate filter path error still occurring (supposedly fixed in v1.0.2)
-      - 📋 Update memory errors less frequent but need attention
-      - 📋 All errors documented with reproduction steps and verification criteria
-      - 📋 Ready to begin debugging and fixes
-      
-  - date: 2026-02-15
-    description: ACP Initialization - Comprehensive Project Review
-    items:
-      - 📊 Complete ACP initialization workflow executed
-      - ✅ AGENT.md confirmed up-to-date (v1.0.3)
-      - ✅ All agent documentation reviewed and current
-      - ✅ Project status verified: 4 milestones complete (M1-M4: 100%)
-      - ✅ 53 unit tests passing (1 skipped integration test)
-      - ✅ Test coverage: 29.9% overall
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful (v2.0.2)
-      - ✅ All 12 MCP tools implemented and working
-      - ✅ Comprehensive error handling framework in place
-      - ✅ Dual export: standalone server + factory for mcp-auth
-      - ✅ Multi-tenant architecture with per-user isolation
-      - ✅ Vector search with Weaviate + metadata with Firestore
-      - ✅ 45 content types with dynamic descriptions
-      - ✅ N-way relationships with bidirectional tracking
-      - ✅ User preferences system (6 categories)
-      - ✅ Production-ready with Cloud Run deployment
-      - 📋 Ready to begin M5: Template System
-      - 📋 Project structure follows ACP and bootstrap patterns
-      - 📋 Documentation comprehensive and accurate
-      
-  - date: 2026-02-14
-    description: v2.0.2 Released - Comprehensive Error Handling
-    items:
-      - 🎉 v2.0.2 RELEASED - Patch release with comprehensive error handling
-      - ✅ Applied centralized error handler to all 12 MCP tools
-      - ✅ All tools now use handleToolError() from error-handler.ts
-      - ✅ Consistent error logging with full context across all operations
-      - ✅ Stack traces included in all error messages
-      - ✅ Tool-specific context (userId, IDs, operation details) in every error
-      - ✅ Production debugging significantly enhanced
-      - ✅ Build successful
-      - ✅ All tests passing
-      
-  - date: 2026-02-14
-    description: v2.0.1 Released - Enhanced Error Logging Framework
-    items:
-      - 🎉 v2.0.1 RELEASED - Patch release with error handling improvements
-      - ✅ Created centralized error-handler utility (src/utils/error-handler.ts)
-      - ✅ Enhanced error logging in remember_update_memory
-      - ✅ Detailed error context: userId, memoryId, operation, stack traces
-      - ✅ Separate error handling for fetch and update operations
-      - ✅ Error messages now include full context for Cloud Run debugging
-      - ✅ Framework ready for application to all 12 tools
-      - ✅ Build successful
-      - ✅ All tests passing
-      - 📋 Production error diagnostics significantly improved
-      
-  - date: 2026-02-14
-    description: Project Status Review - ACP Initialization
-    items:
-      - 📊 Comprehensive project review completed via ACP initialization
-      - ✅ All 12 MCP tools implemented and working
-      - ✅ 54 tests passing (53 passed, 1 skipped integration test)
-      - ✅ Test coverage: 29.26% overall
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful (v2.0.0)
-      - ✅ 30 TypeScript source files in project (added error-handler.ts)
-      - ✅ Dual export: standalone server + factory for mcp-auth
-      - ✅ All 4 milestones complete (M1-M4: 100%)
-      - ✅ Ready to begin M5: Template System
-      - 📋 Project structure follows ACP and bootstrap patterns
-      - 📋 Documentation comprehensive and up-to-date
-      
-  - date: 2026-02-12
-    description: v1.0.1 Released - Or Operator Bug Fix
-    items:
-      - 🎉 v1.0.1 RELEASED - Patch release with bug fix
-      - 🐛 Fixed "no children for operator Or" error
-      - ✅ Added validation to filter out undefined/null values in filter combinations
-      - ✅ Updated combineFiltersWithOr to validate operands
-      - ✅ Updated combineFiltersWithAnd to validate operands
-      - ✅ Added 3 new edge case tests for undefined/null handling
-      - ✅ All 57 tests passing (up from 54)
-      - ✅ Code coverage: 90.56% on weaviate-filters.ts
-      - ✅ Build successful
-      - ✅ CHANGELOG.md updated
-      
-  - date: 2026-02-12
-    description: v1.0.0 Released - Major Version with Breaking Changes
-    items:
-      - 🎉 v1.0.0 RELEASED - First stable release
-      - 🚨 BREAKING: createServer is now async (returns Promise<Server>)
-      - ✅ Database initialization now uses await pattern
-      - ✅ Server factory properly waits for databases before accepting requests
-      - ✅ Updated all server-factory tests for async
-      - ✅ All 54 tests passing
-      - ✅ CHANGELOG.md created with migration guide
-      
-  - date: 2026-02-12
-    description: Task 20 COMPLETED - Weaviate v3 Filters & Relationship Search
-    items:
-      - 🎉 Task 20 (Fix Weaviate v3 Filters) COMPLETED!
-      - ✅ Created src/utils/weaviate-filters.ts with v3 filter builders
-      - ✅ Implemented buildCombinedSearchFilters() with OR logic
-      - ✅ Implemented buildMemoryOnlyFilters() for backward compatibility
-      - ✅ Implemented buildRelationshipOnlyFilters() for relationship-only search
-      - ✅ Updated search-memory.ts to use v3 filters
-      - ✅ Updated search-memory.ts to search BOTH memories AND relationships by default
-      - ✅ Updated query-memory.ts to use v3 filters
-      - ✅ Results now separated into memories and relationships arrays
-      - ✅ 29 new unit tests for filter builders
-      - ✅ Build successful
-      - ✅ TypeScript compiles without errors
-      - 🔧 Fixed gRPC "paths needs to have an uneven number of components" error
-      - 🔧 Replaced old v2 filter format (path/operator/valueText) with v3 fluent API
-      
-  - date: 2026-02-12
-    description: Project Status Review & Documentation Update
-    items:
-      - 📊 Comprehensive project review completed
-      - ✅ All 12 MCP tools implemented and working
-      - ✅ 28 TypeScript source files in project (added weaviate-filters.ts)
-      - ✅ 25 unit tests passing (1 skipped)
-      - ✅ Build successful (v0.2.5)
-      - ✅ TypeScript compiles without errors
-      - ⚠️  CRITICAL: Weaviate v3 filter API issue identified (Task 20)
-      - ⚠️  Old v2 filter format used in search-memory.ts and query-memory.ts
-      - ⚠️  Will cause gRPC errors when filters are used
-      - 📋 Task 20 created: Fix Weaviate v3 Filters
-      
-  - date: 2026-02-11
-    description: M4 Complete - User Preferences
-    items:
-      - 🎉 Milestone 4 (User Preferences) COMPLETED!
-      - 🎉 Milestone 3 (Relationships & Graph) COMPLETED!
-      - 🎉 Milestone 2 (Core Memory System) COMPLETED!
-      - 🎉 Milestone 1 (Project Foundation) COMPLETED!
-      - ✅ UserPreferences type with 6 categories
-      - ✅ remember_set_preference tool implemented
-      - ✅ remember_get_preferences tool implemented
-      - ✅ Preference validation (path and value types)
-      - ✅ Default preferences for all categories
-      - ✅ User-friendly change messages
-      - ✅ Firestore integration using firebase-admin-sdk-v8
-      - ✅ Dot-notation path updates (e.g., "templates.auto_suggest")
-      - ✅ Automatic defaults when preferences don't exist
-      - ✅ All tools integrated into server.ts and server-factory.ts
-      - ✅ TypeScript compiles without errors
-      - ✅ Build successful
-
   M24:
     - id: task-530
       name: Create Elicitation Helper Utility
@@ -2277,68 +1473,7 @@ recent_work:
       started: null
       actual_hours: null
 
-next_steps:
-  - M24: MCP Elicitation Confirmation Flow (not started)
-  - M5: Template System (not started)
-  - M6: Auth & Multi-Tenancy (not started)
-  - M9: Deployment & Documentation (not started)
-  - Run real V1→V2 migration against production (after e1 testing)
 
-notes:
-  - ✅ V1→V2 Collection Migration code switch COMPLETE (v3.8.0)
-  - ⏳ V1→V2 data migration pending (dry run tested, ~6,596 docs)
-  - ✅ Milestone 14 (Memory Collection Pattern v2) COMPLETE (8/8 tasks)
-  - ✅ Milestone 15 (Moderation & Space Config) COMPLETE (6/6 tasks)
-  - ✅ Milestone 12 (Comment System Phase 1) COMPLETE (5/5 tasks)
-  - 🚀 Milestone 7 (Trust & Permissions) IN PROGRESS - task breakdown complete (0/7)
-  - 🎉 Milestone 11 (Unified Public Collection) COMPLETED!
-  - 🎉 Milestone 10 (Shared Spaces & Confirmation Flow) COMPLETED!
-  - 🎉 Milestone 4 (User Preferences) COMPLETED!
-  - 🎉 Milestone 3 (Relationships & Graph) COMPLETED!
-  - 🎉 Milestone 2 (Core Memory System) COMPLETED!
-  - 🎉 Milestone 1 (Project Foundation) COMPLETED!
-  - ✅ All 29 design documents complete and comprehensive
-  - ✅ M1: 7 tasks complete (Tasks 1-5, 9 complete; Tasks 6-7 deferred)
-  - ✅ M2: 6/6 memory tools complete (100% progress)
-  - ✅ M3: 4/4 relationship tools complete (100% progress)
-  - ✅ M4: 2/2 preference tools complete (100% progress)
-  - ✅ M10: 10/10 shared space tools complete (100% progress)
-  - ✅ M11: 9/9 multi-space architecture tasks complete (100% progress)
-  - ✅ M12: 5/5 comment system tasks complete (100% progress)
-  - ✅ M13: Soft delete system complete
-  - ✅ M14: Memory Collection v2 complete (8/8 tasks)
-  - ✅ M15: Moderation & Space Config complete (6/6 tasks)
-  - ✅ Complete memory CRUD operations (create, read, update, delete)
-  - ✅ Complete relationship CRUD operations (create, read, update, delete)
-  - ✅ Advanced search capabilities (hybrid, similarity, RAG queries)
-  - ✅ Relationship semantic search on observations
-  - ✅ Module name mapping (@/) configured across TypeScript, Jest, and esbuild
-  - ✅ Project structure follows bootstrap.md pattern
-  - ✅ All dependencies installed (497 packages with firebase-admin-sdk-v8)
-  - ✅ Build tools verified and working
-  - ✅ Database client infrastructure complete (Weaviate + Firestore)
-  - ✅ 25 unit tests passing (1 skipped integration test)
-  - ✅ Test coverage: 30.37% overall
-  - ✅ Key design decisions documented (service layer, unified memory+relationship storage)
-  - ✅ Logger uses no-op pattern (safe for stdio MCP transport)
-  - ✅ Dual build: standalone server + library factory
-  - ✅ mcp-auth compatibility via server factory
-  - ✅ 45 content types with dynamic descriptions
-  - ✅ Comprehensive type system (Memory, Relationship, Location, Context)
-  - ✅ Hybrid search with filters (type, tags, weight, trust, date)
-  - ✅ Vector similarity search for finding related memories
-  - ✅ RAG-optimized queries with detailed and compact formats
-  - ✅ N-way relationships connecting 2...N memories
-  - ✅ Bidirectional relationship tracking (memories know their relationships)
-  - ✅ Free-form relationship types (inspired_by, contradicts, caused_by, etc.)
-  - ✅ Relationship observations vectorized for semantic search
-  - ✅ User preferences system with 6 categories
-  - ✅ Conversational preference management (set/get via natural language)
-  - ✅ Preference validation and defaults
-  - ✅ Firestore storage for user preferences
-  - 📋 Ready for M5: Template System
-  
-current_blockers: []
 
   M14:
     - id: task-165
@@ -2719,3 +1854,870 @@ current_blockers: []
         ✅ Version bumped to 4.0.0
         ✅ CHANGELOG.md with breaking change documentation
         ✅ 510 tests passing
+documentation:
+  design_documents: 31
+  milestone_documents: 24
+  pattern_documents: 7
+  task_documents: 101
+  command_documents: 48
+  last_updated: 2026-03-23
+
+progress:
+  planning: 100
+  implementation: 80
+  overall: 85
+
+recent_work:
+  - date: 2026-03-07
+    description: M19 Complete — New Search Modes, Ghost Tools & Emotional Exposure
+    items:
+      - Implemented all 9 tasks (task-203 through task-211)
+      - 8 new MCP tools (22 → 30 total): search_by, 5 ghost tools, get_core, search_space_by
+      - 29 feel_* emotional dimensions on create/update memory
+      - New filters (exclude_types, rating_min) on search/query/space tools
+      - 432 tests passing (431 passed, 1 skipped), TypeScript clean, build passing
+      - Tool count 21 → 29 (8 new tools + schema enhancements to 3 existing)
+      - Authoritative design doc in remember-core/agent/design/local.new-search-tools.md
+      - Consolidated get_mood + get_perception → get_core, removed get_classifications (REST API)
+
+  - date: 2026-03-07
+    description: Documentation Sync (@acp.sync)
+    items:
+      - Updated progress.yaml version 3.12.0 → 3.15.4
+      - Updated progress.yaml current_milestone M17 → M18
+      - Fixed M16 status in_progress → completed
+      - Rewrote complete-tool-set.md to reflect actual 21-tool implementation
+      - Updated user-preferences.md status and tool name (remember_update_preferences → remember_set_preference)
+      - All 21 tools verified against server-factory.ts implementation
+
+  - date: 2026-02-28
+    description: M17 remember-core Migration COMPLETED
+    items:
+      - ✅ All 8 tasks completed (task-193 through task-200)
+      - ✅ 18 tool handlers migrated to thin adapters calling core services
+      - ✅ 10 duplicated files removed, 2 imports updated to use core
+      - ✅ Build passing, 390 tests (389 passed, 1 skipped)
+      - 📋 3 tools deferred (search_memory, query_memory, ghost_config)
+      - 📋 Phased approach: foundation → relationships → preferences → memory → space → cleanup
+
+  - date: 2026-02-27
+    description: M16 Ghost System COMPLETE (v3.12.0)
+    items:
+      - ✅ GhostConfig Firestore CRUD service (get, set, setUserTrust, blockUser, etc.)
+      - ✅ FirestoreGhostConfigProvider replaces StubGhostConfigProvider for production
+      - ✅ FirestoreEscalationStore for persistent trust escalation tracking
+      - ✅ Ghost memory filtering — excluded from all default searches
+      - ✅ ghost_context parameter on search-memory and query-memory tools
+      - ✅ buildTrustFilter wired for cross-user ghost searches
+      - ✅ remember_ghost_config tool — 6 actions (get, set, set_trust, remove_trust, block, unblock)
+      - ✅ 21 MCP tools, 454 tests (453 passed, 1 skipped)
+      - ✅ Version 3.12.0 released
+
+  - date: 2026-02-27
+    description: M8 Complete — Task 69 Comprehensive Tool Debugging
+    items:
+      - ✅ Task 69: Added debug logging to all 13 remaining tools
+      - ✅ All 18 MCP tools + weaviate client have createDebugLogger integration
+      - ✅ Pattern: debug.info at entry, debug.trace for args, debug.error in catch
+      - ✅ 394 tests passing, typecheck clean, build passing
+      - ✅ M8 Testing & Quality milestone COMPLETE (3/3 tasks)
+
+  - date: 2026-02-27
+    description: V1→V2 Collection Migration Code Switch + Dry Run (v3.8.0)
+    items:
+      - ✅ Complete V1→V2 code switch across all 22 files (v3.8.0)
+      - ✅ Schema reconciliation: v2-collections.ts is superset of v1 (both property names supported)
+      - ✅ All tools now use v2 collection names (Memory_users_{userId}, Memory_spaces_public)
+      - ✅ All tools now use v2 property names (content_type, trust_score, relationship_ids, etc.)
+      - ✅ Migration script built: scripts/migrate-v1-to-v2.ts (--dry-run, --verify-only, --skip-backup)
+      - ✅ Dry run tested against production: 3 collections, ~6,596 documents
+      - ✅ Collections discovered: Memory_public (11), Memory_MnOyIarhz5b8n06TsTovM582NSG2 (6,584), Memory_Default_user (1)
+      - ✅ Fixed migration verify step to skip during dry-run mode
+      - ✅ Design doc updated: agent/design/local.v2-migration-guide.md
+      - ✅ CHANGELOG.md updated with v3.8.0 entry
+      - ✅ 233 tests (232 passed, 1 skipped)
+      - ✅ Build passing, pushed to mainline
+      - ✅ e1.agentbase.me tested — publish flow working after Firebase credentials fix
+      - ⏳ Real migration pending — holding for e1 feature testing
+      - 📋 Next: Run real migration, then M7 Trust & Permissions
+
+  - date: 2026-02-27
+    description: Memory-Level ACL Schema Design + M14 Completion
+    items:
+      - ✅ M14 Memory Collection Pattern v2 COMPLETE (8/8 tasks, v3.7.0)
+      - ✅ Created agent/design/local.memory-acl-schema.md (remember-mcp)
+      - ✅ 4 new Weaviate fields designed (write_mode, overwrite_allowed_ids, last_revised_by, owner_id)
+      - ✅ Three-layer permission resolution algorithm (memory → group credentials → user)
+      - ✅ Space configuration Firestore collection designed
+      - ✅ Null-fallback migration strategy (zero backfill)
+      - ✅ Created local.group-credentials-for-remember-mcp.md (agentbase.me)
+      - ✅ Credentials endpoint extended with group_memberships_v2 (resolved permissions)
+      - ✅ New editor role defined (between admin and member)
+      - ✅ Updated local.v2-api-reference.md with upcoming ACL fields section
+      - ✅ Updated local.collaborative-memory-sync.md with ACL schema cross-references
+      - ✅ Both commits pushed (remember-mcp mainline, agentbase.me dev/prmichaelsen/e1)
+      - 📋 Next: M7 Trust & Permissions (implements the ACL schema)
+
+  - date: 2026-02-27
+    description: M14 Task 169 - remember_search_space Updated to v2 Architecture
+    items:
+      - ✅ Updated src/tools/search-space.ts for Memory Collection Pattern v2
+      - ✅ Now queries Memory_spaces_public (was Memory_public)
+      - ✅ Filters by space_ids.containsAny() (was spaces field)
+      - ✅ spaces parameter now optional; added groups array parameter
+      - ✅ Added search_type parameter (hybrid | bm25 | semantic)
+      - ✅ Multi-source merge + dedup by UUID + score-sorted results
+      - ✅ All-public fallback when neither spaces nor groups specified
+      - ✅ Soft-delete aware (deleted_at isNull filter)
+      - ✅ Created src/tools/search-space.spec.ts with 23 unit tests
+      - ✅ All 179 tests passing (was 156)
+      - 📋 M14 now 62% complete (5/8 tasks)
+      - 📋 Next: Task 170 - remember_create_memory + remember_update_memory
+
+  - date: 2026-02-26
+    description: M14 Task 168 - remember_revise Tool Implemented (v3.4.0)
+    items:
+      - ✅ Created src/tools/revise.ts - direct action tool (no confirmation flow)
+      - ✅ parseRevisionHistory() - safe JSON parsing of revision history field
+      - ✅ buildRevisionHistory() - prepends old content, trims to 10 entries max
+      - ✅ Reads space_ids/group_ids from source memory tracking arrays
+      - ✅ Updates Memory_spaces_public and Memory_groups_{groupId} in sequence
+      - ✅ Preserves old content in revision_history (JSON string field)
+      - ✅ Sets revised_at timestamp and increments revision_count per copy
+      - ✅ Partial success: each location reported independently
+      - ✅ Registered in src/server.ts and src/server-factory.ts
+      - ✅ 19 new unit tests (src/tools/revise.spec.ts)
+      - ✅ All 156 tests passing (was 137)
+      - ✅ Build passing (v3.4.0)
+      - 📋 M14 now 50% complete (4/8 tasks)
+      - 📋 Next: Task 169 - remember_search_space updates
+
+  - date: 2026-02-26
+    description: ACP Initialization - M14 Task 167 (remember_retract) Implemented
+    items:
+      - ✅ ACP init workflow executed - context fully loaded
+      - ⚠️  ACP update available (v4.2.1 - critical rule: never force-add gitignored files)
+      - ✅ Task 167: Implemented remember_retract tool (src/tools/retract.ts)
+      - ✅ Task 167: Added executeRetractMemory() handler in src/tools/confirm.ts
+      - ✅ Task 167: Registered retract tool in src/server.ts and src/server-factory.ts
+      - ✅ Orphan strategy: retracted memories preserved with cleared tracking arrays
+      - ✅ Fixed documentation drift: milestone-14 now shows In Progress
+      - ✅ Fixed documentation drift: task-167 now shows Completed
+      - ✅ Fixed version drift: progress.yaml now shows v3.2.0
+      - ✅ Build: passing (v3.2.0)
+      - ✅ Tests: 137 passed, 1 skipped (138 total)
+      - 📋 Uncommitted changes pending (retract.ts + confirm.ts + server registrations)
+      - 📋 Next: Task 168 - Implement remember_revise Tool
+
+  - date: 2026-02-25
+    description: CRITICAL BUG FIX - indexNullState Schema Configuration (v3.0.1)
+    items:
+      - 🐛 CRITICAL: Fixed "Nullstate must be indexed to be filterable" error
+      - ✅ Added indexNullState: true to inverted index configuration
+      - ✅ Fixed src/weaviate/schema.ts (Memory collections)
+      - ✅ Fixed src/weaviate/space-schema.ts (Memory_public collection)
+      - ✅ Used correct API: weaviate.configure.invertedIndex()
+      - ✅ Root cause: Task 70 added deleted_at field without null state indexing
+      - ✅ Impact: All memory searches were failing with gRPC error
+      - ✅ Solution: Collections must be recreated to apply fix
+      - ✅ All 93 tests passing
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+      - ✅ Created Task 76 documentation
+      - ⚠️  Users must delete and recreate collections to apply fix
+      - 📋 Ready for v3.0.1 patch release
+      
+  - date: 2026-02-25
+    description: ACP Initialization Complete - Project Context Loaded (v3.0.0)
+    items:
+      - ✅ Executed @acp.init command workflow
+      - ⚠️  ACP updates available (v4.1.1 with task subdirectory structure)
+      - ✅ Global packages discovered: acp-core v3.10.1 (28 commands, 2 patterns, 2 designs)
+      - ✅ All agent documentation reviewed (30 design docs, 13 milestones, 75 tasks, 7 patterns)
+      - ✅ Key source files reviewed (server.ts, progress.yaml, requirements.md, CHANGELOG.md)
+      - ✅ Project status verified - M1-M4, M10-M11, M13 complete (100%), M12 in progress (60%)
+      - ✅ Current version 3.0.0 (latest - soft delete system)
+      - ✅ All 93 unit tests passing (1 skipped integration test)
+      - ✅ Test coverage 33.12% overall
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (dual export: server + factory)
+      - ✅ All 17 MCP tools implemented and operational
+      - ✅ Multi-tenant architecture with per-user isolation working
+      - ✅ Vector search (Weaviate) + metadata (Firestore) operational
+      - ✅ Shared spaces with multi-space support functional
+      - ✅ Soft delete system with confirmation flow complete (v3.0.0)
+      - ✅ Comment system foundation implemented (v2.6.0)
+      - 📋 M12 Comment System: 3/5 tasks complete (schema, search, query updates)
+      - 📋 Remaining M12 tasks: Task 58 (unit tests), Task 59 (documentation)
+      - 📋 Ready to complete M12 milestone
+      - 📋 Git status: Clean working directory
+      
+  - date: 2026-02-25
+    description: M13 COMPLETED - Soft Delete System Released (v3.0.0)
+    items:
+      - 🎉 MILESTONE 13 COMPLETE: Soft Delete System
+      - ✅ Task 75 COMPLETED: Updated documentation and CHANGELOG
+      - ✅ Added comprehensive CHANGELOG entry for v3.0.0
+      - ✅ Documented breaking changes and migration guide
+      - ✅ Added soft delete workflow section to README.md
+      - ✅ Documented deletion confirmation flow
+      - ✅ Documented deleted_filter parameter usage
+      - ✅ Updated package.json to v3.0.0
+      - ✅ Updated progress.yaml to v3.0.0
+      - ✅ All 93 tests passing
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+      - 🚀 Ready for v3.0.0 release
+      - 📋 Breaking change: Deletion requires confirmation
+      - 📋 Breaking change: Deleted memories excluded by default
+      
+  - date: 2026-02-25
+    description: Tasks 70-73 COMPLETED - Soft Delete Core + Validation (67% M13)
+    items:
+      - 🎉 Task 73 COMPLETED: Updated relationship handling for deleted memories
+      - ✅ Added deleted_at validation to remember_create_relationship
+      - ✅ Prevents creating relationships with deleted memories
+      - ✅ Error message includes deletion timestamp
+      - ✅ Added deleted_at validation to remember_update_memory
+      - ✅ Prevents updating deleted memories
+      - ✅ Clear error messages with deletion date
+      - ✅ All 93 tests passing (1 skipped integration test)
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+      - 📋 M13: 67% complete (4/6 tasks done)
+      - 📋 Remaining: Task 74 (unit tests), Task 75 (documentation)
+      
+  - date: 2026-02-25
+    description: Tasks 70-72 COMPLETED - Soft Delete Core Implementation (50% M13)
+    items:
+      - 🎉 Task 72 COMPLETED: Added deleted_filter to all search tools
+      - ✅ Added deleted_filter parameter to remember_search_memory
+      - ✅ Added deleted_filter parameter to remember_query_memory
+      - ✅ Added deleted_filter parameter to remember_find_similar
+      - ✅ Added deleted_filter parameter to remember_search_relationship
+      - ✅ Created buildDeletedFilter helper function
+      - ✅ Exported combineFiltersWithAnd for reuse
+      - ✅ Added DeletedFilter type to memory.ts
+      - ✅ Filter applied at Weaviate query level (not post-processing)
+      - ✅ Default behavior: exclude deleted memories
+      - '✅ Three modes: "exclude", "include", "only"'
+      - ✅ All 93 tests passing (1 skipped integration test)
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+      - 📋 M13: 50% complete (3/6 tasks done)
+      
+  - date: 2026-02-25
+    description: Task 71 COMPLETED - Delete Confirmation Flow Implemented
+    items:
+      - ✅ Modified remember_delete_memory to create confirmation token
+      - ✅ Tool now returns preview with content, type, relationship count
+      - ✅ Preview shows which relationships will be orphaned
+      - ✅ Enhanced remember_confirm to handle delete_memory action
+      - ✅ Confirmation sets deleted_at, deleted_by, deletion_reason fields
+      - ✅ Added executeDeleteMemory function to confirm.ts
+      - ✅ Validates memory ownership before deletion
+      - ✅ Prevents deleting already-deleted memories
+      - ✅ Token expires after 5 minutes (reuses existing service)
+      - ✅ Fixed space-schema test (removed deprecated space_id check)
+      - ✅ All 93 tests passing (1 skipped integration test)
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+      - 📋 M13: 33% complete (2/6 tasks done)
+      
+  - date: 2026-02-25
+    description: Task 70 COMPLETED - Added Soft Delete Schema Fields
+    items:
+      - ✅ Added 3 fields to Memory schema (deleted_at, deleted_by, deletion_reason)
+      - ✅ Added same 3 fields to Memory_public schema
+      - ✅ Updated Memory interface in src/types/memory.ts
+      - ✅ Updated SpaceMemory interface in src/types/space-memory.ts
+      - ✅ Added fields to ALL_MEMORY_PROPERTIES constant
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (dual export: server + factory)
+      - ✅ No breaking changes to existing code
+      - ✅ Schema ready for soft delete implementation
+      - 📋 M13: 17% complete (1/6 tasks done)
+      
+  - date: 2026-02-25
+    description: ACP Initialization Complete - Full Project Context Loaded
+    items:
+      - ✅ Executed @acp.init command workflow
+      - ⚠️  ACP updates available (v3.14.0 → current v3.10.1)
+      - ✅ Global packages discovered: acp-core v3.10.1 (28 commands, 2 patterns, 2 designs)
+      - ✅ All agent documentation reviewed (30 design docs, 12 milestones, 69 tasks, 7 patterns)
+      - ✅ Key source files reviewed (server.ts, search-space.ts, schema.ts, package.json, README.md)
+      - ✅ Project status verified - M1-M4, M10-M11 complete (100%), M12 in progress (60%)
+      - ✅ Current version 2.8.0 (latest)
+      - ✅ All 93 unit tests passing (1 skipped integration test)
+      - ✅ Test coverage 33.12% overall
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (dual export: server + factory)
+      - ✅ All 17 MCP tools implemented and operational
+      - ✅ Multi-tenant architecture with per-user isolation working
+      - ✅ Vector search (Weaviate) + metadata (Firestore) operational
+      - ✅ Shared spaces with multi-space support functional
+      - ✅ Comment system foundation implemented (v2.6.0)
+      - ✅ Task 69 IN PROGRESS: Comprehensive Tool Debugging (70% complete)
+      - 📋 M12 Comment System: 3/5 tasks complete (schema, search, query updates)
+      - 📋 Remaining M12 tasks: Task 58 (unit tests), Task 59 (documentation)
+      - 📋 Ready to complete M12 milestone
+      
+  - date: 2026-02-25
+    description: Task 69 IN PROGRESS - Comprehensive Tool Debugging (70% complete)
+    items:
+      - ✅ Core infrastructure complete (Steps 1-2, 5-7)
+      - ✅ Added DebugLevel enum and debugConfig to src/config.ts
+      - ✅ Created src/utils/debug.ts with DebugLogger class
+      - ✅ Implemented 5 debug levels: NONE, ERROR, WARN, INFO, DEBUG, TRACE
+      - ✅ Added time() method for performance profiling
+      - ✅ Added dump() method for parameter inspection (TRACE only)
+      - ✅ Created 12 unit tests with 100% coverage on debug utility
+      - ✅ Updated .env.example with REMEMBER_MCP_DEBUG_LEVEL variable
+      - ✅ Updated README.md with debugging section and examples
+      - ✅ Integrated 5 tools: publish, confirm, search-space, query-space, weaviate-client
+      - ✅ All 93 tests passing (12 new debug tests)
+      - ✅ Build successful, TypeScript compiles without errors
+      - ✅ Zero performance overhead when debug disabled (NONE)
+      - ✅ Space tools now have comprehensive debug tracing
+      - ✅ Performance timing on all database operations
+      - 📋 Remaining: 12 tools (6 memory, 4 relationship, 2 preference)
+      - 📋 Progress: 70% complete (5/17 tools + client integrated)
+      
+  - date: 2026-02-25
+    description: CRITICAL BUG FIX - Missing Space Properties (v2.7.12)
+    items:
+      - 🐛 CRITICAL: Fixed published memories not appearing in space search results
+      - ✅ Added 8 missing space-related properties to ALL_MEMORY_PROPERTIES constant
+      - ✅ Properties: spaces, space_id, author_id, ghost_id, attribution, published_at, discovery_count, space_memory_id
+      - ✅ Root cause: Properties added to schema (v2.4.0) but not to fetch constant (v2.6.3)
+      - ✅ Impact: Published memories now properly include all space fields
+      - ✅ Search filtering by spaces array now works correctly
+      - ✅ Memories now discoverable in The Void and other shared spaces
+      - ✅ Build successful, all 81 tests passing
+      - ✅ Created Task 68 documentation
+      - 📋 Ready for v2.7.12 release
+      
+  - date: 2026-02-25
+    description: ACP Initialization Complete - Full Context Loaded
+    items:
+      - ✅ ACP initialization workflow executed via @acp.init command
+      - ⚠️  ACP updates available (v3.14.0 with script-command binding system)
+      - ✅ Global ACP packages discovered: acp-core v3.10.1 (28 commands, 2 patterns, 2 designs)
+      - ✅ All agent documentation reviewed (30 design docs, 12 milestones, 67 tasks, 7 patterns)
+      - ✅ Key source files reviewed (server.ts, search-space.ts, schema.ts)
+      - ✅ Project status verified: M1-M4, M10-M11 complete (100%), M12 in progress (60%)
+      - ✅ Current version: 2.7.11 (latest published)
+      - ✅ 81 unit tests passing (1 skipped integration test)
+      - ✅ Test coverage: 33.12% overall
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (dual export: server + factory)
+      - ✅ All 17 MCP tools implemented and working
+      - ✅ M12 Comment System: 3/5 tasks complete (schema, search, query updates)
+      - 📋 Remaining M12 tasks: Task 58 (unit tests), Task 59 (documentation)
+      - 📋 Ready to complete M12 milestone
+      - 📋 Multi-tenant architecture with per-user isolation operational
+      - 📋 Vector search with Weaviate + metadata with Firestore working
+      - 📋 Shared spaces with multi-space support functional
+      - 📋 Comment system foundation implemented (v2.6.0)
+      
+  - date: 2026-02-22
+    description: ACP Initialization Complete - Project Context Loaded
+    items:
+      - ✅ ACP initialization workflow executed via @acp.init command
+      - ⚠️  ACP updates available (v3.9.0 with global package installation system)
+      - ✅ All agent documentation reviewed (30 design docs, 12 milestones, 67 tasks, 7 patterns)
+      - ✅ Project status verified: M1-M4, M10-M11 complete (100%), M12 in progress (60%)
+      - ✅ Current version: 2.7.11 (latest published)
+      - ✅ 81 unit tests passing (1 skipped integration test)
+      - ✅ Test coverage: 33.12% overall
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (dual export: server + factory)
+      - ✅ All 17 MCP tools implemented and working
+      - ✅ M12 Comment System: 3/5 tasks complete (schema, search, query updates)
+      - 📋 Remaining M12 tasks: Task 58 (unit tests), Task 59 (documentation)
+      - 📋 Ready to complete M12 milestone
+      - 📋 Multi-tenant architecture with per-user isolation operational
+      - 📋 Vector search with Weaviate + metadata with Firestore working
+      - 📋 Shared spaces with multi-space support functional
+      - 📋 Comment system foundation implemented (v2.6.0)
+      
+  - date: 2026-02-17
+    description: CRITICAL BUG FIX - Shared Space Discovery Now Works (v2.7.8)
+    items:
+      - 🐛 CRITICAL: Fixed shared space discovery bug
+      - '✅ Search/query tools now filter by doc_type: ''memory'' (was ''space_memory'')'
+      - ✅ space_memory concept was removed from architecture
+      - ✅ All users can now discover memories in The Void
+      - ✅ Root cause: search-space.ts and query-space.ts filtered for wrong doc_type
+      - ✅ Changed filters from 'space_memory' to 'memory'
+      - ✅ Build successful, all 81 tests passing
+      - ✅ No data migration needed - existing memories are correct
+      - 📋 Released v2.7.8 with critical bug fix
+      
+  - date: 2026-02-17
+    description: Fixed Build Error & Completed Task 66 - Comment Field Initialization
+    items:
+      - ✅ Fixed critical TypeScript build error in content-types.ts
+      - ✅ Added missing 'poetry' content type metadata
+      - ✅ Build now successful - TypeScript compiles without errors
+      - ✅ Task 66 COMPLETED: Initialize comment fields in create/update tools
+      - ✅ Updated remember_create_memory tool schema with comment fields
+      - ✅ Updated CreateMemoryArgs interface with parent_id, thread_root_id, moderation_flags
+      - ✅ Initialized comment fields to defaults in handleCreateMemory (null, null, [])
+      - ✅ Updated remember_update_memory tool schema with comment fields
+      - ✅ Updated UpdateMemoryArgs interface with comment fields
+      - ✅ Added comment field update logic in handleUpdateMemory
+      - ✅ All 81 tests passing (1 skipped integration test)
+      - ✅ Test coverage: 33.12% overall
+      - ✅ New memories now created with comment fields initialized
+      - ✅ Can create comments with parent_id and thread_root_id set
+      - ✅ Can update comment fields via remember_update_memory
+      - 📋 Ready for M12 completion: Tasks 58-59 remaining
+      
+  - date: 2026-02-17
+    description: ACP Initialization Complete - Ready for M12 Completion
+    items:
+      - ✅ ACP initialization workflow executed via @acp.init command
+      - ⚠️  ACP updates available (v1.4.3 with improved script color output)
+      - ✅ All agent documentation reviewed (30 design docs, 12 milestones, 67 tasks, 7 patterns)
+      - ✅ Project status verified: M1-M4, M10-M11 complete (100%), M12 in progress (60%)
+      - ✅ Version 2.7.7 confirmed (latest release)
+      - ✅ 81 unit tests passing (1 skipped integration test)
+      - ✅ Test coverage: 33.12% overall
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (dual export: server + factory)
+      - ✅ All 17 MCP tools implemented and working
+      - ✅ M12 Comment System: 3/5 tasks complete (schema, search, query updates)
+      - ✅ Task 66 completed: Comment fields initialized in create/update tools
+      - 📋 Remaining M12 tasks: Task 58 (unit tests), Task 59 (documentation)
+      - 📋 Ready to complete M12 milestone
+      - 📋 Multi-tenant architecture with per-user isolation operational
+      - 📋 Vector search with Weaviate + metadata with Firestore working
+      - 📋 Shared spaces with multi-space support functional
+      
+  - date: 2026-02-16
+    description: Comment System, Structured Logging, and Safety Guidelines (v2.6.0-v2.6.2)
+    items:
+      - 🎉 M12 STARTED: Comment System (Phase 1) - 60% complete (3/5 tasks)
+      - ✅ Task 55: Added 3 comment fields to Weaviate schema
+      - ✅ parent_id, thread_root_id, moderation_flags fields added
+      - ✅ Enables infinite comment nesting with no depth limit
+      - ✅ Per-space moderation flags support
+      - ✅ Task 56: Updated remember_search_space with include_comments parameter
+      - ✅ Comments excluded by default for clean discovery
+      - ✅ Opt-in via include_comments: true
+      - ✅ Task 57: Updated remember_query_space with include_comments parameter
+      - ✅ Same filtering logic as search_space
+      - ✅ Released v2.6.0 with comment system foundation
+      - ✅ Task 60: Standardized structured logging across 8 files
+      - ✅ Replaced 54 console.log/error/warn calls with logger.info/error/warn/debug
+      - ✅ All logs include context objects (service, module, tool names)
+      - ✅ Fixed circular dependency in config.ts with dynamic import
+      - ✅ Released v2.6.1 with structured logging
+      - ✅ Task 61: Enhanced confirmation tool safety guidelines
+      - ✅ Added 5 critical safety requirements to remember_confirm and remember_deny
+      - ✅ Prevents agents from chaining confirmations without user consent
+      - ✅ Visual indicators (⚠️) and JSDoc comments added
+      - ✅ Released v2.6.2 with safety enhancements
+      - 📋 Next: Complete M12 with Tasks 58-59 (tests + documentation)
+      - 📋 6 commits ready to push to origin
+      
+  - date: 2026-02-16
+    description: ACP Initialization Complete - Multi-Space Architecture Verified (v2.5.1)
+    items:
+      - ✅ ACP initialization workflow executed via @acp.init command
+      - ✅ AGENT.md confirmed up-to-date (v1.0.3)
+      - ✅ All agent documentation reviewed (29 design docs, 11 milestones, 54 tasks, 5 patterns)
+      - ✅ Project status verified: M1-M4, M10-M11 complete (100%)
+      - ✅ Version 2.5.1 confirmed (latest release with error handling fix)
+      - ✅ All unit tests passing
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (dual export: server + factory)
+      - ✅ All 17 MCP tools implemented and working
+      - 🎉 M10 COMPLETED: Shared Spaces & Confirmation Flow
+      - ✅ Token-based confirmation system operational
+      - ✅ 5 space tools: publish, confirm, deny, search_space, query_space
+      - ✅ Confirmation token service with 5-minute expiry and comprehensive error handling
+      - ✅ Firestore request validation and diagnostic logging
+      - 🎉 M11 COMPLETED: Unified Public Collection Architecture
+      - ✅ Multi-space architecture implemented (spaces: string[] array)
+      - ✅ Memory_public unified collection replaces per-space collections
+      - ✅ Multi-space search with containsAny filter
+      - ✅ No memory duplication across spaces
+      - ✅ remember_publish supports publishing to multiple spaces
+      - ✅ remember_search_space supports multi-space queries
+      - ✅ remember_query_space supports multi-space RAG
+      - ✅ All tests updated for multi-space support
+      - ✅ Documentation updated with multi-space examples
+      - ✅ Multi-tenant architecture with per-user isolation
+      - ✅ Vector search with Weaviate + metadata with Firestore
+      - ✅ 45 content types with dynamic descriptions
+      - ✅ N-way relationships with bidirectional tracking
+      - ✅ User preferences system (6 categories)
+      - 📋 Ready for deployment testing and verification
+      - 📋 Next: Deploy v2.5.1 and test multi-space functionality
+      
+  - date: 2026-02-16
+    description: ACP Initialization Complete - Project Status Verified
+    items:
+      - ✅ ACP initialization workflow executed via @acp.init command
+      - ⚠️  ACP updates available (v1.2.1 with new command format)
+      - ✅ All agent documentation reviewed (23 design docs, 10 milestones, 33 tasks, 5 patterns)
+      - ✅ Project status verified: M1-M4 complete (100%), M10 in progress
+      - ✅ Version 2.3.1 confirmed (latest patch release)
+      - ✅ 53 unit tests passing (1 skipped integration test)
+      - ✅ Test coverage: 29.76% overall
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (dual export: server + factory)
+      - ✅ All 17 MCP tools implemented and working
+      - ✅ M10 Shared Spaces: 5 tools implemented (publish, confirm, deny, search_space, query_space)
+      - ✅ Token-based confirmation system operational
+      - ✅ Space collections: Memory_the_void with snake_case naming
+      - ✅ Confirmation token service with 5-minute expiry
+      - ✅ Space memory types and schema complete
+      - ✅ Multi-tenant architecture with per-user isolation
+      - ✅ Vector search with Weaviate + metadata with Firestore
+      - ✅ 45 content types with dynamic descriptions
+      - ✅ N-way relationships with bidirectional tracking
+      - ✅ User preferences system (6 categories)
+      - 📋 M10 implementation appears complete - needs verification
+      - 📋 Ready to verify M10 completion and update documentation
+      
+  - date: 2026-02-16
+    description: Created Milestone 10 and Tasks for Shared Spaces
+    items:
+      - ✅ Created M10: Shared Spaces & Confirmation Flow milestone
+      - ✅ Created Task 34: Confirmation Token Service
+      - ✅ Created Task 35: Space Memory Types and Schema
+      - ✅ Created Task 36: Implement remember_publish
+      - ✅ Created Task 37: Implement remember_confirm
+      - ✅ Created Task 38: Implement remember_deny
+      - ✅ Created Task 39: Implement remember_search_space
+      - ✅ Created Task 40: Implement remember_query_space
+      - ✅ Created Task 41: Configure Firestore TTL
+      - ✅ Created Task 42: Create Tests
+      - ✅ Created Task 43: Update Documentation
+      - ✅ Updated naming convention: snake_case for space IDs
+      - ✅ "The Void" → `the_void` → `Memory_the_void`
+      - ✅ Token-based confirmation pattern documented
+      - ✅ 5 new tools planned (publish, confirm, deny, search_space, query_space)
+      - 📋 Ready to begin M10 implementation
+      - 📋 10 tasks, estimated 30 hours total
+      
+  - date: 2026-02-16
+    description: ACP Initialization Complete - Firebase SDK Reverted
+    items:
+      - ✅ AGENT.md confirmed up-to-date (v1.0.3)
+      - ⚠️  ACP updates available (v1.0.3 with new templates and scripts)
+      - ✅ All agent documentation reviewed and current
+      - '✅ Project status verified: 4 milestones complete (M1-M4: 100%)'
+      - ✅ Version 2.2.1 confirmed (latest release)
+      - ✅ Reverted commit 328abd3 (Firebase Admin SDK migration)
+      - ✅ Restored @prmichaelsen/firebase-admin-sdk-v8@2.2.0
+      - ✅ 53 unit tests passing (1 skipped integration test)
+      - ✅ Test coverage: 29.76% overall
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+      - ✅ All 12 MCP tools implemented and working
+      - ✅ Comprehensive error handling framework in place
+      - ✅ Dual export: standalone server + factory for mcp-auth
+      - ✅ Multi-tenant architecture with per-user isolation
+      - ✅ Vector search with Weaviate + metadata with Firestore
+      - ✅ 45 content types with dynamic descriptions
+      - ✅ N-way relationships with bidirectional tracking
+      - ✅ User preferences system (6 categories)
+      - 📋 Ready to begin M5: Template System
+      - 📋 Project structure follows ACP and bootstrap patterns
+      - 📋 Documentation comprehensive and accurate
+      
+  - date: 2026-02-16
+    description: ACP Initialization - Complete Project Context Review
+    items:
+      - ✅ AGENT.md confirmed up-to-date (v1.0.3)
+      - ✅ All agent documentation reviewed and current
+      - '✅ Project status verified: 4 milestones complete (M1-M4: 100%)'
+      - ✅ Version 2.2.1 confirmed (latest release)
+      - ✅ 53 unit tests passing (1 skipped integration test)
+      - ✅ Test coverage: 24.68% overall
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+      - ✅ All 12 MCP tools implemented and working
+      - ✅ Comprehensive error handling framework in place
+      - ✅ Dual export: standalone server + factory for mcp-auth
+      - ✅ Multi-tenant architecture with per-user isolation
+      - ✅ Vector search with Weaviate + metadata with Firestore
+      - ✅ 45 content types with dynamic descriptions
+      - ✅ N-way relationships with bidirectional tracking
+      - ✅ User preferences system (6 categories)
+      - ✅ LLM provider abstraction (Bedrock implemented)
+      - ✅ Background job service for async operations
+      - ✅ Production-ready with Cloud Run deployment
+      - 📋 Ready to begin M5: Template System
+      - 📋 Project structure follows ACP and bootstrap patterns
+      - 📋 Documentation comprehensive and accurate
+      
+  - date: 2026-02-15
+    description: All Production Error Tasks COMPLETED (Tasks 23-25)
+    items:
+      - 🎉 Task 165 (Core Infrastructure Setup) COMPLETED!
+      - ✅ Fixed 3 failing tests in core-infrastructure.spec.ts
+      - ✅ Added ID validation for dots in getCollectionName()
+      - ✅ Updated error message in parseCompositeId() to include "must be exactly 2 parts"
+      - ✅ Changed validateCompositeId() to return true instead of void
+      - ✅ All 138 tests passing (137 passed, 1 skipped)
+      - ✅ 79% coverage on new collections code
+      - 🚀 M14: Memory Collection Pattern v2 now in progress (1/8 tasks complete)
+      
+  - date: 2026-02-26
+    description: Task 165 COMPLETED - Core Infrastructure Setup
+    items:
+      - 🎉 Task 25 (Fix Update Memory Errors) COMPLETED!
+      - 🎉 Task 23 (Fix Relationship Creation Errors) COMPLETED!
+      - 🎉 Task 24 (Fix Weaviate Filter Path Error) COMPLETED!
+      - ✅ All 3 production error categories addressed
+      - ✅ Enhanced error logging across all affected tools
+      - ✅ Standardized error handling with handleToolError
+      - ✅ Added detailed context to all error messages
+      - ✅ Fixed critical Weaviate v3 filter API bug
+      - ✅ All 53 tests passing
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+      - 📊 Production errors should now have actionable diagnostics
+      
+  - date: 2026-02-15
+    description: Task 24 COMPLETED - Fixed Weaviate Filter Path Error
+    items:
+      - 🎉 Task 24 (Fix Weaviate Filter Path Error) COMPLETED!
+      - 🐛 Fixed critical "paths needs to have a uneven number of components" gRPC error
+      - ✅ Updated search-relationship.ts to use Weaviate v3 filter API
+      - ✅ Replaced old v2 format (path/operator/valueText) with v3 fluent API
+      - ✅ Now uses collection.filter.byProperty() and Filters.and()/or()
+      - ✅ Fixed method name: greaterThanOrEqual -> greaterOrEqual
+      - ✅ Root cause: search-relationship.ts was never updated in Task 20
+      - ✅ All 53 tests passing
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+      - 🚀 remember_search_relationship tool now works correctly
+      
+  - date: 2026-02-15
+    description: Production Error Analysis - Created Task Documents
+    items:
+      - 📊 Analyzed 300 Cloud Run logs from remember-mcp-server
+      - 🔍 Identified 63 error occurrences across 3 categories
+      - ✅ Created Task 23: Fix Relationship Creation Errors (High Priority)
+      - ✅ Created Task 24: Fix Weaviate Filter Path Error (Critical Priority)
+      - ✅ Created Task 25: Fix Update Memory Errors (Medium Priority)
+      - 📋 Service is operational but has intermittent errors
+      - 📋 Most errors in relationship creation (~20+ occurrences)
+      - 📋 Critical Weaviate filter path error still occurring (supposedly fixed in v1.0.2)
+      - 📋 Update memory errors less frequent but need attention
+      - 📋 All errors documented with reproduction steps and verification criteria
+      - 📋 Ready to begin debugging and fixes
+      
+  - date: 2026-02-15
+    description: ACP Initialization - Comprehensive Project Review
+    items:
+      - 📊 Complete ACP initialization workflow executed
+      - ✅ AGENT.md confirmed up-to-date (v1.0.3)
+      - ✅ All agent documentation reviewed and current
+      - '✅ Project status verified: 4 milestones complete (M1-M4: 100%)'
+      - ✅ 53 unit tests passing (1 skipped integration test)
+      - ✅ Test coverage: 29.9% overall
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (v2.0.2)
+      - ✅ All 12 MCP tools implemented and working
+      - ✅ Comprehensive error handling framework in place
+      - ✅ Dual export: standalone server + factory for mcp-auth
+      - ✅ Multi-tenant architecture with per-user isolation
+      - ✅ Vector search with Weaviate + metadata with Firestore
+      - ✅ 45 content types with dynamic descriptions
+      - ✅ N-way relationships with bidirectional tracking
+      - ✅ User preferences system (6 categories)
+      - ✅ Production-ready with Cloud Run deployment
+      - 📋 Ready to begin M5: Template System
+      - 📋 Project structure follows ACP and bootstrap patterns
+      - 📋 Documentation comprehensive and accurate
+      
+  - date: 2026-02-14
+    description: v2.0.2 Released - Comprehensive Error Handling
+    items:
+      - 🎉 v2.0.2 RELEASED - Patch release with comprehensive error handling
+      - ✅ Applied centralized error handler to all 12 MCP tools
+      - ✅ All tools now use handleToolError() from error-handler.ts
+      - ✅ Consistent error logging with full context across all operations
+      - ✅ Stack traces included in all error messages
+      - ✅ Tool-specific context (userId, IDs, operation details) in every error
+      - ✅ Production debugging significantly enhanced
+      - ✅ Build successful
+      - ✅ All tests passing
+      
+  - date: 2026-02-14
+    description: v2.0.1 Released - Enhanced Error Logging Framework
+    items:
+      - 🎉 v2.0.1 RELEASED - Patch release with error handling improvements
+      - ✅ Created centralized error-handler utility (src/utils/error-handler.ts)
+      - ✅ Enhanced error logging in remember_update_memory
+      - ✅ Detailed error context: userId, memoryId, operation, stack traces
+      - ✅ Separate error handling for fetch and update operations
+      - ✅ Error messages now include full context for Cloud Run debugging
+      - ✅ Framework ready for application to all 12 tools
+      - ✅ Build successful
+      - ✅ All tests passing
+      - 📋 Production error diagnostics significantly improved
+      
+  - date: 2026-02-14
+    description: Project Status Review - ACP Initialization
+    items:
+      - 📊 Comprehensive project review completed via ACP initialization
+      - ✅ All 12 MCP tools implemented and working
+      - ✅ 54 tests passing (53 passed, 1 skipped integration test)
+      - ✅ Test coverage: 29.26% overall
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful (v2.0.0)
+      - ✅ 30 TypeScript source files in project (added error-handler.ts)
+      - ✅ Dual export: standalone server + factory for mcp-auth
+      - ✅ All 4 milestones complete (M1-M4: 100%)
+      - ✅ Ready to begin M5: Template System
+      - 📋 Project structure follows ACP and bootstrap patterns
+      - 📋 Documentation comprehensive and up-to-date
+      
+  - date: 2026-02-12
+    description: v1.0.1 Released - Or Operator Bug Fix
+    items:
+      - 🎉 v1.0.1 RELEASED - Patch release with bug fix
+      - 🐛 Fixed "no children for operator Or" error
+      - ✅ Added validation to filter out undefined/null values in filter combinations
+      - ✅ Updated combineFiltersWithOr to validate operands
+      - ✅ Updated combineFiltersWithAnd to validate operands
+      - ✅ Added 3 new edge case tests for undefined/null handling
+      - ✅ All 57 tests passing (up from 54)
+      - ✅ Code coverage: 90.56% on weaviate-filters.ts
+      - ✅ Build successful
+      - ✅ CHANGELOG.md updated
+      
+  - date: 2026-02-12
+    description: v1.0.0 Released - Major Version with Breaking Changes
+    items:
+      - 🎉 v1.0.0 RELEASED - First stable release
+      - 🚨 BREAKING: createServer is now async (returns Promise<Server>)
+      - ✅ Database initialization now uses await pattern
+      - ✅ Server factory properly waits for databases before accepting requests
+      - ✅ Updated all server-factory tests for async
+      - ✅ All 54 tests passing
+      - ✅ CHANGELOG.md created with migration guide
+      
+  - date: 2026-02-12
+    description: Task 20 COMPLETED - Weaviate v3 Filters & Relationship Search
+    items:
+      - 🎉 Task 20 (Fix Weaviate v3 Filters) COMPLETED!
+      - ✅ Created src/utils/weaviate-filters.ts with v3 filter builders
+      - ✅ Implemented buildCombinedSearchFilters() with OR logic
+      - ✅ Implemented buildMemoryOnlyFilters() for backward compatibility
+      - ✅ Implemented buildRelationshipOnlyFilters() for relationship-only search
+      - ✅ Updated search-memory.ts to use v3 filters
+      - ✅ Updated search-memory.ts to search BOTH memories AND relationships by default
+      - ✅ Updated query-memory.ts to use v3 filters
+      - ✅ Results now separated into memories and relationships arrays
+      - ✅ 29 new unit tests for filter builders
+      - ✅ Build successful
+      - ✅ TypeScript compiles without errors
+      - 🔧 Fixed gRPC "paths needs to have an uneven number of components" error
+      - 🔧 Replaced old v2 filter format (path/operator/valueText) with v3 fluent API
+      
+  - date: 2026-02-12
+    description: Project Status Review & Documentation Update
+    items:
+      - 📊 Comprehensive project review completed
+      - ✅ All 12 MCP tools implemented and working
+      - ✅ 28 TypeScript source files in project (added weaviate-filters.ts)
+      - ✅ 25 unit tests passing (1 skipped)
+      - ✅ Build successful (v0.2.5)
+      - ✅ TypeScript compiles without errors
+      - ⚠️  CRITICAL: Weaviate v3 filter API issue identified (Task 20)
+      - ⚠️  Old v2 filter format used in search-memory.ts and query-memory.ts
+      - ⚠️  Will cause gRPC errors when filters are used
+      - 📋 Task 20 created: Fix Weaviate v3 Filters
+      
+  - date: 2026-02-11
+    description: M4 Complete - User Preferences
+    items:
+      - 🎉 Milestone 4 (User Preferences) COMPLETED!
+      - 🎉 Milestone 3 (Relationships & Graph) COMPLETED!
+      - 🎉 Milestone 2 (Core Memory System) COMPLETED!
+      - 🎉 Milestone 1 (Project Foundation) COMPLETED!
+      - ✅ UserPreferences type with 6 categories
+      - ✅ remember_set_preference tool implemented
+      - ✅ remember_get_preferences tool implemented
+      - ✅ Preference validation (path and value types)
+      - ✅ Default preferences for all categories
+      - ✅ User-friendly change messages
+      - ✅ Firestore integration using firebase-admin-sdk-v8
+      - ✅ Dot-notation path updates (e.g., "templates.auto_suggest")
+      - ✅ Automatic defaults when preferences don't exist
+      - ✅ All tools integrated into server.ts and server-factory.ts
+      - ✅ TypeScript compiles without errors
+      - ✅ Build successful
+
+next_steps:
+  - M24: MCP Elicitation Confirmation Flow (not started)
+  - M5: Template System (not started)
+  - M6: Auth & Multi-Tenancy (not started)
+  - M9: Deployment & Documentation (not started)
+  - Run real V1→V2 migration against production (after e1 testing)
+
+notes:
+  - ✅ V1→V2 Collection Migration code switch COMPLETE (v3.8.0)
+  - ⏳ V1→V2 data migration pending (dry run tested, ~6,596 docs)
+  - ✅ Milestone 14 (Memory Collection Pattern v2) COMPLETE (8/8 tasks)
+  - ✅ Milestone 15 (Moderation & Space Config) COMPLETE (6/6 tasks)
+  - ✅ Milestone 12 (Comment System Phase 1) COMPLETE (5/5 tasks)
+  - 🚀 Milestone 7 (Trust & Permissions) IN PROGRESS - task breakdown complete (0/7)
+  - 🎉 Milestone 11 (Unified Public Collection) COMPLETED!
+  - 🎉 Milestone 10 (Shared Spaces & Confirmation Flow) COMPLETED!
+  - 🎉 Milestone 4 (User Preferences) COMPLETED!
+  - 🎉 Milestone 3 (Relationships & Graph) COMPLETED!
+  - 🎉 Milestone 2 (Core Memory System) COMPLETED!
+  - 🎉 Milestone 1 (Project Foundation) COMPLETED!
+  - ✅ All 29 design documents complete and comprehensive
+  - ✅ M1: 7 tasks complete (Tasks 1-5, 9 complete; Tasks 6-7 deferred)
+  - ✅ M2: 6/6 memory tools complete (100% progress)
+  - ✅ M3: 4/4 relationship tools complete (100% progress)
+  - ✅ M4: 2/2 preference tools complete (100% progress)
+  - ✅ M10: 10/10 shared space tools complete (100% progress)
+  - ✅ M11: 9/9 multi-space architecture tasks complete (100% progress)
+  - ✅ M12: 5/5 comment system tasks complete (100% progress)
+  - ✅ M13: Soft delete system complete
+  - ✅ M14: Memory Collection v2 complete (8/8 tasks)
+  - ✅ M15: Moderation & Space Config complete (6/6 tasks)
+  - ✅ Complete memory CRUD operations (create, read, update, delete)
+  - ✅ Complete relationship CRUD operations (create, read, update, delete)
+  - ✅ Advanced search capabilities (hybrid, similarity, RAG queries)
+  - ✅ Relationship semantic search on observations
+  - ✅ Module name mapping (@/) configured across TypeScript, Jest, and esbuild
+  - ✅ Project structure follows bootstrap.md pattern
+  - ✅ All dependencies installed (497 packages with firebase-admin-sdk-v8)
+  - ✅ Build tools verified and working
+  - ✅ Database client infrastructure complete (Weaviate + Firestore)
+  - ✅ 25 unit tests passing (1 skipped integration test)
+  - ✅ Test coverage: 30.37% overall
+  - ✅ Key design decisions documented (service layer, unified memory+relationship storage)
+  - ✅ Logger uses no-op pattern (safe for stdio MCP transport)
+  - ✅ Dual build: standalone server + library factory
+  - ✅ mcp-auth compatibility via server factory
+  - ✅ 45 content types with dynamic descriptions
+  - ✅ Comprehensive type system (Memory, Relationship, Location, Context)
+  - ✅ Hybrid search with filters (type, tags, weight, trust, date)
+  - ✅ Vector similarity search for finding related memories
+  - ✅ RAG-optimized queries with detailed and compact formats
+  - ✅ N-way relationships connecting 2...N memories
+  - ✅ Bidirectional relationship tracking (memories know their relationships)
+  - ✅ Free-form relationship types (inspired_by, contradicts, caused_by, etc.)
+  - ✅ Relationship observations vectorized for semantic search
+  - ✅ User preferences system with 6 categories
+  - ✅ Conversational preference management (set/get via natural language)
+  - ✅ Preference validation and defaults
+  - ✅ Firestore storage for user preferences
+  - 📋 Ready for M5: Template System
+  
+current_blockers: []
+
